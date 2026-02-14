@@ -62,6 +62,8 @@ Designed as a drop-in ModuleScript package for Roblox experiences under the **Ma
   - [MangoFocusManager](#mangofocusmanager)
   - [MangoBuilder](#mangobuilder)
   - [MangoSaveManager](#mangosavemanager)
+- [Anti-Detection Protection](#anti-detection-protection)
+  - [MangoProtection](#mangoprotection)
 - [Utility Functions](#utility-functions)
   - [gui()](#gui)
   - [transitionTheme()](#transitiontheme)
@@ -254,6 +256,9 @@ All components have both a full constructor (`ui.MangoButton.new(config)`) and a
 | `ui.form(c)` | `ui.MangoForm.new(c)` | Form |
 | `ui.focus(c)` | `ui.MangoFocusManager.new(c)` | Focus Manager |
 | `ui.build(t)` | `ui.MangoBuilder.build(t)` | Builder Chain |
+| `ui.protect(c)` | `ui.MangoProtection.configure(c)` | Protection Config |
+| `ui.isProtected()` | `ui.MangoProtection.isProtected()` | Check if protected |
+| `ui.protectionLevel()` | `ui.MangoProtection.getProtectionLevel()` | Protection level |
 
 **Other shortcuts:**
 
@@ -264,6 +269,7 @@ All components have both a full constructor (`ui.MangoButton.new(config)`) and a
 | `ui.intro` | MangoIntro module (`play()`, `skip()`) |
 | `ui.haptic` | MangoHaptics module (`setEnabled()`, `light()`, etc.) |
 | `ui.gui(name?)` | Creates a configured ScreenGui |
+| `ui.protect(config)` / `ui.isProtected()` / `ui.protectionLevel()` | Protection control |
 
 ---
 
@@ -2441,11 +2447,102 @@ save:Delete()
 
 ---
 
+## Anti-Detection Protection
+
+### MangoProtection
+
+Multi-layered anti-detection system that makes all UI instances invisible to game anti-cheat scripts. Protection is automatic and transparent — all existing APIs work unchanged.
+
+**Module:** `ui.MangoProtection` (no short constructor — use `ui.protect()`, `ui.isProtected()`, `ui.protectionLevel()`)
+
+#### Protection Layers
+
+| Layer | Type | Description |
+|-------|------|-------------|
+| **Hidden Parenting** | Passive | ScreenGuis parented to `gethui()` → CoreGui → PlayerGui (fallback chain) |
+| **Metamethod Hooking** | Active | `__namecall` hook filters protected instances from `GetChildren()`, `GetDescendants()`, `FindFirstChild()`. `__index` hook returns `nil` parent. `checkcaller()` gates ensure executor code sees everything normally |
+| **Name Obfuscation** | Passive | All instance names randomized to GUID fragments (e.g. `"a3f2b71c"`). RenderStep binding names randomized. No `"Mango"` prefix anywhere |
+| **Connection Protection** | Passive | Event callbacks wrapped in `newcclosure()` to prevent detection via `getconnections()` |
+| **Service Cloneref** | Passive | `cloneref()` on service references prevents detection via `GetService` hooks |
+
+#### Configuration
+
+```lua
+-- Protection is ON by default when executor features are available
+print(ui.isProtected())       -- true
+print(ui.protectionLevel())   -- "gethui" | "synprotect" | "coregui" | "none"
+
+-- Disable protection (for debugging in Studio):
+ui.protect({ Enabled = false })
+
+-- Re-enable:
+ui.protect({ Enabled = true })
+```
+
+#### Protection Levels
+
+| Level | Description | Available When |
+|-------|-------------|----------------|
+| `"gethui"` | Full protection — UI completely hidden from game scripts | `gethui()` is available |
+| `"synprotect"` | Strong protection — `syn.protect_gui()` blocks FindFirstChild traversal | Synapse X environment |
+| `"coregui"` | Moderate protection — parented to CoreGui instead of PlayerGui | CoreGui is accessible |
+| `"none"` | No protection — standard Roblox Studio behavior | No executor features detected |
+
+#### Module Functions
+
+| Function | Description |
+|----------|-------------|
+| `configure(config)` | Enable/disable protection globally |
+| `getParent()` | Returns safest parent container |
+| `protectGui(gui)` | Apply `syn.protect_gui()` + register in protected set |
+| `createScreenGui(config)` | Create ScreenGui with hidden parenting, random name, protection |
+| `registerInstance(instance)` | Add instance + descendants to protected registry |
+| `randomName(prefix?)` | Generate GUID-based random name |
+| `randomBindingName(prefix?)` | Generate random RenderStep binding name |
+| `safeService(name)` | Get `cloneref()`'d service reference |
+| `wrapConnection(fn)` | Wrap callback in `newcclosure()` |
+| `isProtected()` | Check if protection is active |
+| `getProtectionLevel()` | Get current protection level string |
+| `installHooks()` | Install metamethod hooks (auto-called, idempotent) |
+
+#### Config
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `Enabled` | `boolean?` | `true` | Enable/disable all protection features |
+
+#### How It Works
+
+When protection is enabled:
+1. All `ScreenGui` instances are parented to the safest available container (not PlayerGui)
+2. All instance `.Name` properties use randomized GUID fragments instead of identifiable names
+3. Metamethod hooks intercept game script calls to `GetChildren()`, `GetDescendants()`, `FindFirstChild()`, filtering out all protected instances
+4. Protected instances return `nil` for `.Parent` when accessed by game scripts
+5. RenderStep bindings use randomized names (no `"Mango"` prefix)
+6. Refraction proxy Parts in `Workspace.CurrentCamera` are registered and hidden from traversal
+
+When protection is disabled (or in standard Roblox Studio):
+- All instances use their original descriptive names
+- ScreenGuis parent to PlayerGui normally
+- No hooks are installed
+- All APIs work identically
+
+#### Executor Compatibility
+
+All executor-specific globals are accessed via `pcall` for `--!strict` safety:
+- `gethui()` — Hidden UI container
+- `cloneref()` — Service reference cloning
+- `hookmetamethod()` — Metamethod interception
+- `newcclosure()` — Closure wrapping
+- `checkcaller()` — Executor vs game script detection
+- `getnamecallmethod()` — Namecall method identification
+- `syn.protect_gui()` — Synapse X GUI protection
+
+---
+
 ## Utility Functions
 
 ### gui()
-
-Creates a properly configured ScreenGui.
 
 ```lua
 local screen = ui.gui("MyScreenName")
@@ -2455,7 +2552,8 @@ Returns a `ScreenGui` with:
 - `ResetOnSpawn = false`
 - `IgnoreGuiInset = true`
 - `ZIndexBehavior = Sibling`
-- Parented to `PlayerGui`
+- Parented to safest container via MangoProtection (`gethui()` → CoreGui → PlayerGui)
+- Name only applied when protection is disabled (otherwise uses randomized GUID name)
 
 ---
 
