@@ -517,4 +517,11 @@ export type MangoActionSheet = {
 	Destroy: (self: MangoActionSheet) -> (),
 }
 
+-- Intro
+export type MangoIntroConfig = {
+	Theme: ThemePreset?,
+	OnComplete: (() -> ())?,
+	Parent: Instance?,
+}
+
 return nil

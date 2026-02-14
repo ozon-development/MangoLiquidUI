@@ -20,6 +20,7 @@ local MangoProgressBar = require(script.MangoProgressBar)
 local MangoDialog = require(script.MangoDialog)
 local MangoActionSheet = require(script.MangoActionSheet)
 local MangoEnvironmentLight = require(script.MangoEnvironmentLight)
+local MangoIntro = require(script.MangoIntro)
 local Themes = require(script.Themes)
 
 export type ThemePreset = Types.ThemePreset
@@ -63,8 +64,10 @@ export type MangoDialog = Types.MangoDialog
 export type MangoActionSheetConfig = Types.MangoActionSheetConfig
 export type MangoActionSheetActionConfig = Types.MangoActionSheetActionConfig
 export type MangoActionSheet = Types.MangoActionSheet
+export type MangoIntroConfig = Types.MangoIntroConfig
 
 local MangoLiquidUI = {
+	-- Full module names (backward compat)
 	MangoGlassFrame = MangoGlassFrame,
 	RefractionProxy = RefractionProxy,
 	LiquidFusion = LiquidFusion,
@@ -84,8 +87,51 @@ local MangoLiquidUI = {
 	MangoDialog = MangoDialog,
 	MangoActionSheet = MangoActionSheet,
 	MangoEnvironmentLight = MangoEnvironmentLight,
+	MangoIntro = MangoIntro,
 	Themes = Themes,
+
+	-- Theme shortcuts
+	Light = Themes.Light,
+	Dark = Themes.Dark,
+	Mango = Themes.Mango,
+	Mint = Themes.Mint,
+
+	-- Intro module shortcut
+	intro = MangoIntro,
 }
+
+-- Short-name constructors
+function MangoLiquidUI.bttn(config: Types.MangoButtonConfig): Types.MangoButton return MangoButton.new(config) end
+function MangoLiquidUI.sldr(config: Types.MangoSliderConfig): Types.MangoSlider return MangoSlider.new(config) end
+function MangoLiquidUI.tgl(config: Types.MangoToggleConfig): Types.MangoToggle return MangoToggle.new(config) end
+function MangoLiquidUI.chk(config: Types.MangoCheckboxConfig): Types.MangoCheckbox return MangoCheckbox.new(config) end
+function MangoLiquidUI.dlg(config: Types.MangoDialogConfig): Types.MangoDialog return MangoDialog.new(config) end
+function MangoLiquidUI.act(config: Types.MangoActionSheetConfig): Types.MangoActionSheet return MangoActionSheet.new(config) end
+function MangoLiquidUI.drp(config: Types.MangoDropdownConfig): Types.MangoDropdown return MangoDropdown.new(config) end
+function MangoLiquidUI.tab(config: Types.MangoTabBarConfig): Types.MangoTabBar return MangoTabBar.new(config) end
+function MangoLiquidUI.srch(config: Types.MangoSearchBarConfig): Types.MangoSearchBar return MangoSearchBar.new(config) end
+function MangoLiquidUI.txt(config: Types.MangoTextFieldConfig): Types.MangoTextField return MangoTextField.new(config) end
+function MangoLiquidUI.prog(config: Types.MangoProgressBarConfig): Types.MangoProgressBar return MangoProgressBar.new(config) end
+function MangoLiquidUI.glass(config: Types.MangoGlassConfig): Types.MangoGlassFrame return MangoGlassFrame.new(config) end
+function MangoLiquidUI.notif(config: Types.MangoNotificationConfig): Types.MangoNotification return MangoNotification.new(config) end
+function MangoLiquidUI.nstack(config: Types.MangoNotificationStackConfig): Types.MangoNotificationStack return MangoNotificationStack.new(config) end
+function MangoLiquidUI.seg(config: Types.MangoSegmentedControlConfig): Types.MangoSegmentedControl return MangoSegmentedControl.new(config) end
+function MangoLiquidUI.bbl(config: Types.MangoBillboardLabelConfig): Types.MangoBillboardLabel return MangoBillboardLabel.new(config) end
+function MangoLiquidUI.env(config: Types.MangoEnvironmentLightConfig): Types.MangoEnvironmentLight return MangoEnvironmentLight.new(config) end
+function MangoLiquidUI.refr(config: Types.RefractionProxyConfig): Types.RefractionProxy return RefractionProxy.new(config) end
+function MangoLiquidUI.fuse(config: Types.LiquidFusionConfig): Types.LiquidFusionController return LiquidFusion.new(config) end
+
+-- ScreenGui helper
+function MangoLiquidUI.gui(name: string?): ScreenGui
+	local player = game:GetService("Players").LocalPlayer
+	local g = Instance.new("ScreenGui")
+	g.Name = name or "MangoUI"
+	g.ResetOnSpawn = false
+	g.IgnoreGuiInset = true
+	g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	g.Parent = player:WaitForChild("PlayerGui")
+	return g
+end
 
 --[[
 	Theme transition helper: fades out existing glass frames, calls rebuildCallback
@@ -125,5 +171,10 @@ function MangoLiquidUI.transitionTheme(
 		tween:Play()
 	end
 end
+
+-- Auto-play intro on require
+task.spawn(function()
+	MangoIntro.play()
+end)
 
 return MangoLiquidUI

@@ -35,6 +35,7 @@ MODULES=(
     "MangoTabBar"
     "MangoBillboardLabel"
     "MangoNotificationStack"
+    "MangoIntro"
 )
 
 # Write header
@@ -80,33 +81,129 @@ done
 cat >> "$OUT_FILE" << 'FOOTER'
 -- Build library table
 local Themes = _require("Themes")
+local MangoGlassFrame = _require("MangoGlassFrame")
+local RefractionProxy = _require("RefractionProxy")
+local LiquidFusion = _require("LiquidFusion")
+local MangoToggle = _require("MangoToggle")
+local MangoSlider = _require("MangoSlider")
+local MangoButton = _require("MangoButton")
+local MangoBillboardLabel = _require("MangoBillboardLabel")
+local MangoNotification = _require("MangoNotification")
+local MangoNotificationStack = _require("MangoNotificationStack")
+local MangoSegmentedControl = _require("MangoSegmentedControl")
+local MangoDropdown = _require("MangoDropdown")
+local MangoTabBar = _require("MangoTabBar")
+local MangoSearchBar = _require("MangoSearchBar")
+local MangoTextField = _require("MangoTextField")
+local MangoCheckbox = _require("MangoCheckbox")
+local MangoProgressBar = _require("MangoProgressBar")
+local MangoDialog = _require("MangoDialog")
+local MangoActionSheet = _require("MangoActionSheet")
+local MangoEnvironmentLight = _require("MangoEnvironmentLight")
+local MangoIntro = _require("MangoIntro")
+
 local MangoLiquidUI = {
-    MangoGlassFrame = _require("MangoGlassFrame"),
-    RefractionProxy = _require("RefractionProxy"),
-    LiquidFusion = _require("LiquidFusion"),
-    MangoToggle = _require("MangoToggle"),
-    MangoSlider = _require("MangoSlider"),
-    MangoButton = _require("MangoButton"),
-    MangoBillboardLabel = _require("MangoBillboardLabel"),
-    MangoNotification = _require("MangoNotification"),
-    MangoNotificationStack = _require("MangoNotificationStack"),
-    MangoSegmentedControl = _require("MangoSegmentedControl"),
-    MangoDropdown = _require("MangoDropdown"),
-    MangoTabBar = _require("MangoTabBar"),
-    MangoSearchBar = _require("MangoSearchBar"),
-    MangoTextField = _require("MangoTextField"),
-    MangoCheckbox = _require("MangoCheckbox"),
-    MangoProgressBar = _require("MangoProgressBar"),
-    MangoDialog = _require("MangoDialog"),
-    MangoActionSheet = _require("MangoActionSheet"),
-    MangoEnvironmentLight = _require("MangoEnvironmentLight"),
+    -- Full module names (backward compat)
+    MangoGlassFrame = MangoGlassFrame,
+    RefractionProxy = RefractionProxy,
+    LiquidFusion = LiquidFusion,
+    MangoToggle = MangoToggle,
+    MangoSlider = MangoSlider,
+    MangoButton = MangoButton,
+    MangoBillboardLabel = MangoBillboardLabel,
+    MangoNotification = MangoNotification,
+    MangoNotificationStack = MangoNotificationStack,
+    MangoSegmentedControl = MangoSegmentedControl,
+    MangoDropdown = MangoDropdown,
+    MangoTabBar = MangoTabBar,
+    MangoSearchBar = MangoSearchBar,
+    MangoTextField = MangoTextField,
+    MangoCheckbox = MangoCheckbox,
+    MangoProgressBar = MangoProgressBar,
+    MangoDialog = MangoDialog,
+    MangoActionSheet = MangoActionSheet,
+    MangoEnvironmentLight = MangoEnvironmentLight,
+    MangoIntro = MangoIntro,
     Themes = Themes,
+
+    -- Theme shortcuts
     Light = Themes.Light,
     Dark = Themes.Dark,
     Mango = Themes.Mango,
     Mint = Themes.Mint,
     resolve = Themes.resolve,
+
+    -- Intro module shortcut
+    intro = MangoIntro,
 }
+
+-- Short-name constructors
+function MangoLiquidUI.bttn(config) return MangoButton.new(config) end
+function MangoLiquidUI.sldr(config) return MangoSlider.new(config) end
+function MangoLiquidUI.tgl(config) return MangoToggle.new(config) end
+function MangoLiquidUI.chk(config) return MangoCheckbox.new(config) end
+function MangoLiquidUI.dlg(config) return MangoDialog.new(config) end
+function MangoLiquidUI.act(config) return MangoActionSheet.new(config) end
+function MangoLiquidUI.drp(config) return MangoDropdown.new(config) end
+function MangoLiquidUI.tab(config) return MangoTabBar.new(config) end
+function MangoLiquidUI.srch(config) return MangoSearchBar.new(config) end
+function MangoLiquidUI.txt(config) return MangoTextField.new(config) end
+function MangoLiquidUI.prog(config) return MangoProgressBar.new(config) end
+function MangoLiquidUI.glass(config) return MangoGlassFrame.new(config) end
+function MangoLiquidUI.notif(config) return MangoNotification.new(config) end
+function MangoLiquidUI.nstack(config) return MangoNotificationStack.new(config) end
+function MangoLiquidUI.seg(config) return MangoSegmentedControl.new(config) end
+function MangoLiquidUI.bbl(config) return MangoBillboardLabel.new(config) end
+function MangoLiquidUI.env(config) return MangoEnvironmentLight.new(config) end
+function MangoLiquidUI.refr(config) return RefractionProxy.new(config) end
+function MangoLiquidUI.fuse(config) return LiquidFusion.new(config) end
+
+-- ScreenGui helper
+function MangoLiquidUI.gui(name)
+    local player = game:GetService("Players").LocalPlayer
+    local g = Instance.new("ScreenGui")
+    g.Name = name or "MangoUI"
+    g.ResetOnSpawn = false
+    g.IgnoreGuiInset = true
+    g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    g.Parent = player:WaitForChild("PlayerGui")
+    return g
+end
+
+-- Theme transition helper
+function MangoLiquidUI.transitionTheme(glassFrames, fadeDuration, rebuildCallback)
+    local TweenService = game:GetService("TweenService")
+    local fadeInfo = TweenInfo.new(fadeDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local pending = #glassFrames
+    if pending == 0 then
+        rebuildCallback()
+        return
+    end
+    for _, glass in glassFrames do
+        for _, shadow in glass.ShadowLayers do
+            shadow.Visible = false
+        end
+        local tween = TweenService:Create(glass.GlassSurface, fadeInfo, { BackgroundTransparency = 1 })
+        tween.Completed:Connect(function()
+            pending -= 1
+            if pending <= 0 then
+                local newFrames = rebuildCallback()
+                local fadeInInfo = TweenInfo.new(fadeDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+                for _, newGlass in newFrames do
+                    local targetTransp = newGlass.GlassSurface.BackgroundTransparency
+                    newGlass.GlassSurface.BackgroundTransparency = 1
+                    TweenService:Create(newGlass.GlassSurface, fadeInInfo, { BackgroundTransparency = targetTransp }):Play()
+                end
+            end
+        end)
+        tween:Play()
+    end
+end
+
+-- Auto-play intro on require
+task.spawn(function()
+    MangoIntro.play()
+end)
 
 return MangoLiquidUI
 FOOTER
