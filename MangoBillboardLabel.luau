@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -49,7 +50,7 @@ function module.new(config: Types.MangoBillboardLabelConfig): Types.MangoBillboa
 
 	-- BillboardGui
 	local billboardGui = Instance.new("BillboardGui")
-	billboardGui.Name = "MangoBillboardLabel"
+	billboardGui.Name = MangoProtection.randomName("Billboard")
 	billboardGui.Size = UDim2.new(0, containerWidth, 0, containerHeight)
 	billboardGui.MaxDistance = maxDistance
 	billboardGui.StudsOffset = studsOffset

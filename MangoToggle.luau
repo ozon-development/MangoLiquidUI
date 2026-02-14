@@ -6,6 +6,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -53,7 +54,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Container
 	-- ============================================================
 	local container = Instance.new("Frame")
-	container.Name = "MangoToggle"
+	container.Name = MangoProtection.randomName("Toggle")
 	container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
 	container.Position = config.Position
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2

@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoShimmer = require(script.Parent.MangoShimmer)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -14,7 +15,7 @@ function module.new(config: Types.MangoSkeletonConfig): Types.MangoSkeleton
 	local cornerRadius = resolve(config.CornerRadius, nil, UDim.new(0, 8)) :: UDim
 
 	local container = Instance.new("Frame")
-	container.Name = "MangoSkeleton"
+	container.Name = MangoProtection.randomName("Skeleton")
 	container.Size = config.Size
 	container.Position = config.Position
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2

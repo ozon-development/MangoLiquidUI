@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local RunService = game:GetService("RunService")
 
 local module = {}
@@ -21,7 +22,7 @@ function module.new(config: Types.MangoBlurProxyConfig): Types.MangoBlurProxy
 
 	-- Container matches target size
 	local container = Instance.new("Frame")
-	container.Name = "MangoBlurProxy"
+	container.Name = MangoProtection.randomName("BlurProxy")
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0

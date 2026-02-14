@@ -3,10 +3,10 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
+local MangoProtection = require(script.Parent.MangoProtection)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -106,22 +106,16 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoNotificationGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- NotificationContainer (starts offscreen above)
 	local notifContainer = Instance.new("Frame")
-	notifContainer.Name = "MangoNotification"
+	notifContainer.Name = MangoProtection.randomName("Notification")
 	notifContainer.Size = UDim2.new(0, 380, 0, totalHeight)
 	notifContainer.AnchorPoint = Vector2.new(0.5, 0)
 	notifContainer.Position = UDim2.new(0.5, 0, 0, -80)

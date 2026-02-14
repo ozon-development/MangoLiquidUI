@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -94,7 +95,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 	-- Container (transparent wrapper, holds trigger + panel)
 	local container = Instance.new("Frame")
-	container.Name = "MangoDropdown"
+	container.Name = MangoProtection.randomName("Dropdown")
 	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset + 0)
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -118,7 +119,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		if not screenGui then return end
 
 		local blocker = Instance.new("TextButton")
-		blocker.Name = "DropdownClickBlocker"
+		blocker.Name = MangoProtection.randomName("Blocker")
 		blocker.Size = UDim2.new(1, 0, 1, 0)
 		blocker.BackgroundTransparency = 1
 		blocker.Text = ""

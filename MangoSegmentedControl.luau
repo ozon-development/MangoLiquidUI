@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -52,7 +53,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	-- Container (pill shape, clips descendants)
 	local totalWidth = segmentWidth * segmentCount
 	local container = Instance.new("Frame")
-	container.Name = "MangoSegmentedControl"
+	container.Name = MangoProtection.randomName("SegControl")
 	container.Size = UDim2.new(0, totalWidth, 0, height)
 	container.Position = position
 	container.AnchorPoint = anchorPoint

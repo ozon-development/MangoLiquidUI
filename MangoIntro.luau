@@ -2,12 +2,12 @@
 
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
-local Players = game:GetService("Players")
 
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -43,26 +43,25 @@ function module.play(config: Types.MangoIntroConfig?)
 	local subtitleText = cfg.Subtitle
 	local parentInstance = cfg.Parent
 
-	local playerGui: Instance
+	local gui: ScreenGui
 	if parentInstance then
-		playerGui = parentInstance
+		gui = Instance.new("ScreenGui")
+		gui.Name = MangoProtection.randomName("Intro")
+		gui.DisplayOrder = 200
+		gui.ResetOnSpawn = false
+		gui.IgnoreGuiInset = true
+		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		gui.Parent = parentInstance
 	else
-		local player = Players.LocalPlayer
-		playerGui = player:WaitForChild("PlayerGui")
+		gui = MangoProtection.createScreenGui({
+			DisplayOrder = 200,
+		})
 	end
-
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "MangoIntro"
-	gui.DisplayOrder = 200
-	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = playerGui
 	introGui = gui
 
 	-- Background overlay
 	local overlay = Instance.new("Frame")
-	overlay.Name = "IntroOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1
@@ -72,7 +71,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Center container
 	local centerContainer = Instance.new("Frame")
-	centerContainer.Name = "IntroCenterContainer"
+	centerContainer.Name = MangoProtection.randomName("Container")
 	centerContainer.Size = UDim2.new(0, 220, 0, 90)
 	centerContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 	centerContainer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -94,7 +93,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- 3D Text Layer 1: Back shadow (depth shadow, ZIndex=7)
 	local backShadowText = Instance.new("TextLabel")
-	backShadowText.Name = "MangoBackShadow"
+	backShadowText.Name = MangoProtection.randomName("BackShadow")
 	backShadowText.Text = titleText
 	backShadowText.Font = Enum.Font.GothamBold
 	backShadowText.TextSize = 35
@@ -116,7 +115,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- 3D Text Layer 2: Glass edge (refraction edge, ZIndex=8)
 	local glassEdgeText = Instance.new("TextLabel")
-	glassEdgeText.Name = "MangoGlassEdge"
+	glassEdgeText.Name = MangoProtection.randomName("GlassEdge")
 	glassEdgeText.Text = titleText
 	glassEdgeText.Font = Enum.Font.GothamBold
 	glassEdgeText.TextSize = 33
@@ -146,7 +145,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Glow layer (soft amber halo, ZIndex=9)
 	local glowText = Instance.new("TextLabel")
-	glowText.Name = "MangoGlowText"
+	glowText.Name = MangoProtection.randomName("GlowText")
 	glowText.Text = titleText
 	glowText.Font = Enum.Font.GothamBold
 	glowText.TextSize = 34
@@ -168,7 +167,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Main text (warm amber, ZIndex=10)
 	local logoText = Instance.new("TextLabel")
-	logoText.Name = "MangoLogoText"
+	logoText.Name = MangoProtection.randomName("LogoText")
 	logoText.Text = titleText
 	logoText.Font = Enum.Font.GothamBold
 	logoText.TextSize = 32

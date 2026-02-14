@@ -3,8 +3,8 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoNotification = require(script.Parent.MangoNotification)
+local MangoProtection = require(script.Parent.MangoProtection)
 local resolve = Themes.resolve
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -24,15 +24,9 @@ function module.new(config: Types.MangoNotificationStackConfig): Types.MangoNoti
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoNotificationStackGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end

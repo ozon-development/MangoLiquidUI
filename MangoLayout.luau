@@ -1,6 +1,7 @@
 --!strict
 
 local Types = require(script.Parent.Types)
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -8,7 +9,7 @@ function module.new(config: Types.MangoLayoutConfig): Types.MangoLayout
 	local padding = config.Padding or 8
 
 	local container = Instance.new("Frame")
-	container.Name = "MangoLayout"
+	container.Name = MangoProtection.randomName("Layout")
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 	container.AutomaticSize = Enum.AutomaticSize.XY

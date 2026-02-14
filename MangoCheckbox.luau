@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -42,7 +43,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 
 	-- Container (horizontal layout)
 	local container = Instance.new("Frame")
-	container.Name = "MangoCheckbox"
+	container.Name = MangoProtection.randomName("Checkbox")
 	container.Size = UDim2.new(0, 0, 0, 24)
 	container.AutomaticSize = Enum.AutomaticSize.X
 	container.Position = position

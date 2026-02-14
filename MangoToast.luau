@@ -3,10 +3,10 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
+local MangoProtection = require(script.Parent.MangoProtection)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -63,22 +63,16 @@ function module.new(config: Types.MangoToastConfig): Types.MangoToast
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoToastGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Toast container (anchored bottom-center, starts offscreen below)
 	local toastContainer = Instance.new("Frame")
-	toastContainer.Name = "MangoToast"
+	toastContainer.Name = MangoProtection.randomName("Toast")
 	toastContainer.Size = UDim2.new(0, toastWidth, 0, toastHeight)
 	toastContainer.AnchorPoint = Vector2.new(0.5, 1)
 	toastContainer.Position = UDim2.new(0.5, 0, 1, 60) -- offscreen below
@@ -320,15 +314,9 @@ function module.newStack(config: Types.MangoToastStackConfig): Types.MangoToastS
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoToastStackGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end

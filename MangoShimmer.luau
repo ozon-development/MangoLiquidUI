@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 

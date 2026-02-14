@@ -5,6 +5,7 @@ local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -55,7 +56,7 @@ function module.new(config: Types.MangoKeybindConfig): Types.MangoKeybind
 
 	-- Container (horizontal layout, auto-sized)
 	local container = Instance.new("Frame")
-	container.Name = "MangoKeybind"
+	container.Name = MangoProtection.randomName("Keybind")
 	container.Size = UDim2.new(0, 0, 0, 28)
 	container.AutomaticSize = Enum.AutomaticSize.X
 	container.Position = position

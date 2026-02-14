@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -92,7 +93,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 
 	-- Container (transparent outer wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoCarousel"
+	container.Name = MangoProtection.randomName("Carousel")
 	container.Size = dockSize
 	container.Position = position
 	container.AnchorPoint = anchorPoint

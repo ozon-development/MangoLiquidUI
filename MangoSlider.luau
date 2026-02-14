@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -66,7 +67,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Container (transparent wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoSlider"
+	container.Name = MangoProtection.randomName("Slider")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint

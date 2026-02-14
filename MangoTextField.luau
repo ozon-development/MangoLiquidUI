@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -44,7 +45,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 
 	-- Container
 	local container = Instance.new("Frame")
-	container.Name = "MangoTextField"
+	container.Name = MangoProtection.randomName("TextField")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint

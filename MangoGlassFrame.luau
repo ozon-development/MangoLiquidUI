@@ -6,6 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -46,7 +47,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 
 	-- Container (transparent wrapper, NO ClipsDescendants, NO UICorner)
 	local container = Instance.new("Frame")
-	container.Name = "MangoGlassFrame"
+	container.Name = MangoProtection.randomName("GlassFrame")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -266,7 +267,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 
 	-- Parallax system
 	local Workspace = game:GetService("Workspace")
-	local parallaxBindingName = "MangoParallax_" .. tostring(math.random(100000, 999999))
+	local parallaxBindingName = MangoProtection.randomBindingName("MangoParallax")
 	local parallaxBound = false
 
 	local function startParallax()

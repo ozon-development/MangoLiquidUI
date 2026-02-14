@@ -1110,7 +1110,354 @@ export type MangoBuilder = {
 	create: (self: MangoBuilder) -> any,
 }
 
+-- Protection
+export type MangoProtectionConfig = {
+	Enabled: boolean?,
+}
+
+export type MangoScreenGuiConfig = {
+	DisplayOrder: number?,
+	IgnoreGuiInset: boolean?,
+}
+
 return nil
+
+end
+
+_modules["MangoProtection"] = function()
+
+
+--[[
+	MangoProtection — Anti-detection security module for MangoLiquidUI
+
+	Provides 5 layers of defense:
+	1. Hidden parenting (gethui -> CoreGui -> PlayerGui fallback)
+	2. Metamethod hooking (filters protected instances from game script calls)
+	3. Instance identity obfuscation (randomized names)
+	4. Connection protection (newcclosure wrapping)
+	5. Property spoofing (protected instances return nil parent to game scripts)
+
+	All executor-specific globals are accessed via pcall for --!strict safety.
+	Gracefully falls back to standard Roblox Studio behavior when no executor features are available.
+]]
+
+local HttpService = game:GetService("HttpService")
+
+local module = {}
+
+-- Capability detection (runs once on require, all via pcall)
+local _gethui: (() -> Instance)? = nil
+local _cloneref: ((Instance) -> Instance)? = nil
+local _hookmetamethod: ((Instance, string, any) -> any)? = nil
+local _newcclosure: ((any) -> any)? = nil
+local _checkcaller: (() -> boolean)? = nil
+local _getnamecallmethod: (() -> string)? = nil
+local _protectgui: ((Instance) -> ())? = nil
+
+-- Detect executor capabilities safely
+pcall(function()
+	_gethui = (gethui :: any) :: (() -> Instance)
+end)
+pcall(function()
+	_cloneref = (cloneref :: any) :: ((Instance) -> Instance)
+end)
+pcall(function()
+	_hookmetamethod = (hookmetamethod :: any) :: ((Instance, string, any) -> any)
+end)
+pcall(function()
+	_newcclosure = (newcclosure :: any) :: ((any) -> any)
+end)
+pcall(function()
+	_checkcaller = (checkcaller :: any) :: (() -> boolean)
+end)
+pcall(function()
+	_getnamecallmethod = (getnamecallmethod :: any) :: (() -> string)
+end)
+pcall(function()
+	local syn_val = (syn :: any)
+	if syn_val and syn_val.protect_gui then
+		_protectgui = syn_val.protect_gui :: ((Instance) -> ())
+	end
+end)
+
+-- Protected instance registry (weak-keyed table)
+local protectedInstances: {[Instance]: boolean} = setmetatable({}, {__mode = "k"}) :: any
+
+-- Global state
+local protectionEnabled = true
+local hooksInstalled = false
+
+-- Determine protection level based on available capabilities
+local protectionLevel: string = "none"
+if _gethui then
+	protectionLevel = "gethui"
+elseif _protectgui then
+	protectionLevel = "synprotect"
+else
+	local coreGuiOk = pcall(function()
+		local _ = game:GetService("CoreGui")
+	end)
+	if coreGuiOk then
+		protectionLevel = "coregui"
+	end
+end
+
+-- Cached service references (cloneref'd when available)
+local serviceCache: {[string]: Instance} = {}
+
+--[[
+	Configure protection globally.
+	config.Enabled: boolean? — enable/disable all protection features
+]]
+function module.configure(config: {Enabled: boolean?})
+	if config.Enabled ~= nil then
+		protectionEnabled = config.Enabled
+	end
+end
+
+--[[
+	Returns the safest parent container for ScreenGui instances.
+	Fallback chain: gethui() -> CoreGui -> PlayerGui
+]]
+function module.getParent(): Instance
+	if protectionEnabled then
+		-- Try gethui first (completely hidden from game scripts)
+		if _gethui then
+			local ok, result = pcall(_gethui :: () -> Instance)
+			if ok and result then
+				return result
+			end
+		end
+
+		-- Try CoreGui (less detectable than PlayerGui)
+		if protectionLevel == "coregui" or protectionLevel == "synprotect" then
+			local ok, coreGui = pcall(function()
+				return game:GetService("CoreGui")
+			end)
+			if ok and coreGui then
+				return coreGui
+			end
+		end
+	end
+
+	-- Fallback to PlayerGui (standard Roblox Studio)
+	local Players = game:GetService("Players")
+	local player = Players.LocalPlayer
+	return player:WaitForChild("PlayerGui")
+end
+
+--[[
+	Apply syn.protect_gui() and register instance in protected set.
+]]
+function module.protectGui(gui: Instance)
+	if not protectionEnabled then return end
+
+	-- Apply syn.protect_gui if available
+	if _protectgui then
+		pcall(_protectgui :: (Instance) -> (), gui)
+	end
+
+	-- Register in protected set
+	module.registerInstance(gui)
+end
+
+--[[
+	Central ScreenGui creation helper. Replaces all duplicated ScreenGui creation blocks.
+	Handles hidden parenting, name randomization, protection registration.
+]]
+function module.createScreenGui(config: {DisplayOrder: number?, IgnoreGuiInset: boolean?}): ScreenGui
+	-- Install hooks on first ScreenGui creation
+	if not hooksInstalled then
+		module.installHooks()
+	end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = module.randomName()
+	gui.DisplayOrder = config.DisplayOrder or 100
+	gui.IgnoreGuiInset = if config.IgnoreGuiInset ~= nil then config.IgnoreGuiInset else true
+	gui.ResetOnSpawn = false
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	-- Register for hook protection
+	module.registerInstance(gui)
+
+	-- Apply syn.protect_gui if available
+	if _protectgui and protectionEnabled then
+		pcall(_protectgui :: (Instance) -> (), gui)
+	end
+
+	-- Parent to safest container
+	gui.Parent = module.getParent()
+	return gui
+end
+
+--[[
+	Register an instance and all its descendants for hook protection.
+	Also listens for future descendants.
+]]
+function module.registerInstance(instance: Instance)
+	if not protectionEnabled then return end
+
+	protectedInstances[instance] = true
+
+	-- Protect all existing descendants
+	for _, desc in instance:GetDescendants() do
+		protectedInstances[desc] = true
+	end
+
+	-- Protect future descendants
+	instance.DescendantAdded:Connect(function(desc)
+		protectedInstances[desc] = true
+	end)
+end
+
+--[[
+	Generate a random non-identifiable name.
+	When protection is disabled, returns the prefix or "Instance".
+]]
+function module.randomName(prefix: string?): string
+	if not protectionEnabled then
+		return prefix or "Instance"
+	end
+	local guid = HttpService:GenerateGUID(false)
+	return string.sub(guid, 1, 8)
+end
+
+--[[
+	Generate a random RenderStep binding name.
+	When protection is disabled, returns a "Mango"-prefixed name.
+]]
+function module.randomBindingName(prefix: string?): string
+	if not protectionEnabled then
+		return (prefix or "MangoBinding") .. "_" .. tostring(math.random(100000, 999999))
+	end
+	local guid = HttpService:GenerateGUID(false)
+	return string.sub(guid, 1, 12)
+end
+
+--[[
+	Returns a (possibly cloneref'd) service reference.
+	Prevents detection via hooked GetService.
+]]
+function module.safeService(name: string): Instance
+	local cached = serviceCache[name]
+	if cached then return cached end
+
+	local service = game:GetService(name)
+	if _cloneref and protectionEnabled then
+		local ok, cloned = pcall(_cloneref :: (Instance) -> Instance, service)
+		if ok and cloned then
+			serviceCache[name] = cloned
+			return cloned
+		end
+	end
+
+	serviceCache[name] = service
+	return service
+end
+
+--[[
+	Wrap a callback function in newcclosure if available.
+	Prevents detection of hooked closures via getconnections().
+]]
+function module.wrapConnection(fn: any): any
+	if _newcclosure and protectionEnabled then
+		local ok, wrapped = pcall(_newcclosure :: (any) -> any, fn)
+		if ok and wrapped then
+			return wrapped
+		end
+	end
+	return fn
+end
+
+--[[
+	Returns whether protection is currently active.
+]]
+function module.isProtected(): boolean
+	return protectionEnabled and protectionLevel ~= "none"
+end
+
+--[[
+	Returns the current protection level string.
+	"gethui" | "synprotect" | "coregui" | "none"
+]]
+function module.getProtectionLevel(): string
+	if not protectionEnabled then return "none" end
+	return protectionLevel
+end
+
+--[[
+	Install metamethod hooks for active defense.
+	Called once automatically on first createScreenGui(), or manually.
+	Idempotent — safe to call multiple times.
+]]
+function module.installHooks()
+	if hooksInstalled then return end
+	if not _hookmetamethod then return end
+	if not _getnamecallmethod then return end
+	if not protectionEnabled then return end
+
+	hooksInstalled = true
+
+	local wrap: (any) -> any = (_newcclosure :: any) or function(f: any): any return f end
+
+	-- __namecall hook: intercept GetChildren, GetDescendants, FindFirstChild, etc.
+	local oldNamecall: any
+	local ok1: boolean
+	ok1, oldNamecall = pcall(_hookmetamethod :: (Instance, string, any) -> any, game, "__namecall", wrap(function(self: any, ...: any)
+		local method = (_getnamecallmethod :: () -> string)()
+
+		-- Executor code sees everything normally
+		if _checkcaller and (_checkcaller :: () -> boolean)() then
+			return oldNamecall(self, ...)
+		end
+
+		-- Filter results for game scripts
+		if method == "GetChildren" or method == "GetDescendants" then
+			local results = oldNamecall(self, ...)
+			local filtered = {}
+			for _, child in results do
+				if not protectedInstances[child] then
+					table.insert(filtered, child)
+				end
+			end
+			return filtered
+		elseif method == "FindFirstChild" or method == "FindFirstChildOfClass"
+			or method == "FindFirstChildWhichIsA" then
+			local result = oldNamecall(self, ...)
+			if result and protectedInstances[result] then
+				return nil
+			end
+			return result
+		end
+
+		return oldNamecall(self, ...)
+	end))
+
+	if not ok1 then
+		hooksInstalled = false
+		return
+	end
+
+	-- __index hook: intercept .Parent reads on protected instances
+	local oldIndex: any
+	local ok2: boolean
+	ok2, oldIndex = pcall(_hookmetamethod :: (Instance, string, any) -> any, game, "__index", wrap(function(self: any, key: any)
+		if _checkcaller and not (_checkcaller :: () -> boolean)() then
+			if key == "Parent" and protectedInstances[self] then
+				return nil -- game scripts see nil parent
+			end
+		end
+		return oldIndex(self, key)
+	end))
+
+	if not ok2 then
+		-- Namecall hook succeeded but index hook failed — still partially protected
+		return
+	end
+end
+
+return module
 
 end
 
@@ -2096,6 +2443,7 @@ local HttpService = game:GetService("HttpService")
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 local proxyDepthCounter = 0
@@ -2121,11 +2469,11 @@ function module.new(config: Types.RefractionProxyConfig): Types.RefractionProxy
 	proxyDepthCounter += 1
 	local adjustedDepth: number = offsetDepth + (proxyDepthCounter * DEPTH_STEP)
 
-	local bindingName: string = "MangoRefraction_" .. HttpService:GenerateGUID(false)
+	local bindingName: string = MangoProtection.randomBindingName("MangoRefraction")
 
 	-- Create the Glass Part
 	local glassPart = Instance.new("Part")
-	glassPart.Name = "MangoRefractionProxy"
+	glassPart.Name = MangoProtection.randomName("RefractionProxy")
 	glassPart.Material = glassMaterial
 	glassPart.Transparency = glassTransparency
 	glassPart.Color = glassColor
@@ -2140,6 +2488,7 @@ function module.new(config: Types.RefractionProxyConfig): Types.RefractionProxy
 	local Workspace = game:GetService("Workspace")
 	local camera = Workspace.CurrentCamera or Workspace:WaitForChild("CurrentCamera")
 	glassPart.Parent = camera
+	MangoProtection.registerInstance(glassPart)
 
 	local function updatePartTransform()
 		local camera = game:GetService("Workspace").CurrentCamera
@@ -2259,6 +2608,7 @@ local UserInputService = game:GetService("UserInputService")
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -2299,7 +2649,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 
 	-- Container (transparent wrapper, NO ClipsDescendants, NO UICorner)
 	local container = Instance.new("Frame")
-	container.Name = "MangoGlassFrame"
+	container.Name = MangoProtection.randomName("GlassFrame")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -2519,7 +2869,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 
 	-- Parallax system
 	local Workspace = game:GetService("Workspace")
-	local parallaxBindingName = "MangoParallax_" .. tostring(math.random(100000, 999999))
+	local parallaxBindingName = MangoProtection.randomBindingName("MangoParallax")
 	local parallaxBound = false
 
 	local function startParallax()
@@ -2622,6 +2972,7 @@ local TweenService = game:GetService("TweenService")
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -2778,6 +3129,7 @@ _modules["MangoLayout"] = function()
 
 
 local Types = _require("Types")
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -2785,7 +3137,7 @@ function module.new(config: Types.MangoLayoutConfig): Types.MangoLayout
 	local padding = config.Padding or 8
 
 	local container = Instance.new("Frame")
-	container.Name = "MangoLayout"
+	container.Name = MangoProtection.randomName("Layout")
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 	container.AutomaticSize = Enum.AutomaticSize.XY
@@ -2869,6 +3221,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoHaptics = _require("MangoHaptics")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -2916,7 +3269,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Container
 	-- ============================================================
 	local container = Instance.new("Frame")
-	container.Name = "MangoToggle"
+	container.Name = MangoProtection.randomName("Toggle")
 	container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
 	container.Position = config.Position
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
@@ -3239,6 +3592,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoHaptics = _require("MangoHaptics")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -3301,7 +3655,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Container (transparent wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoSlider"
+	container.Name = MangoProtection.randomName("Slider")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -3699,6 +4053,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoHaptics = _require("MangoHaptics")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -3737,7 +4092,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 
 	-- Container (horizontal layout)
 	local container = Instance.new("Frame")
-	container.Name = "MangoCheckbox"
+	container.Name = MangoProtection.randomName("Checkbox")
 	container.Size = UDim2.new(0, 0, 0, 24)
 	container.AutomaticSize = Enum.AutomaticSize.X
 	container.Position = position
@@ -3914,6 +4269,7 @@ _modules["MangoProgressBar"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -3961,7 +4317,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 
 	-- Container
 	local container = Instance.new("Frame")
-	container.Name = "MangoProgressBar"
+	container.Name = MangoProtection.randomName("ProgressBar")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -4154,6 +4510,7 @@ _modules["MangoSegmentedControl"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -4203,7 +4560,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	-- Container (pill shape, clips descendants)
 	local totalWidth = segmentWidth * segmentCount
 	local container = Instance.new("Frame")
-	container.Name = "MangoSegmentedControl"
+	container.Name = MangoProtection.randomName("SegControl")
 	container.Size = UDim2.new(0, totalWidth, 0, height)
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -4403,6 +4760,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -4618,6 +4976,7 @@ _modules["MangoTextField"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -4659,7 +5018,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 
 	-- Container
 	local container = Instance.new("Frame")
-	container.Name = "MangoTextField"
+	container.Name = MangoProtection.randomName("TextField")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -4981,6 +5340,7 @@ _modules["MangoEnvironmentLight"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -5003,7 +5363,7 @@ function module.new(config: Types.MangoEnvironmentLightConfig?): Types.MangoEnvi
 	local enabled = resolve(cfg.Enabled, nil, true) :: boolean
 
 	local registeredFrames: {RegisteredFrame} = {}
-	local renderStepName = "MangoEnvLight_" .. tostring(math.random(100000, 999999))
+	local renderStepName = MangoProtection.randomBindingName("MangoEnvLight")
 	local lastTintUpdate: number = 0
 	local currentSunAngle: number = 90
 	local currentTint: Color3 = Color3.new(1, 1, 1)
@@ -5401,10 +5761,10 @@ _modules["MangoNotification"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -5504,22 +5864,16 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoNotificationGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- NotificationContainer (starts offscreen above)
 	local notifContainer = Instance.new("Frame")
-	notifContainer.Name = "MangoNotification"
+	notifContainer.Name = MangoProtection.randomName("Notification")
 	notifContainer.Size = UDim2.new(0, 380, 0, totalHeight)
 	notifContainer.AnchorPoint = Vector2.new(0.5, 0)
 	notifContainer.Position = UDim2.new(0.5, 0, 0, -80)
@@ -5928,6 +6282,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -6009,6 +6364,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoShimmer = _require("MangoShimmer")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -6019,7 +6375,7 @@ function module.new(config: Types.MangoSkeletonConfig): Types.MangoSkeleton
 	local cornerRadius = resolve(config.CornerRadius, nil, UDim.new(0, 8)) :: UDim
 
 	local container = Instance.new("Frame")
-	container.Name = "MangoSkeleton"
+	container.Name = MangoProtection.randomName("Skeleton")
 	container.Size = config.Size
 	container.Position = config.Position
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
@@ -6066,6 +6422,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -6328,6 +6685,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
 
@@ -6690,10 +7048,10 @@ _modules["MangoToast"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -6750,22 +7108,16 @@ function module.new(config: Types.MangoToastConfig): Types.MangoToast
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoToastGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Toast container (anchored bottom-center, starts offscreen below)
 	local toastContainer = Instance.new("Frame")
-	toastContainer.Name = "MangoToast"
+	toastContainer.Name = MangoProtection.randomName("Toast")
 	toastContainer.Size = UDim2.new(0, toastWidth, 0, toastHeight)
 	toastContainer.AnchorPoint = Vector2.new(0.5, 1)
 	toastContainer.Position = UDim2.new(0.5, 0, 1, 60) -- offscreen below
@@ -7007,15 +7359,9 @@ function module.newStack(config: Types.MangoToastStackConfig): Types.MangoToastS
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoToastStackGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
@@ -7146,9 +7492,9 @@ _modules["MangoDialog"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -7197,22 +7543,16 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoDialogGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 150
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 150,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Overlay
 	local overlay = Instance.new("Frame")
-	overlay.Name = "DialogOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1 -- starts fully transparent
@@ -7222,7 +7562,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 
 	-- DialogContainer
 	local dialogContainer = Instance.new("Frame")
-	dialogContainer.Name = "DialogContainer"
+	dialogContainer.Name = MangoProtection.randomName("Container")
 	dialogContainer.AnchorPoint = Vector2.new(0.5, 0.5)
 	dialogContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 	dialogContainer.BackgroundTransparency = 1
@@ -7585,9 +7925,9 @@ _modules["MangoActionSheet"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -7630,22 +7970,16 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoActionSheetGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 150
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 150,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Overlay
 	local overlay = Instance.new("Frame")
-	overlay.Name = "ActionSheetOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1 -- starts fully transparent
@@ -7655,7 +7989,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 
 	-- SheetContainer (anchored bottom center)
 	local sheetContainer = Instance.new("Frame")
-	sheetContainer.Name = "SheetContainer"
+	sheetContainer.Name = MangoProtection.randomName("Container")
 	sheetContainer.AnchorPoint = Vector2.new(0.5, 1)
 	sheetContainer.Position = UDim2.new(0.5, 0, 1, 100) -- starts offscreen below
 	sheetContainer.BackgroundTransparency = 1
@@ -8076,6 +8410,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -8166,7 +8501,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 	-- Container (transparent wrapper, holds trigger + panel)
 	local container = Instance.new("Frame")
-	container.Name = "MangoDropdown"
+	container.Name = MangoProtection.randomName("Dropdown")
 	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset + 0)
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -8190,7 +8525,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		if not screenGui then return end
 
 		local blocker = Instance.new("TextButton")
-		blocker.Name = "DropdownClickBlocker"
+		blocker.Name = MangoProtection.randomName("Blocker")
 		blocker.Size = UDim2.new(1, 0, 1, 0)
 		blocker.BackgroundTransparency = 1
 		blocker.Text = ""
@@ -8647,6 +8982,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -8720,7 +9056,7 @@ function module.new(config: Types.MangoContextMenuConfig): Types.MangoContextMen
 		if not screenGui then return end
 
 		local blocker = Instance.new("TextButton")
-		blocker.Name = "ContextMenuClickBlocker"
+		blocker.Name = MangoProtection.randomName("Blocker")
 		blocker.Size = UDim2.new(1, 0, 1, 0)
 		blocker.BackgroundTransparency = 1
 		blocker.Text = ""
@@ -9112,6 +9448,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -9150,7 +9487,7 @@ function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 
 	-- Container (full width, 54px tall, anchored to bottom)
 	local container = Instance.new("Frame")
-	container.Name = "MangoTabBar"
+	container.Name = MangoProtection.randomName("TabBar")
 	container.Size = UDim2.new(1, 0, 0, 54)
 	container.Position = UDim2.new(0, 0, 1, 0)
 	container.AnchorPoint = Vector2.new(0, 1)
@@ -9351,6 +9688,7 @@ _modules["MangoBillboardLabel"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -9397,7 +9735,7 @@ function module.new(config: Types.MangoBillboardLabelConfig): Types.MangoBillboa
 
 	-- BillboardGui
 	local billboardGui = Instance.new("BillboardGui")
-	billboardGui.Name = "MangoBillboardLabel"
+	billboardGui.Name = MangoProtection.randomName("Billboard")
 	billboardGui.Size = UDim2.new(0, containerWidth, 0, containerHeight)
 	billboardGui.MaxDistance = maxDistance
 	billboardGui.StudsOffset = studsOffset
@@ -9599,8 +9937,8 @@ _modules["MangoNotificationStack"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoNotification = _require("MangoNotification")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -9620,15 +9958,9 @@ function module.new(config: Types.MangoNotificationStackConfig): Types.MangoNoti
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoNotificationStackGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 100
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 100,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
@@ -9763,10 +10095,10 @@ _modules["MangoBottomSheet"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -9812,22 +10144,16 @@ function module.new(config: Types.MangoBottomSheetConfig): Types.MangoBottomShee
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoBottomSheetGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 140
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 140,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Overlay (full screen, black, starts transparent)
 	local overlay = Instance.new("Frame")
-	overlay.Name = "BottomSheetOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1
@@ -9848,7 +10174,7 @@ function module.new(config: Types.MangoBottomSheetConfig): Types.MangoBottomShee
 
 	-- SheetContainer (anchored bottom, starts below screen)
 	local sheetContainer = Instance.new("Frame")
-	sheetContainer.Name = "SheetContainer"
+	sheetContainer.Name = MangoProtection.randomName("Container")
 	sheetContainer.AnchorPoint = Vector2.new(0.5, 1)
 	sheetContainer.Size = UDim2.new(1, 0, 0.9, 0) -- max 90% of screen height
 	sheetContainer.Position = UDim2.new(0.5, 0, 1, sheetContainer.AbsoluteSize.Y + 100)
@@ -10184,6 +10510,7 @@ _modules["MangoBlurProxy"] = function()
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local RunService = game:GetService("RunService")
 
 local module = {}
@@ -10202,7 +10529,7 @@ function module.new(config: Types.MangoBlurProxyConfig): Types.MangoBlurProxy
 
 	-- Container matches target size
 	local container = Instance.new("Frame")
-	container.Name = "MangoBlurProxy"
+	container.Name = MangoProtection.randomName("BlurProxy")
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
@@ -10315,6 +10642,7 @@ local MangoCheckbox = _require("MangoCheckbox")
 local MangoDropdown = _require("MangoDropdown")
 local MangoSlider = _require("MangoSlider")
 local MangoButton = _require("MangoButton")
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -10337,7 +10665,7 @@ function module.new(config: Types.MangoFormConfig): Types.MangoForm
 
 	-- Container
 	local container = Instance.new("Frame")
-	container.Name = "MangoForm"
+	container.Name = MangoProtection.randomName("Form")
 	container.Size = config.Size or UDim2.new(0, 300, 0, 0)
 	container.AutomaticSize = Enum.AutomaticSize.Y
 	container.Position = config.Position
@@ -10763,12 +11091,12 @@ _modules["MangoIntro"] = function()
 
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
-local Players = game:GetService("Players")
 
 local Types = _require("Types")
 local Themes = _require("Themes")
 local resolve = Themes.resolve
 local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoProtection = _require("MangoProtection")
 
 local module = {}
 
@@ -10804,26 +11132,25 @@ function module.play(config: Types.MangoIntroConfig?)
 	local subtitleText = cfg.Subtitle
 	local parentInstance = cfg.Parent
 
-	local playerGui: Instance
+	local gui: ScreenGui
 	if parentInstance then
-		playerGui = parentInstance
+		gui = Instance.new("ScreenGui")
+		gui.Name = MangoProtection.randomName("Intro")
+		gui.DisplayOrder = 200
+		gui.ResetOnSpawn = false
+		gui.IgnoreGuiInset = true
+		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		gui.Parent = parentInstance
 	else
-		local player = Players.LocalPlayer
-		playerGui = player:WaitForChild("PlayerGui")
+		gui = MangoProtection.createScreenGui({
+			DisplayOrder = 200,
+		})
 	end
-
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "MangoIntro"
-	gui.DisplayOrder = 200
-	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = playerGui
 	introGui = gui
 
 	-- Background overlay
 	local overlay = Instance.new("Frame")
-	overlay.Name = "IntroOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1
@@ -10833,7 +11160,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Center container
 	local centerContainer = Instance.new("Frame")
-	centerContainer.Name = "IntroCenterContainer"
+	centerContainer.Name = MangoProtection.randomName("Container")
 	centerContainer.Size = UDim2.new(0, 220, 0, 90)
 	centerContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 	centerContainer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -10855,7 +11182,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- 3D Text Layer 1: Back shadow (depth shadow, ZIndex=7)
 	local backShadowText = Instance.new("TextLabel")
-	backShadowText.Name = "MangoBackShadow"
+	backShadowText.Name = MangoProtection.randomName("BackShadow")
 	backShadowText.Text = titleText
 	backShadowText.Font = Enum.Font.GothamBold
 	backShadowText.TextSize = 35
@@ -10877,7 +11204,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- 3D Text Layer 2: Glass edge (refraction edge, ZIndex=8)
 	local glassEdgeText = Instance.new("TextLabel")
-	glassEdgeText.Name = "MangoGlassEdge"
+	glassEdgeText.Name = MangoProtection.randomName("GlassEdge")
 	glassEdgeText.Text = titleText
 	glassEdgeText.Font = Enum.Font.GothamBold
 	glassEdgeText.TextSize = 33
@@ -10907,7 +11234,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Glow layer (soft amber halo, ZIndex=9)
 	local glowText = Instance.new("TextLabel")
-	glowText.Name = "MangoGlowText"
+	glowText.Name = MangoProtection.randomName("GlowText")
 	glowText.Text = titleText
 	glowText.Font = Enum.Font.GothamBold
 	glowText.TextSize = 34
@@ -10929,7 +11256,7 @@ function module.play(config: Types.MangoIntroConfig?)
 
 	-- Main text (warm amber, ZIndex=10)
 	local logoText = Instance.new("TextLabel")
-	logoText.Name = "MangoLogoText"
+	logoText.Name = MangoProtection.randomName("LogoText")
 	logoText.Text = titleText
 	logoText.Font = Enum.Font.GothamBold
 	logoText.TextSize = 32
@@ -11271,6 +11598,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -11323,7 +11651,7 @@ function module.new(config: Types.MangoColorPickerConfig): Types.MangoColorPicke
 
 	-- Container (transparent wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoColorPicker"
+	container.Name = MangoProtection.randomName("ColorPicker")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -11709,6 +12037,7 @@ local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local MangoHaptics = _require("MangoHaptics")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -11759,7 +12088,7 @@ function module.new(config: Types.MangoKeybindConfig): Types.MangoKeybind
 
 	-- Container (horizontal layout, auto-sized)
 	local container = Instance.new("Frame")
-	container.Name = "MangoKeybind"
+	container.Name = MangoProtection.randomName("Keybind")
 	container.Size = UDim2.new(0, 0, 0, 28)
 	container.AutomaticSize = Enum.AutomaticSize.X
 	container.Position = position
@@ -12019,6 +12348,7 @@ local Types = _require("Types")
 local Themes = _require("Themes")
 local MangoGlassFrame = _require("MangoGlassFrame")
 local resolve = Themes.resolve
+local MangoProtection = _require("MangoProtection")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -12107,7 +12437,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 
 	-- Container (transparent outer wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoCarousel"
+	container.Name = MangoProtection.randomName("Carousel")
 	container.Size = dockSize
 	container.Position = position
 	container.AnchorPoint = anchorPoint
@@ -12598,11 +12928,11 @@ local MangoColorPicker = _require("MangoColorPicker")
 local MangoKeybind = _require("MangoKeybind")
 local MangoSaveManager = _require("MangoSaveManager")
 local MangoIntro = _require("MangoIntro")
+local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -12732,19 +13062,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	end
 
 	-- Create ScreenGui
-	local player = Players.LocalPlayer
-	local playerGui = player:WaitForChild("PlayerGui")
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "MangoWindow_" .. windowName
-	screenGui.DisplayOrder = 100
-	screenGui.ResetOnSpawn = false
-	screenGui.IgnoreGuiInset = true
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	screenGui.Parent = playerGui
+	local screenGui = MangoProtection.createScreenGui({
+		DisplayOrder = 100,
+	})
 
 	-- Window container (animation target)
 	local windowContainer = Instance.new("Frame")
-	windowContainer.Name = "WindowContainer"
+	windowContainer.Name = MangoProtection.randomName("Container")
 	windowContainer.Size = windowSize
 	windowContainer.Position = windowPos
 	windowContainer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -14169,6 +14493,7 @@ local MangoKeybind = _require("MangoKeybind")
 local MangoCarousel = _require("MangoCarousel")
 local MangoWindow = _require("MangoWindow")
 local MangoBuilder = _require("MangoBuilder")
+local MangoProtection = _require("MangoProtection")
 
 local MangoLiquidUI = {
     -- Full module names (backward compat)
@@ -14215,6 +14540,7 @@ local MangoLiquidUI = {
     MangoCarousel = MangoCarousel,
     MangoWindow = MangoWindow,
     MangoBuilder = MangoBuilder,
+    MangoProtection = MangoProtection,
 
     -- Theme shortcuts
     Light = Themes.Light,
@@ -14270,17 +14596,17 @@ function MangoLiquidUI.carousel(config) return MangoCarousel.new(config) end
 function MangoLiquidUI.csel(config) return MangoCarousel.new(config) end
 function MangoLiquidUI.window(config) return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType) return MangoBuilder.build(componentType) end
+function MangoLiquidUI.protect(config) MangoProtection.configure(config) end
+function MangoLiquidUI.isProtected() return MangoProtection.isProtected() end
+function MangoLiquidUI.protectionLevel() return MangoProtection.getProtectionLevel() end
 
 -- ScreenGui helper
 function MangoLiquidUI.gui(name)
-    local player = game:GetService("Players").LocalPlayer
-    local g = Instance.new("ScreenGui")
-    g.Name = name or "MangoUI"
-    g.ResetOnSpawn = false
-    g.IgnoreGuiInset = true
-    g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    g.Parent = player:WaitForChild("PlayerGui")
-    return g
+    local gui = MangoProtection.createScreenGui({})
+    if name and not MangoProtection.isProtected() then
+        gui.Name = name
+    end
+    return gui
 end
 
 -- Theme transition helper

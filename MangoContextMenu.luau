@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -77,7 +78,7 @@ function module.new(config: Types.MangoContextMenuConfig): Types.MangoContextMen
 		if not screenGui then return end
 
 		local blocker = Instance.new("TextButton")
-		blocker.Name = "ContextMenuClickBlocker"
+		blocker.Name = MangoProtection.randomName("Blocker")
 		blocker.Size = UDim2.new(1, 0, 1, 0)
 		blocker.BackgroundTransparency = 1
 		blocker.Text = ""

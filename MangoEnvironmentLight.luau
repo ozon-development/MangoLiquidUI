@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -25,7 +26,7 @@ function module.new(config: Types.MangoEnvironmentLightConfig?): Types.MangoEnvi
 	local enabled = resolve(cfg.Enabled, nil, true) :: boolean
 
 	local registeredFrames: {RegisteredFrame} = {}
-	local renderStepName = "MangoEnvLight_" .. tostring(math.random(100000, 999999))
+	local renderStepName = MangoProtection.randomBindingName("MangoEnvLight")
 	local lastTintUpdate: number = 0
 	local currentSunAngle: number = 90
 	local currentTint: Color3 = Color3.new(1, 1, 1)

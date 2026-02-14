@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TextService = game:GetService("TextService")
 
 local module = {}

@@ -15,6 +15,7 @@ mkdir -p "$OUT_DIR"
 # Module processing order (dependency-safe)
 MODULES=(
     "Types"
+    "MangoProtection"
     "Themes"
     "LiquidFusion"
     "RefractionProxy"
@@ -139,6 +140,7 @@ local MangoKeybind = _require("MangoKeybind")
 local MangoCarousel = _require("MangoCarousel")
 local MangoWindow = _require("MangoWindow")
 local MangoBuilder = _require("MangoBuilder")
+local MangoProtection = _require("MangoProtection")
 
 local MangoLiquidUI = {
     -- Full module names (backward compat)
@@ -185,6 +187,7 @@ local MangoLiquidUI = {
     MangoCarousel = MangoCarousel,
     MangoWindow = MangoWindow,
     MangoBuilder = MangoBuilder,
+    MangoProtection = MangoProtection,
 
     -- Theme shortcuts
     Light = Themes.Light,
@@ -240,17 +243,17 @@ function MangoLiquidUI.carousel(config) return MangoCarousel.new(config) end
 function MangoLiquidUI.csel(config) return MangoCarousel.new(config) end
 function MangoLiquidUI.window(config) return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType) return MangoBuilder.build(componentType) end
+function MangoLiquidUI.protect(config) MangoProtection.configure(config) end
+function MangoLiquidUI.isProtected() return MangoProtection.isProtected() end
+function MangoLiquidUI.protectionLevel() return MangoProtection.getProtectionLevel() end
 
 -- ScreenGui helper
 function MangoLiquidUI.gui(name)
-    local player = game:GetService("Players").LocalPlayer
-    local g = Instance.new("ScreenGui")
-    g.Name = name or "MangoUI"
-    g.ResetOnSpawn = false
-    g.IgnoreGuiInset = true
-    g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    g.Parent = player:WaitForChild("PlayerGui")
-    return g
+    local gui = MangoProtection.createScreenGui({})
+    if name and not MangoProtection.isProtected() then
+        gui.Name = name
+    end
+    return gui
 end
 
 -- Theme transition helper

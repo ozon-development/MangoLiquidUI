@@ -3,9 +3,9 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
+local MangoProtection = require(script.Parent.MangoProtection)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 
 local module = {}
@@ -48,22 +48,16 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	if config.Parent then
 		parentInstance = config.Parent
 	else
-		local player = Players.LocalPlayer
-		local playerGui = player:WaitForChild("PlayerGui")
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "MangoActionSheetGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 150
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = playerGui
+		local gui = MangoProtection.createScreenGui({
+			DisplayOrder = 150,
+		})
 		screenGui = gui
 		parentInstance = gui
 	end
 
 	-- Overlay
 	local overlay = Instance.new("Frame")
-	overlay.Name = "ActionSheetOverlay"
+	overlay.Name = MangoProtection.randomName("Overlay")
 	overlay.Size = UDim2.new(1, 0, 1, 0)
 	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	overlay.BackgroundTransparency = 1 -- starts fully transparent
@@ -73,7 +67,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 
 	-- SheetContainer (anchored bottom center)
 	local sheetContainer = Instance.new("Frame")
-	sheetContainer.Name = "SheetContainer"
+	sheetContainer.Name = MangoProtection.randomName("Container")
 	sheetContainer.AnchorPoint = Vector2.new(0.5, 1)
 	sheetContainer.Position = UDim2.new(0.5, 0, 1, 100) -- starts offscreen below
 	sheetContainer.BackgroundTransparency = 1

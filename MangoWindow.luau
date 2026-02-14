@@ -18,11 +18,11 @@ local MangoColorPicker = require(script.Parent.MangoColorPicker)
 local MangoKeybind = require(script.Parent.MangoKeybind)
 local MangoSaveManager = require(script.Parent.MangoSaveManager)
 local MangoIntro = require(script.Parent.MangoIntro)
+local MangoProtection = require(script.Parent.MangoProtection)
 local resolve = Themes.resolve
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
 local module = {}
 
@@ -152,19 +152,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	end
 
 	-- Create ScreenGui
-	local player = Players.LocalPlayer
-	local playerGui = player:WaitForChild("PlayerGui")
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "MangoWindow_" .. windowName
-	screenGui.DisplayOrder = 100
-	screenGui.ResetOnSpawn = false
-	screenGui.IgnoreGuiInset = true
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	screenGui.Parent = playerGui
+	local screenGui = MangoProtection.createScreenGui({
+		DisplayOrder = 100,
+	})
 
 	-- Window container (animation target)
 	local windowContainer = Instance.new("Frame")
-	windowContainer.Name = "WindowContainer"
+	windowContainer.Name = MangoProtection.randomName("Container")
 	windowContainer.Size = windowSize
 	windowContainer.Position = windowPos
 	windowContainer.AnchorPoint = Vector2.new(0.5, 0.5)

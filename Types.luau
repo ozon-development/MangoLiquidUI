@@ -1096,4 +1096,14 @@ export type MangoBuilder = {
 	create: (self: MangoBuilder) -> any,
 }
 
+-- Protection
+export type MangoProtectionConfig = {
+	Enabled: boolean?,
+}
+
+export type MangoScreenGuiConfig = {
+	DisplayOrder: number?,
+	IgnoreGuiInset: boolean?,
+}
+
 return nil

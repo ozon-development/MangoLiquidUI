@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -56,7 +57,7 @@ function module.new(config: Types.MangoColorPickerConfig): Types.MangoColorPicke
 
 	-- Container (transparent wrapper)
 	local container = Instance.new("Frame")
-	container.Name = "MangoColorPicker"
+	container.Name = MangoProtection.randomName("ColorPicker")
 	container.Size = size
 	container.Position = position
 	container.AnchorPoint = anchorPoint

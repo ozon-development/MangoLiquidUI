@@ -6,6 +6,7 @@ local HttpService = game:GetService("HttpService")
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 local proxyDepthCounter = 0
@@ -31,11 +32,11 @@ function module.new(config: Types.RefractionProxyConfig): Types.RefractionProxy
 	proxyDepthCounter += 1
 	local adjustedDepth: number = offsetDepth + (proxyDepthCounter * DEPTH_STEP)
 
-	local bindingName: string = "MangoRefraction_" .. HttpService:GenerateGUID(false)
+	local bindingName: string = MangoProtection.randomBindingName("MangoRefraction")
 
 	-- Create the Glass Part
 	local glassPart = Instance.new("Part")
-	glassPart.Name = "MangoRefractionProxy"
+	glassPart.Name = MangoProtection.randomName("RefractionProxy")
 	glassPart.Material = glassMaterial
 	glassPart.Transparency = glassTransparency
 	glassPart.Color = glassColor
@@ -50,6 +51,7 @@ function module.new(config: Types.RefractionProxyConfig): Types.RefractionProxy
 	local Workspace = game:GetService("Workspace")
 	local camera = Workspace.CurrentCamera or Workspace:WaitForChild("CurrentCamera")
 	glassPart.Parent = camera
+	MangoProtection.registerInstance(glassPart)
 
 	local function updatePartTransform()
 		local camera = game:GetService("Workspace").CurrentCamera

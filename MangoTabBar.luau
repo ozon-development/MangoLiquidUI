@@ -4,6 +4,7 @@ local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 local resolve = Themes.resolve
+local MangoProtection = require(script.Parent.MangoProtection)
 local TweenService = game:GetService("TweenService")
 
 local module = {}
@@ -42,7 +43,7 @@ function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 
 	-- Container (full width, 54px tall, anchored to bottom)
 	local container = Instance.new("Frame")
-	container.Name = "MangoTabBar"
+	container.Name = MangoProtection.randomName("TabBar")
 	container.Size = UDim2.new(1, 0, 0, 54)
 	container.Position = UDim2.new(0, 0, 1, 0)
 	container.AnchorPoint = Vector2.new(0, 1)

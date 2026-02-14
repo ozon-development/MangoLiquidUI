@@ -22,6 +22,7 @@ local MangoActionSheet = require(script.MangoActionSheet)
 local MangoEnvironmentLight = require(script.MangoEnvironmentLight)
 local MangoIntro = require(script.MangoIntro)
 local Themes = require(script.Themes)
+local MangoProtection = require(script.MangoProtection)
 
 -- New modules
 local MangoShimmer = require(script.MangoShimmer)
@@ -131,6 +132,7 @@ export type MangoWindow = Types.MangoWindow
 export type MangoWindowTab = Types.MangoWindowTab
 export type MangoWindowElement = Types.MangoWindowElement
 export type MangoBuilder = Types.MangoBuilder
+export type MangoProtectionConfig = Types.MangoProtectionConfig
 
 local MangoLiquidUI = {
 	-- Full module names (backward compat)
@@ -176,6 +178,7 @@ local MangoLiquidUI = {
 	MangoCarousel = MangoCarousel,
 	MangoWindow = MangoWindow,
 	MangoBuilder = MangoBuilder,
+	MangoProtection = MangoProtection,
 
 	-- Theme shortcuts
 	Light = Themes.Light,
@@ -231,17 +234,17 @@ function MangoLiquidUI.carousel(config: Types.MangoCarouselConfig): Types.MangoC
 function MangoLiquidUI.csel(config: Types.MangoCarouselConfig): Types.MangoCarousel return MangoCarousel.new(config) end
 function MangoLiquidUI.window(config: Types.MangoWindowConfig): Types.MangoWindow return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType: string): Types.MangoBuilder return MangoBuilder.build(componentType) end
+function MangoLiquidUI.protect(config: Types.MangoProtectionConfig) MangoProtection.configure(config) end
+function MangoLiquidUI.isProtected(): boolean return MangoProtection.isProtected() end
+function MangoLiquidUI.protectionLevel(): string return MangoProtection.getProtectionLevel() end
 
 -- ScreenGui helper
 function MangoLiquidUI.gui(name: string?): ScreenGui
-	local player = game:GetService("Players").LocalPlayer
-	local g = Instance.new("ScreenGui")
-	g.Name = name or "MangoUI"
-	g.ResetOnSpawn = false
-	g.IgnoreGuiInset = true
-	g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	g.Parent = player:WaitForChild("PlayerGui")
-	return g
+	local gui = MangoProtection.createScreenGui({})
+	if name and not MangoProtection.isProtected() then
+		gui.Name = name
+	end
+	return gui
 end
 
 --[[

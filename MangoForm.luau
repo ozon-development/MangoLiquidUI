@@ -8,6 +8,7 @@ local MangoCheckbox = require(script.Parent.MangoCheckbox)
 local MangoDropdown = require(script.Parent.MangoDropdown)
 local MangoSlider = require(script.Parent.MangoSlider)
 local MangoButton = require(script.Parent.MangoButton)
+local MangoProtection = require(script.Parent.MangoProtection)
 
 local module = {}
 
@@ -30,7 +31,7 @@ function module.new(config: Types.MangoFormConfig): Types.MangoForm
 
 	-- Container
 	local container = Instance.new("Frame")
-	container.Name = "MangoForm"
+	container.Name = MangoProtection.randomName("Form")
 	container.Size = config.Size or UDim2.new(0, 300, 0, 0)
 	container.AutomaticSize = Enum.AutomaticSize.Y
 	container.Position = config.Position
