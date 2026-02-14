@@ -19,6 +19,9 @@ MODULES=(
     "LiquidFusion"
     "RefractionProxy"
     "MangoGlassFrame"
+    "MangoShimmer"
+    "MangoHaptics"
+    "MangoLayout"
     "MangoToggle"
     "MangoSlider"
     "MangoCheckbox"
@@ -29,13 +32,24 @@ MODULES=(
     "MangoEnvironmentLight"
     "MangoButton"
     "MangoNotification"
+    "MangoBadge"
+    "MangoSkeleton"
+    "MangoStepper"
+    "MangoTooltip"
+    "MangoToast"
     "MangoDialog"
     "MangoActionSheet"
     "MangoDropdown"
+    "MangoContextMenu"
     "MangoTabBar"
     "MangoBillboardLabel"
     "MangoNotificationStack"
+    "MangoBottomSheet"
+    "MangoBlurProxy"
+    "MangoForm"
+    "MangoFocusManager"
     "MangoIntro"
+    "MangoBuilder"
 )
 
 # Write header
@@ -101,6 +115,20 @@ local MangoDialog = _require("MangoDialog")
 local MangoActionSheet = _require("MangoActionSheet")
 local MangoEnvironmentLight = _require("MangoEnvironmentLight")
 local MangoIntro = _require("MangoIntro")
+local MangoShimmer = _require("MangoShimmer")
+local MangoHaptics = _require("MangoHaptics")
+local MangoLayout = _require("MangoLayout")
+local MangoBadge = _require("MangoBadge")
+local MangoSkeleton = _require("MangoSkeleton")
+local MangoStepper = _require("MangoStepper")
+local MangoTooltip = _require("MangoTooltip")
+local MangoToast = _require("MangoToast")
+local MangoContextMenu = _require("MangoContextMenu")
+local MangoBottomSheet = _require("MangoBottomSheet")
+local MangoBlurProxy = _require("MangoBlurProxy")
+local MangoForm = _require("MangoForm")
+local MangoFocusManager = _require("MangoFocusManager")
+local MangoBuilder = _require("MangoBuilder")
 
 local MangoLiquidUI = {
     -- Full module names (backward compat)
@@ -125,19 +153,38 @@ local MangoLiquidUI = {
     MangoEnvironmentLight = MangoEnvironmentLight,
     MangoIntro = MangoIntro,
     Themes = Themes,
+    resolve = Themes.resolve,
+
+    -- New full module names
+    MangoShimmer = MangoShimmer,
+    MangoHaptics = MangoHaptics,
+    MangoLayout = MangoLayout,
+    MangoBadge = MangoBadge,
+    MangoSkeleton = MangoSkeleton,
+    MangoStepper = MangoStepper,
+    MangoTooltip = MangoTooltip,
+    MangoToast = MangoToast,
+    MangoContextMenu = MangoContextMenu,
+    MangoBottomSheet = MangoBottomSheet,
+    MangoBlurProxy = MangoBlurProxy,
+    MangoForm = MangoForm,
+    MangoFocusManager = MangoFocusManager,
+    MangoBuilder = MangoBuilder,
 
     -- Theme shortcuts
     Light = Themes.Light,
     Dark = Themes.Dark,
     Mango = Themes.Mango,
     Mint = Themes.Mint,
-    resolve = Themes.resolve,
 
     -- Intro module shortcut
     intro = MangoIntro,
+
+    -- Haptics module shortcut
+    haptic = MangoHaptics,
 }
 
--- Short-name constructors
+-- Existing short-name constructors
 function MangoLiquidUI.bttn(config) return MangoButton.new(config) end
 function MangoLiquidUI.sldr(config) return MangoSlider.new(config) end
 function MangoLiquidUI.tgl(config) return MangoToggle.new(config) end
@@ -157,6 +204,22 @@ function MangoLiquidUI.bbl(config) return MangoBillboardLabel.new(config) end
 function MangoLiquidUI.env(config) return MangoEnvironmentLight.new(config) end
 function MangoLiquidUI.refr(config) return RefractionProxy.new(config) end
 function MangoLiquidUI.fuse(config) return LiquidFusion.new(config) end
+
+-- New short-name constructors
+function MangoLiquidUI.shimr(config) return MangoShimmer.new(config) end
+function MangoLiquidUI.layout(config) return MangoLayout.new(config) end
+function MangoLiquidUI.bdg(config) return MangoBadge.new(config) end
+function MangoLiquidUI.skel(config) return MangoSkeleton.new(config) end
+function MangoLiquidUI.step(config) return MangoStepper.new(config) end
+function MangoLiquidUI.tip(config) return MangoTooltip.new(config) end
+function MangoLiquidUI.toast(config) return MangoToast.new(config) end
+function MangoLiquidUI.tstack(config) return MangoToast.newStack(config) end
+function MangoLiquidUI.ctx(config) return MangoContextMenu.new(config) end
+function MangoLiquidUI.bsheet(config) return MangoBottomSheet.new(config) end
+function MangoLiquidUI.blur(config) return MangoBlurProxy.new(config) end
+function MangoLiquidUI.form(config) return MangoForm.new(config) end
+function MangoLiquidUI.focus(config) return MangoFocusManager.new(config) end
+function MangoLiquidUI.build(componentType) return MangoBuilder.build(componentType) end
 
 -- ScreenGui helper
 function MangoLiquidUI.gui(name)

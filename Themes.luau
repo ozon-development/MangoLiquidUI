@@ -128,6 +128,42 @@ module.Light = {
 	-- Dialog
 	DialogOverlayTransparency = 0.40,
 	DialogBackgroundTransparency = 0.78,
+
+	-- Shimmer
+	ShimmerColor = Color3.fromRGB(255, 255, 255),
+	ShimmerTransparency = 0.85,
+
+	-- Badge
+	BadgeBackgroundColor = Color3.fromRGB(0, 122, 255),
+	BadgeBackgroundTransparency = 0.15,
+	BadgeTextColor = Color3.fromRGB(255, 255, 255),
+
+	-- Tooltip
+	TooltipBackgroundTransparency = 0.15,
+
+	-- Stepper
+	StepperBackgroundTransparency = 0.80,
+
+	-- Skeleton
+	SkeletonBackgroundColor = Color3.fromRGB(230, 230, 235),
+	SkeletonBackgroundTransparency = 0.50,
+
+	-- Toast
+	ToastBackgroundTransparency = 0.20,
+
+	-- Bottom Sheet
+	BottomSheetBackgroundTransparency = 0.15,
+	BottomSheetHandleColor = Color3.fromRGB(200, 200, 205),
+
+	-- Blur Proxy
+	BlurTintColor = Color3.fromRGB(255, 255, 255),
+	BlurTintTransparency = 0.70,
+
+	-- Form
+	FormErrorColor = Color3.fromRGB(255, 59, 48),
+
+	-- Focus Manager
+	FocusRingColor = Color3.fromRGB(0, 122, 255),
 } :: Types.ThemePreset
 
 module.Mango = {
@@ -239,6 +275,42 @@ module.Mango = {
 	-- Dialog
 	DialogOverlayTransparency = 0.42,
 	DialogBackgroundTransparency = 0.76,
+
+	-- Shimmer
+	ShimmerColor = Color3.fromRGB(255, 240, 200),
+	ShimmerTransparency = 0.85,
+
+	-- Badge
+	BadgeBackgroundColor = Color3.fromRGB(255, 149, 0),
+	BadgeBackgroundTransparency = 0.15,
+	BadgeTextColor = Color3.fromRGB(255, 255, 255),
+
+	-- Tooltip
+	TooltipBackgroundTransparency = 0.12,
+
+	-- Stepper
+	StepperBackgroundTransparency = 0.78,
+
+	-- Skeleton
+	SkeletonBackgroundColor = Color3.fromRGB(235, 220, 195),
+	SkeletonBackgroundTransparency = 0.50,
+
+	-- Toast
+	ToastBackgroundTransparency = 0.18,
+
+	-- Bottom Sheet
+	BottomSheetBackgroundTransparency = 0.14,
+	BottomSheetHandleColor = Color3.fromRGB(200, 180, 150),
+
+	-- Blur Proxy
+	BlurTintColor = Color3.fromRGB(255, 235, 200),
+	BlurTintTransparency = 0.70,
+
+	-- Form
+	FormErrorColor = Color3.fromRGB(255, 59, 48),
+
+	-- Focus Manager
+	FocusRingColor = Color3.fromRGB(255, 149, 0),
 } :: Types.ThemePreset
 
 module.Dark = {
@@ -350,6 +422,42 @@ module.Dark = {
 	-- Dialog
 	DialogOverlayTransparency = 0.35,
 	DialogBackgroundTransparency = 0.74,
+
+	-- Shimmer
+	ShimmerColor = Color3.fromRGB(255, 255, 255),
+	ShimmerTransparency = 0.85,
+
+	-- Badge
+	BadgeBackgroundColor = Color3.fromRGB(10, 132, 255),
+	BadgeBackgroundTransparency = 0.15,
+	BadgeTextColor = Color3.fromRGB(255, 255, 255),
+
+	-- Tooltip
+	TooltipBackgroundTransparency = 0.15,
+
+	-- Stepper
+	StepperBackgroundTransparency = 0.76,
+
+	-- Skeleton
+	SkeletonBackgroundColor = Color3.fromRGB(45, 45, 55),
+	SkeletonBackgroundTransparency = 0.50,
+
+	-- Toast
+	ToastBackgroundTransparency = 0.18,
+
+	-- Bottom Sheet
+	BottomSheetBackgroundTransparency = 0.12,
+	BottomSheetHandleColor = Color3.fromRGB(80, 80, 90),
+
+	-- Blur Proxy
+	BlurTintColor = Color3.fromRGB(28, 30, 38),
+	BlurTintTransparency = 0.70,
+
+	-- Form
+	FormErrorColor = Color3.fromRGB(255, 59, 48),
+
+	-- Focus Manager
+	FocusRingColor = Color3.fromRGB(10, 132, 255),
 } :: Types.ThemePreset
 
 module.Mint = {
@@ -461,6 +569,42 @@ module.Mint = {
 	-- Dialog
 	DialogOverlayTransparency = 0.40,
 	DialogBackgroundTransparency = 0.78,
+
+	-- Shimmer
+	ShimmerColor = Color3.fromRGB(240, 255, 248),
+	ShimmerTransparency = 0.85,
+
+	-- Badge
+	BadgeBackgroundColor = Color3.fromRGB(0, 199, 140),
+	BadgeBackgroundTransparency = 0.15,
+	BadgeTextColor = Color3.fromRGB(255, 255, 255),
+
+	-- Tooltip
+	TooltipBackgroundTransparency = 0.15,
+
+	-- Stepper
+	StepperBackgroundTransparency = 0.80,
+
+	-- Skeleton
+	SkeletonBackgroundColor = Color3.fromRGB(220, 240, 232),
+	SkeletonBackgroundTransparency = 0.50,
+
+	-- Toast
+	ToastBackgroundTransparency = 0.20,
+
+	-- Bottom Sheet
+	BottomSheetBackgroundTransparency = 0.15,
+	BottomSheetHandleColor = Color3.fromRGB(180, 210, 200),
+
+	-- Blur Proxy
+	BlurTintColor = Color3.fromRGB(235, 252, 245),
+	BlurTintTransparency = 0.70,
+
+	-- Form
+	FormErrorColor = Color3.fromRGB(255, 59, 48),
+
+	-- Focus Manager
+	FocusRingColor = Color3.fromRGB(0, 199, 140),
 } :: Types.ThemePreset
 
 return module

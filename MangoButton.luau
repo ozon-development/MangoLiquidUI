@@ -3,6 +3,7 @@
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
+local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
@@ -177,6 +178,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 		})
 		trackTween(gradientTween)
 		gradientTween:Play()
+		MangoHaptics.light()
 		if config.OnActivated then
 			config.OnActivated()
 		end

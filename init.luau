@@ -23,6 +23,23 @@ local MangoEnvironmentLight = require(script.MangoEnvironmentLight)
 local MangoIntro = require(script.MangoIntro)
 local Themes = require(script.Themes)
 
+-- New modules
+local MangoShimmer = require(script.MangoShimmer)
+local MangoHaptics = require(script.MangoHaptics)
+local MangoLayout = require(script.MangoLayout)
+local MangoBadge = require(script.MangoBadge)
+local MangoSkeleton = require(script.MangoSkeleton)
+local MangoStepper = require(script.MangoStepper)
+local MangoTooltip = require(script.MangoTooltip)
+local MangoToast = require(script.MangoToast)
+local MangoContextMenu = require(script.MangoContextMenu)
+local MangoBottomSheet = require(script.MangoBottomSheet)
+local MangoBlurProxy = require(script.MangoBlurProxy)
+local MangoForm = require(script.MangoForm)
+local MangoFocusManager = require(script.MangoFocusManager)
+local MangoBuilder = require(script.MangoBuilder)
+
+-- Existing type exports
 export type ThemePreset = Types.ThemePreset
 export type MangoGlassConfig = Types.MangoGlassConfig
 export type RefractionProxyConfig = Types.RefractionProxyConfig
@@ -66,6 +83,37 @@ export type MangoActionSheetActionConfig = Types.MangoActionSheetActionConfig
 export type MangoActionSheet = Types.MangoActionSheet
 export type MangoIntroConfig = Types.MangoIntroConfig
 
+-- New type exports
+export type MangoShimmerConfig = Types.MangoShimmerConfig
+export type MangoShimmer = Types.MangoShimmer
+export type MangoLayoutConfig = Types.MangoLayoutConfig
+export type MangoLayout = Types.MangoLayout
+export type MangoBadgeConfig = Types.MangoBadgeConfig
+export type MangoBadge = Types.MangoBadge
+export type MangoSkeletonConfig = Types.MangoSkeletonConfig
+export type MangoSkeleton = Types.MangoSkeleton
+export type MangoStepperConfig = Types.MangoStepperConfig
+export type MangoStepper = Types.MangoStepper
+export type MangoTooltipConfig = Types.MangoTooltipConfig
+export type MangoTooltip = Types.MangoTooltip
+export type MangoToastConfig = Types.MangoToastConfig
+export type MangoToast = Types.MangoToast
+export type MangoToastStackConfig = Types.MangoToastStackConfig
+export type MangoToastStack = Types.MangoToastStack
+export type MangoContextMenuItemConfig = Types.MangoContextMenuItemConfig
+export type MangoContextMenuConfig = Types.MangoContextMenuConfig
+export type MangoContextMenu = Types.MangoContextMenu
+export type MangoBottomSheetConfig = Types.MangoBottomSheetConfig
+export type MangoBottomSheet = Types.MangoBottomSheet
+export type MangoBlurProxyConfig = Types.MangoBlurProxyConfig
+export type MangoBlurProxy = Types.MangoBlurProxy
+export type MangoFormFieldConfig = Types.MangoFormFieldConfig
+export type MangoFormConfig = Types.MangoFormConfig
+export type MangoForm = Types.MangoForm
+export type MangoFocusManagerConfig = Types.MangoFocusManagerConfig
+export type MangoFocusManager = Types.MangoFocusManager
+export type MangoBuilder = Types.MangoBuilder
+
 local MangoLiquidUI = {
 	-- Full module names (backward compat)
 	MangoGlassFrame = MangoGlassFrame,
@@ -90,6 +138,22 @@ local MangoLiquidUI = {
 	MangoIntro = MangoIntro,
 	Themes = Themes,
 
+	-- New full module names
+	MangoShimmer = MangoShimmer,
+	MangoHaptics = MangoHaptics,
+	MangoLayout = MangoLayout,
+	MangoBadge = MangoBadge,
+	MangoSkeleton = MangoSkeleton,
+	MangoStepper = MangoStepper,
+	MangoTooltip = MangoTooltip,
+	MangoToast = MangoToast,
+	MangoContextMenu = MangoContextMenu,
+	MangoBottomSheet = MangoBottomSheet,
+	MangoBlurProxy = MangoBlurProxy,
+	MangoForm = MangoForm,
+	MangoFocusManager = MangoFocusManager,
+	MangoBuilder = MangoBuilder,
+
 	-- Theme shortcuts
 	Light = Themes.Light,
 	Dark = Themes.Dark,
@@ -98,9 +162,12 @@ local MangoLiquidUI = {
 
 	-- Intro module shortcut
 	intro = MangoIntro,
+
+	-- Haptics module shortcut
+	haptic = MangoHaptics,
 }
 
--- Short-name constructors
+-- Existing short-name constructors
 function MangoLiquidUI.bttn(config: Types.MangoButtonConfig): Types.MangoButton return MangoButton.new(config) end
 function MangoLiquidUI.sldr(config: Types.MangoSliderConfig): Types.MangoSlider return MangoSlider.new(config) end
 function MangoLiquidUI.tgl(config: Types.MangoToggleConfig): Types.MangoToggle return MangoToggle.new(config) end
@@ -120,6 +187,22 @@ function MangoLiquidUI.bbl(config: Types.MangoBillboardLabelConfig): Types.Mango
 function MangoLiquidUI.env(config: Types.MangoEnvironmentLightConfig): Types.MangoEnvironmentLight return MangoEnvironmentLight.new(config) end
 function MangoLiquidUI.refr(config: Types.RefractionProxyConfig): Types.RefractionProxy return RefractionProxy.new(config) end
 function MangoLiquidUI.fuse(config: Types.LiquidFusionConfig): Types.LiquidFusionController return LiquidFusion.new(config) end
+
+-- New short-name constructors
+function MangoLiquidUI.shimr(config: Types.MangoShimmerConfig): Types.MangoShimmer return MangoShimmer.new(config) end
+function MangoLiquidUI.layout(config: Types.MangoLayoutConfig): Types.MangoLayout return MangoLayout.new(config) end
+function MangoLiquidUI.bdg(config: Types.MangoBadgeConfig): Types.MangoBadge return MangoBadge.new(config) end
+function MangoLiquidUI.skel(config: Types.MangoSkeletonConfig): Types.MangoSkeleton return MangoSkeleton.new(config) end
+function MangoLiquidUI.step(config: Types.MangoStepperConfig): Types.MangoStepper return MangoStepper.new(config) end
+function MangoLiquidUI.tip(config: Types.MangoTooltipConfig): Types.MangoTooltip return MangoTooltip.new(config) end
+function MangoLiquidUI.toast(config: Types.MangoToastConfig): Types.MangoToast return MangoToast.new(config) end
+function MangoLiquidUI.tstack(config: Types.MangoToastStackConfig): Types.MangoToastStack return MangoToast.newStack(config) end
+function MangoLiquidUI.ctx(config: Types.MangoContextMenuConfig): Types.MangoContextMenu return MangoContextMenu.new(config) end
+function MangoLiquidUI.bsheet(config: Types.MangoBottomSheetConfig): Types.MangoBottomSheet return MangoBottomSheet.new(config) end
+function MangoLiquidUI.blur(config: Types.MangoBlurProxyConfig): Types.MangoBlurProxy return MangoBlurProxy.new(config) end
+function MangoLiquidUI.form(config: Types.MangoFormConfig): Types.MangoForm return MangoForm.new(config) end
+function MangoLiquidUI.focus(config: Types.MangoFocusManagerConfig): Types.MangoFocusManager return MangoFocusManager.new(config) end
+function MangoLiquidUI.build(componentType: string): Types.MangoBuilder return MangoBuilder.build(componentType) end
 
 -- ScreenGui helper
 function MangoLiquidUI.gui(name: string?): ScreenGui

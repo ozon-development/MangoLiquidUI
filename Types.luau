@@ -111,6 +111,42 @@ export type ThemePreset = {
 	-- Dialog
 	DialogOverlayTransparency: number?,
 	DialogBackgroundTransparency: number?,
+
+	-- Shimmer
+	ShimmerColor: Color3?,
+	ShimmerTransparency: number?,
+
+	-- Badge
+	BadgeBackgroundColor: Color3?,
+	BadgeBackgroundTransparency: number?,
+	BadgeTextColor: Color3?,
+
+	-- Tooltip
+	TooltipBackgroundTransparency: number?,
+
+	-- Stepper
+	StepperBackgroundTransparency: number?,
+
+	-- Skeleton
+	SkeletonBackgroundColor: Color3?,
+	SkeletonBackgroundTransparency: number?,
+
+	-- Toast
+	ToastBackgroundTransparency: number?,
+
+	-- Bottom Sheet
+	BottomSheetBackgroundTransparency: number?,
+	BottomSheetHandleColor: Color3?,
+
+	-- Blur Proxy
+	BlurTintColor: Color3?,
+	BlurTintTransparency: number?,
+
+	-- Form
+	FormErrorColor: Color3?,
+
+	-- Focus Manager
+	FocusRingColor: Color3?,
 }
 
 export type MangoGlassConfig = {
@@ -522,6 +558,282 @@ export type MangoIntroConfig = {
 	Theme: ThemePreset?,
 	OnComplete: (() -> ())?,
 	Parent: Instance?,
+}
+
+-- Shimmer
+export type MangoShimmerConfig = {
+	Target: GuiObject,
+	ShimmerColor: Color3?,
+	ShimmerTransparency: number?,
+	ShimmerWidth: number?,
+	Duration: number?,
+	Enabled: boolean?,
+	Theme: ThemePreset?,
+}
+
+export type MangoShimmer = {
+	Enable: (self: MangoShimmer) -> (),
+	Disable: (self: MangoShimmer) -> (),
+	IsEnabled: (self: MangoShimmer) -> boolean,
+	Destroy: (self: MangoShimmer) -> (),
+}
+
+-- Layout
+export type MangoLayoutConfig = {
+	Mode: string, -- "vstack" | "hstack" | "grid"
+	Padding: number?,
+	CellSize: UDim2?,
+	HorizontalAlignment: Enum.HorizontalAlignment?,
+	VerticalAlignment: Enum.VerticalAlignment?,
+	PaddingTop: number?,
+	PaddingBottom: number?,
+	PaddingLeft: number?,
+	PaddingRight: number?,
+	Parent: GuiObject?,
+}
+
+export type MangoLayout = {
+	Container: Frame,
+	AddChild: (self: MangoLayout, child: GuiObject) -> (),
+	RemoveChild: (self: MangoLayout, child: GuiObject) -> (),
+	Clear: (self: MangoLayout) -> (),
+	Destroy: (self: MangoLayout) -> (),
+}
+
+-- Badge
+export type MangoBadgeConfig = {
+	Position: UDim2,
+	AnchorPoint: Vector2?,
+	Text: string,
+	TextSize: number?,
+	TextColor: Color3?,
+	BackgroundColor: Color3?,
+	BackgroundTransparency: number?,
+	Theme: ThemePreset?,
+	Parent: GuiObject?,
+}
+
+export type MangoBadge = {
+	Container: Frame,
+	SetText: (self: MangoBadge, text: string) -> (),
+	Destroy: (self: MangoBadge) -> (),
+}
+
+-- Skeleton
+export type MangoSkeletonConfig = {
+	Size: UDim2,
+	Position: UDim2,
+	AnchorPoint: Vector2?,
+	CornerRadius: UDim?,
+	Theme: ThemePreset?,
+	Parent: GuiObject?,
+}
+
+export type MangoSkeleton = {
+	Container: Frame,
+	Destroy: (self: MangoSkeleton) -> (),
+}
+
+-- Stepper
+export type MangoStepperConfig = {
+	Position: UDim2,
+	AnchorPoint: Vector2?,
+	InitialValue: number?,
+	Min: number?,
+	Max: number?,
+	Step: number?,
+	Theme: ThemePreset?,
+	OnChanged: ((value: number) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoStepper = {
+	Container: Frame,
+	SetValue: (self: MangoStepper, value: number) -> (),
+	GetValue: (self: MangoStepper) -> number,
+	Destroy: (self: MangoStepper) -> (),
+}
+
+-- Tooltip
+export type MangoTooltipConfig = {
+	Target: GuiObject,
+	Text: string,
+	TextSize: number?,
+	MaxWidth: number?,
+	Delay: number?,
+	Placement: string?,
+	ArrowSize: number?,
+	Theme: ThemePreset?,
+	Parent: GuiObject?,
+}
+
+export type MangoTooltip = {
+	Show: (self: MangoTooltip) -> (),
+	Hide: (self: MangoTooltip) -> (),
+	SetText: (self: MangoTooltip, text: string) -> (),
+	Destroy: (self: MangoTooltip) -> (),
+}
+
+-- Toast
+export type MangoToastConfig = {
+	Text: string,
+	Icon: string?,
+	Duration: number?,
+	Theme: ThemePreset?,
+	OnDismissed: (() -> ())?,
+	Parent: Instance?,
+}
+
+export type MangoToast = {
+	Container: Frame,
+	Show: (self: MangoToast) -> (),
+	Dismiss: (self: MangoToast) -> (),
+	SetPosition: (self: MangoToast, position: UDim2) -> (),
+	GetHeight: (self: MangoToast) -> number,
+	Destroy: (self: MangoToast) -> (),
+}
+
+-- Toast Stack
+export type MangoToastStackConfig = {
+	MaxVisible: number?,
+	StackGap: number?,
+	Theme: ThemePreset?,
+	Parent: Instance?,
+}
+
+export type MangoToastStack = {
+	Push: (self: MangoToastStack, config: MangoToastConfig) -> MangoToast,
+	DismissAll: (self: MangoToastStack) -> (),
+	GetCount: (self: MangoToastStack) -> number,
+	Destroy: (self: MangoToastStack) -> (),
+}
+
+-- Context Menu
+export type MangoContextMenuItemConfig = {
+	Text: string,
+	Icon: string?,
+	Style: string?,
+	Disabled: boolean?,
+	OnActivated: (() -> ())?,
+}
+
+export type MangoContextMenuConfig = {
+	Target: GuiObject,
+	Items: {MangoContextMenuItemConfig},
+	Theme: ThemePreset?,
+	Parent: GuiObject?,
+}
+
+export type MangoContextMenu = {
+	Open: (self: MangoContextMenu, position: Vector2?) -> (),
+	Close: (self: MangoContextMenu) -> (),
+	SetItems: (self: MangoContextMenu, items: {MangoContextMenuItemConfig}) -> (),
+	Destroy: (self: MangoContextMenu) -> (),
+}
+
+-- Bottom Sheet
+export type MangoBottomSheetConfig = {
+	Title: string?,
+	ContentSize: UDim2?,
+	SnapPositions: {number}?,
+	InitialSnap: number?,
+	DismissThreshold: number?,
+	Theme: ThemePreset?,
+	OnDismissed: (() -> ())?,
+	OnSnapChanged: ((snapIndex: number) -> ())?,
+	Parent: Instance?,
+}
+
+export type MangoBottomSheet = {
+	Container: Frame,
+	ContentFrame: Frame,
+	Show: (self: MangoBottomSheet) -> (),
+	Dismiss: (self: MangoBottomSheet) -> (),
+	SnapTo: (self: MangoBottomSheet, snapIndex: number) -> (),
+	Destroy: (self: MangoBottomSheet) -> (),
+}
+
+-- Blur Proxy
+export type MangoBlurProxyConfig = {
+	TargetGui: GuiObject,
+	BlurRadius: number?,
+	DownscaleFactor: number?,
+	UpdateInterval: number?,
+	Enabled: boolean?,
+	Theme: ThemePreset?,
+	Parent: GuiObject?,
+}
+
+export type MangoBlurProxy = {
+	Container: Frame,
+	SetEnabled: (self: MangoBlurProxy, enabled: boolean) -> (),
+	IsEnabled: (self: MangoBlurProxy) -> boolean,
+	Destroy: (self: MangoBlurProxy) -> (),
+}
+
+-- Form
+export type MangoFormFieldConfig = {
+	Name: string,
+	Type: string, -- "text" | "checkbox" | "dropdown" | "slider"
+	Label: string?,
+	Required: boolean?,
+	Placeholder: string?,
+	Items: {string}?,
+	Min: number?,
+	Max: number?,
+	InitialValue: any?,
+	Validate: ((value: any) -> (boolean, string?))?,
+}
+
+export type MangoFormConfig = {
+	Position: UDim2,
+	Size: UDim2?,
+	AnchorPoint: Vector2?,
+	Fields: {MangoFormFieldConfig},
+	SubmitText: string?,
+	Theme: ThemePreset?,
+	OnSubmit: ((values: {[string]: any}) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoForm = {
+	Container: Frame,
+	GetValues: (self: MangoForm) -> {[string]: any},
+	Validate: (self: MangoForm) -> boolean,
+	SetFieldValue: (self: MangoForm, name: string, value: any) -> (),
+	Destroy: (self: MangoForm) -> (),
+}
+
+-- Focus Manager
+export type MangoFocusManagerConfig = {
+	Inputs: {GuiObject},
+	SubmitCallback: (() -> ())?,
+	DismissCallback: (() -> ())?,
+	Enabled: boolean?,
+}
+
+export type MangoFocusManager = {
+	Register: (self: MangoFocusManager, input: GuiObject) -> (),
+	Unregister: (self: MangoFocusManager, input: GuiObject) -> (),
+	FocusNext: (self: MangoFocusManager) -> (),
+	FocusPrevious: (self: MangoFocusManager) -> (),
+	FocusIndex: (self: MangoFocusManager, index: number) -> (),
+	SetEnabled: (self: MangoFocusManager, enabled: boolean) -> (),
+	Destroy: (self: MangoFocusManager) -> (),
+}
+
+-- Builder
+export type MangoBuilder = {
+	text: (self: MangoBuilder, text: string) -> MangoBuilder,
+	theme: (self: MangoBuilder, theme: ThemePreset) -> MangoBuilder,
+	pos: (self: MangoBuilder, xScale: number, xOffset: number, yScale: number, yOffset: number) -> MangoBuilder,
+	anchor: (self: MangoBuilder, x: number, y: number) -> MangoBuilder,
+	size: (self: MangoBuilder, xScale: number, xOffset: number, yScale: number, yOffset: number) -> MangoBuilder,
+	parent: (self: MangoBuilder, parent: GuiObject) -> MangoBuilder,
+	onClick: (self: MangoBuilder, callback: () -> ()) -> MangoBuilder,
+	onChange: (self: MangoBuilder, callback: (value: any) -> ()) -> MangoBuilder,
+	prop: (self: MangoBuilder, key: string, value: any) -> MangoBuilder,
+	create: (self: MangoBuilder) -> any,
 }
 
 return nil

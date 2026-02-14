@@ -2,6 +2,7 @@
 
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
+local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -363,6 +364,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			isDragging = true
+			MangoHaptics.light()
 			growThumb()
 		end
 	end)

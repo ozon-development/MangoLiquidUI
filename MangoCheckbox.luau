@@ -2,6 +2,7 @@
 
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
+local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
 local TweenService = game:GetService("TweenService")
 
@@ -172,6 +173,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	-- Click handler
 	local clickConn = hitArea.MouseButton1Click:Connect(function()
 		isChecked = not isChecked
+		MangoHaptics.light()
 		animateToState(isChecked)
 		if config.OnToggled then
 			config.OnToggled(isChecked)

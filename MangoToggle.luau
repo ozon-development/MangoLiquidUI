@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
+local MangoHaptics = require(script.Parent.MangoHaptics)
 local resolve = Themes.resolve
 
 local module = {}
@@ -324,6 +325,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			isOn = not isOn
+			MangoHaptics.light()
 			animateToState(isOn)
 			if config.OnToggled then
 				config.OnToggled(isOn)
