@@ -147,6 +147,20 @@ export type ThemePreset = {
 
 	-- Focus Manager
 	FocusRingColor: Color3?,
+
+	-- Window
+	WindowBackgroundTransparency: number?,
+	WindowTitleColor: Color3?,
+
+	-- Color Picker
+	ColorPickerCursorColor: Color3?,
+
+	-- Keybind
+	KeybindPillTransparency: number?,
+	KeybindListeningColor: Color3?,
+
+	-- Accent color (used by many components)
+	AccentColor: Color3?,
 }
 
 export type MangoGlassConfig = {
@@ -327,6 +341,8 @@ export type MangoNotificationConfig = {
 	Body: string?,
 	Icon: string?,
 	Duration: number?,
+	Type: string?,
+	Actions: {MangoNotificationActionConfig}?,
 	Theme: ThemePreset?,
 	OnDismissed: (() -> ())?,
 	Parent: Instance?,
@@ -401,8 +417,11 @@ export type MangoDropdownConfig = {
 	AnchorPoint: Vector2?,
 	Items: {string},
 	InitialIndex: number?,
+	MultiSelect: boolean?,
+	InitialItems: {string}?,
 	Theme: ThemePreset?,
 	OnChanged: ((index: number) -> ())?,
+	OnMultiChanged: (({string}) -> ())?,
 	Parent: GuiObject?,
 }
 
@@ -410,6 +429,7 @@ export type MangoDropdown = {
 	Container: Frame,
 	SetSelectedIndex: (self: MangoDropdown, index: number) -> (),
 	GetSelectedIndex: (self: MangoDropdown) -> number,
+	GetSelectedItems: (self: MangoDropdown) -> {string},
 	SetItems: (self: MangoDropdown, items: {string}) -> (),
 	Open: (self: MangoDropdown) -> (),
 	Close: (self: MangoDropdown) -> (),
@@ -459,6 +479,7 @@ export type MangoTextFieldConfig = {
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
 	InitialText: string?,
+	Masked: boolean?,
 	Theme: ThemePreset?,
 	OnTextChanged: ((text: string) -> ())?,
 	OnFocusLost: ((text: string, enterPressed: boolean) -> ())?,
@@ -556,6 +577,8 @@ export type MangoActionSheet = {
 -- Intro
 export type MangoIntroConfig = {
 	Theme: ThemePreset?,
+	Title: string?,
+	Subtitle: string?,
 	OnComplete: (() -> ())?,
 	Parent: Instance?,
 }
@@ -820,6 +843,243 @@ export type MangoFocusManager = {
 	FocusIndex: (self: MangoFocusManager, index: number) -> (),
 	SetEnabled: (self: MangoFocusManager, enabled: boolean) -> (),
 	Destroy: (self: MangoFocusManager) -> (),
+}
+
+-- Color Picker
+export type MangoColorPickerConfig = {
+	Position: UDim2,
+	Size: UDim2?,
+	AnchorPoint: Vector2?,
+	InitialColor: Color3?,
+	Theme: ThemePreset?,
+	OnChanged: ((color: Color3) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoColorPicker = {
+	Container: Frame,
+	GetColor: (self: MangoColorPicker) -> Color3,
+	SetColor: (self: MangoColorPicker, color: Color3) -> (),
+	Destroy: (self: MangoColorPicker) -> (),
+}
+
+-- Keybind
+export type MangoKeybindConfig = {
+	Position: UDim2,
+	AnchorPoint: Vector2?,
+	Label: string?,
+	DefaultKey: string?,
+	Theme: ThemePreset?,
+	OnKeyChanged: ((keyName: string) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoKeybind = {
+	Container: Frame,
+	GetKey: (self: MangoKeybind) -> string,
+	SetKey: (self: MangoKeybind, keyName: string) -> (),
+	Destroy: (self: MangoKeybind) -> (),
+}
+
+-- Carousel
+export type MangoCarouselTabConfig = {
+	Icon: string?,
+	Label: string?,
+	Color: Color3?,
+}
+
+export type MangoCarouselConfig = {
+	Tabs: {MangoCarouselTabConfig},
+	Position: UDim2?,
+	Size: UDim2?,
+	AnchorPoint: Vector2?,
+	InitialIndex: number?,
+	IconSize: number?,
+	Orientation: string?,
+	Theme: ThemePreset?,
+	OnChanged: ((index: number) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoCarousel = {
+	Container: Frame,
+	SetIndex: (self: MangoCarousel, index: number) -> (),
+	GetIndex: (self: MangoCarousel) -> number,
+	Destroy: (self: MangoCarousel) -> (),
+}
+
+-- Save Manager
+export type MangoSaveManagerConfig = {
+	FolderName: string,
+	FileName: string?,
+}
+
+export type MangoSaveManager = {
+	Save: (self: MangoSaveManager, data: {[string]: any}) -> boolean,
+	Load: (self: MangoSaveManager) -> {[string]: any}?,
+	Delete: (self: MangoSaveManager) -> boolean,
+}
+
+-- Notification Action Button
+export type MangoNotificationActionConfig = {
+	Text: string,
+	Style: string?,
+	Callback: (() -> ())?,
+}
+
+-- Window Element (unified wrapper for all interactive elements)
+export type MangoWindowElement = {
+	CurrentValue: any,
+	Set: (self: MangoWindowElement, value: any) -> (),
+	Visible: (self: MangoWindowElement, visible: boolean) -> (),
+	Lock: (self: MangoWindowElement, reason: string?) -> (),
+	Unlock: (self: MangoWindowElement) -> (),
+	Destroy: (self: MangoWindowElement) -> (),
+}
+
+-- Window Tab
+export type MangoWindowTab = {
+	Button: (self: MangoWindowTab, config: MangoWindowButtonConfig) -> MangoWindowElement,
+	Toggle: (self: MangoWindowTab, config: MangoWindowToggleConfig) -> MangoWindowElement,
+	Slider: (self: MangoWindowTab, config: MangoWindowSliderConfig) -> MangoWindowElement,
+	Dropdown: (self: MangoWindowTab, config: MangoWindowDropdownConfig) -> MangoWindowElement,
+	Input: (self: MangoWindowTab, config: MangoWindowInputConfig) -> MangoWindowElement,
+	Checkbox: (self: MangoWindowTab, config: MangoWindowCheckboxConfig) -> MangoWindowElement,
+	Stepper: (self: MangoWindowTab, config: MangoWindowStepperConfig) -> MangoWindowElement,
+	Progress: (self: MangoWindowTab, config: MangoWindowProgressConfig) -> MangoWindowElement,
+	ColorPicker: (self: MangoWindowTab, config: MangoWindowColorPickerConfig) -> MangoWindowElement,
+	Keybind: (self: MangoWindowTab, config: MangoWindowKeybindConfig) -> MangoWindowElement,
+	Label: (self: MangoWindowTab, text: string) -> MangoWindowElement,
+	Paragraph: (self: MangoWindowTab, config: MangoWindowParagraphConfig) -> MangoWindowElement,
+	Section: (self: MangoWindowTab, title: string) -> MangoWindowElement,
+	Separator: (self: MangoWindowTab) -> MangoWindowElement,
+}
+
+-- Window element config types
+export type MangoWindowButtonConfig = {
+	Name: string,
+	Callback: (() -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowToggleConfig = {
+	Name: string,
+	Default: boolean?,
+	Callback: ((value: boolean) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowSliderConfig = {
+	Name: string,
+	Range: {number},
+	Increment: number?,
+	Suffix: string?,
+	Default: number?,
+	Callback: ((value: number) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowDropdownConfig = {
+	Name: string,
+	Options: {string},
+	Default: (string | {string})?,
+	MultiSelect: boolean?,
+	Callback: ((value: any) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowInputConfig = {
+	Name: string,
+	Default: string?,
+	Placeholder: string?,
+	Masked: boolean?,
+	Callback: ((text: string) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowCheckboxConfig = {
+	Name: string,
+	Default: boolean?,
+	Callback: ((value: boolean) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowStepperConfig = {
+	Name: string,
+	Range: {number}?,
+	Default: number?,
+	Callback: ((value: number) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowProgressConfig = {
+	Name: string,
+	Default: number?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowColorPickerConfig = {
+	Name: string,
+	Default: Color3?,
+	Callback: ((color: Color3) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowKeybindConfig = {
+	Name: string,
+	Default: string?,
+	Callback: ((keyName: string) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowParagraphConfig = {
+	Title: string,
+	Content: string,
+	Visible: (boolean | string)?,
+}
+
+-- Window Configuration Saving
+export type MangoWindowConfigSaving = {
+	Enabled: boolean,
+	FolderName: string?,
+	FileName: string?,
+}
+
+-- Window
+export type MangoWindowConfig = {
+	Name: string,
+	Theme: ThemePreset?,
+	Size: UDim2?,
+	Position: UDim2?,
+	ToggleKey: string?,
+	ShowButton: string?,
+	ConfigurationSaving: MangoWindowConfigSaving?,
+	LoadingTitle: string?,
+	LoadingSubtitle: string?,
+	LoadingEnabled: boolean?,
+}
+
+export type MangoWindow = {
+	Flags: {[string]: any},
+	Tab: (self: MangoWindow, name: string, icon: string?) -> MangoWindowTab,
+	Notify: (self: MangoWindow, config: MangoNotificationConfig) -> (),
+	Dialog: (self: MangoWindow, config: MangoDialogConfig) -> (),
+	Show: (self: MangoWindow) -> (),
+	Hide: (self: MangoWindow) -> (),
+	IsVisible: (self: MangoWindow) -> boolean,
+	SaveConfig: (self: MangoWindow) -> (),
+	LoadConfig: (self: MangoWindow) -> (),
+	Destroy: (self: MangoWindow) -> (),
 }
 
 -- Builder

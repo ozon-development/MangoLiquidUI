@@ -49,6 +49,11 @@ MODULES=(
     "MangoForm"
     "MangoFocusManager"
     "MangoIntro"
+    "MangoSaveManager"
+    "MangoColorPicker"
+    "MangoKeybind"
+    "MangoCarousel"
+    "MangoWindow"
     "MangoBuilder"
 )
 
@@ -128,6 +133,11 @@ local MangoBottomSheet = _require("MangoBottomSheet")
 local MangoBlurProxy = _require("MangoBlurProxy")
 local MangoForm = _require("MangoForm")
 local MangoFocusManager = _require("MangoFocusManager")
+local MangoSaveManager = _require("MangoSaveManager")
+local MangoColorPicker = _require("MangoColorPicker")
+local MangoKeybind = _require("MangoKeybind")
+local MangoCarousel = _require("MangoCarousel")
+local MangoWindow = _require("MangoWindow")
 local MangoBuilder = _require("MangoBuilder")
 
 local MangoLiquidUI = {
@@ -169,6 +179,11 @@ local MangoLiquidUI = {
     MangoBlurProxy = MangoBlurProxy,
     MangoForm = MangoForm,
     MangoFocusManager = MangoFocusManager,
+    MangoSaveManager = MangoSaveManager,
+    MangoColorPicker = MangoColorPicker,
+    MangoKeybind = MangoKeybind,
+    MangoCarousel = MangoCarousel,
+    MangoWindow = MangoWindow,
     MangoBuilder = MangoBuilder,
 
     -- Theme shortcuts
@@ -219,6 +234,11 @@ function MangoLiquidUI.bsheet(config) return MangoBottomSheet.new(config) end
 function MangoLiquidUI.blur(config) return MangoBlurProxy.new(config) end
 function MangoLiquidUI.form(config) return MangoForm.new(config) end
 function MangoLiquidUI.focus(config) return MangoFocusManager.new(config) end
+function MangoLiquidUI.colr(config) return MangoColorPicker.new(config) end
+function MangoLiquidUI.key(config) return MangoKeybind.new(config) end
+function MangoLiquidUI.carousel(config) return MangoCarousel.new(config) end
+function MangoLiquidUI.csel(config) return MangoCarousel.new(config) end
+function MangoLiquidUI.window(config) return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType) return MangoBuilder.build(componentType) end
 
 -- ScreenGui helper

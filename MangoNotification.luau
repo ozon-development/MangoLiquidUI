@@ -21,6 +21,21 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local primaryTextColor = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
 	local secondaryTextColor = resolve(nil, theme and theme.SecondaryTextColor, Color3.fromRGB(60, 60, 70)) :: Color3
 
+	-- Notification type styling
+	local notifType = config.Type
+	local typeColors: {[string]: Color3} = {
+		success = Color3.fromRGB(34, 197, 94),
+		warning = Color3.fromRGB(245, 158, 11),
+		error = Color3.fromRGB(239, 68, 68),
+		info = Color3.fromRGB(59, 130, 246),
+	}
+	local typeIcons: {[string]: string} = {
+		success = "\226\156\147", -- checkmark
+		warning = "\226\154\160", -- warning sign
+		error = "\226\156\149", -- x mark
+		info = "\226\132\185", -- info sign
+	}
+
 	-- Measure text to calculate height
 	local titleFont = Enum.Font.GothamBold
 	local bodyFont = Enum.Font.Gotham
@@ -28,6 +43,13 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local bodySize = 13
 	local contentWidth = 380 - 28 -- 14px padding on each side
 	local hasIcon = icon ~= nil and icon ~= ""
+
+	-- Auto-set icon from type if no explicit icon
+	if notifType and typeIcons[notifType] and not hasIcon then
+		icon = typeIcons[notifType]
+		hasIcon = true
+	end
+
 	if hasIcon then
 		contentWidth = contentWidth - 48 -- 36px icon + 12px gap
 	end
@@ -41,8 +63,14 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		totalHeight = totalHeight + 2 + (bodyBounds :: Vector2).Y -- 2px gap
 	end
 
+	-- Account for action buttons height
+	local actions = config.Actions
+	if actions and #actions > 0 then
+		totalHeight = totalHeight + 36
+	end
+
 	-- Clamp height
-	totalHeight = math.clamp(totalHeight, 64, 120)
+	totalHeight = math.clamp(totalHeight, 64, 160)
 
 	-- State
 	local isShowing = false
@@ -117,6 +145,23 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	-- Store target transparency for fade-in animation
 	local targetBgTransparency = glassFrame.GlassSurface.BackgroundTransparency
 
+	-- Accent stripe for typed notifications
+	if notifType and typeColors[notifType] then
+		local accentStripe = Instance.new("Frame")
+		accentStripe.Name = "AccentStripe"
+		accentStripe.Size = UDim2.new(0, 3, 1, -8)
+		accentStripe.Position = UDim2.new(0, 4, 0, 4)
+		accentStripe.BackgroundColor3 = typeColors[notifType]
+		accentStripe.BackgroundTransparency = 0.1
+		accentStripe.BorderSizePixel = 0
+		accentStripe.ZIndex = 15
+		accentStripe.Parent = glassFrame.GlassSurface
+
+		local stripeCorner = Instance.new("UICorner")
+		stripeCorner.CornerRadius = UDim.new(0, 2)
+		stripeCorner.Parent = accentStripe
+	end
+
 	-- UIPadding on GlassSurface
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, 14)
@@ -133,21 +178,51 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	hLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	hLayout.Parent = glassFrame.GlassSurface
 
-	-- Icon (optional)
-	if hasIcon then
-		local iconFrame = Instance.new("ImageLabel")
-		iconFrame.Name = "IconFrame"
-		iconFrame.Size = UDim2.new(0, 36, 0, 36)
-		iconFrame.Image = icon :: string
-		iconFrame.BackgroundTransparency = 1
-		iconFrame.BorderSizePixel = 0
-		iconFrame.LayoutOrder = 1
-		iconFrame.ZIndex = 10
-		iconFrame.Parent = glassFrame.GlassSurface
+	-- Icon (optional — supports both image IDs and text emoji from type icons)
+	if hasIcon and icon then
+		local isImageIcon = string.find(icon, "rbxassetid") ~= nil or string.find(icon, "rbxthumb") ~= nil
+		if isImageIcon then
+			local iconFrame = Instance.new("ImageLabel")
+			iconFrame.Name = "IconFrame"
+			iconFrame.Size = UDim2.new(0, 36, 0, 36)
+			iconFrame.Image = icon
+			iconFrame.BackgroundTransparency = 1
+			iconFrame.BorderSizePixel = 0
+			iconFrame.LayoutOrder = 1
+			iconFrame.ZIndex = 10
+			iconFrame.Parent = glassFrame.GlassSurface
 
-		local iconCorner = Instance.new("UICorner")
-		iconCorner.CornerRadius = UDim.new(0, 8)
-		iconCorner.Parent = iconFrame
+			local iconCorner = Instance.new("UICorner")
+			iconCorner.CornerRadius = UDim.new(0, 8)
+			iconCorner.Parent = iconFrame
+		else
+			-- Text-based icon (emoji from type or user-provided text)
+			local iconContainer = Instance.new("Frame")
+			iconContainer.Name = "IconFrame"
+			iconContainer.Size = UDim2.new(0, 36, 0, 36)
+			iconContainer.BackgroundColor3 = if notifType and typeColors[notifType] then typeColors[notifType] else Color3.fromRGB(200, 200, 200)
+			iconContainer.BackgroundTransparency = 0.85
+			iconContainer.BorderSizePixel = 0
+			iconContainer.LayoutOrder = 1
+			iconContainer.ZIndex = 10
+			iconContainer.Parent = glassFrame.GlassSurface
+
+			local iconContainerCorner = Instance.new("UICorner")
+			iconContainerCorner.CornerRadius = UDim.new(0, 8)
+			iconContainerCorner.Parent = iconContainer
+
+			local iconText = Instance.new("TextLabel")
+			iconText.Name = "IconText"
+			iconText.Size = UDim2.new(1, 0, 1, 0)
+			iconText.BackgroundTransparency = 1
+			iconText.BorderSizePixel = 0
+			iconText.Font = Enum.Font.GothamBold
+			iconText.TextSize = 18
+			iconText.Text = icon
+			iconText.TextColor3 = if notifType and typeColors[notifType] then typeColors[notifType] else primaryTextColor
+			iconText.ZIndex = 10
+			iconText.Parent = iconContainer
+		end
 	end
 
 	-- TextContainer
@@ -201,6 +276,83 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		bodyLabel.LayoutOrder = 2
 		bodyLabel.ZIndex = 10
 		bodyLabel.Parent = textContainer
+	end
+
+	-- Action buttons
+	if actions and #actions > 0 then
+		local actionsRow = Instance.new("Frame")
+		actionsRow.Name = "ActionsRow"
+		actionsRow.Size = UDim2.new(1, 0, 0, 28)
+		actionsRow.BackgroundTransparency = 1
+		actionsRow.BorderSizePixel = 0
+		actionsRow.LayoutOrder = 3
+		actionsRow.ZIndex = 10
+		actionsRow.Parent = textContainer
+
+		local actionsLayout = Instance.new("UIListLayout")
+		actionsLayout.FillDirection = Enum.FillDirection.Horizontal
+		actionsLayout.Padding = UDim.new(0, 8)
+		actionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		actionsLayout.Parent = actionsRow
+
+		for i, action in actions do
+			local actionBtn = Instance.new("TextButton")
+			actionBtn.Name = "Action" .. i
+			actionBtn.Size = UDim2.new(0, 70, 0, 28)
+			actionBtn.BackgroundColor3 = if action.Style == "cancel" then Color3.fromRGB(200, 200, 205) else (notifType and typeColors[notifType] or Color3.fromRGB(0, 122, 255))
+			actionBtn.BackgroundTransparency = 0.75
+			actionBtn.BorderSizePixel = 0
+			actionBtn.Font = if action.Style == "cancel" then Enum.Font.GothamMedium else Enum.Font.GothamBold
+			actionBtn.TextSize = 12
+			actionBtn.Text = action.Text
+			actionBtn.TextColor3 = if action.Style == "cancel" then secondaryTextColor else primaryTextColor
+			actionBtn.AutoButtonColor = false
+			actionBtn.ZIndex = 10
+			actionBtn.LayoutOrder = i
+			actionBtn.Parent = actionsRow
+
+			local btnCorner = Instance.new("UICorner")
+			btnCorner.CornerRadius = UDim.new(0, 999)
+			btnCorner.Parent = actionBtn
+
+			local btnConn = actionBtn.MouseButton1Click:Connect(function()
+				if action.Callback then
+					action.Callback()
+				end
+				if not isDismissing and not isDestroyed and isShowing then
+					isDismissing = true
+					if dismissThread then
+						task.cancel(dismissThread)
+						dismissThread = nil
+					end
+					cancelAllTweens()
+					local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+					local slideTween = TweenService:Create(notifContainer, tweenOut, {
+						Position = UDim2.new(0.5, 0, 0, -80),
+					})
+					trackTween(slideTween)
+					slideTween:Play()
+					slideTween.Completed:Connect(function()
+						if not isDestroyed then
+							if config.OnDismissed then
+								config.OnDismissed()
+							end
+							isDestroyed = true
+							for _, conn in connections do
+								conn:Disconnect()
+							end
+							table.clear(connections)
+							glassFrame:Destroy()
+							notifContainer:Destroy()
+							if screenGui then
+								screenGui:Destroy()
+							end
+						end
+					end)
+				end
+			end)
+			table.insert(connections, btnConn)
+		end
 	end
 
 	-- Hit area for tap-to-dismiss (transparent TextButton for reliable input on transparent container)

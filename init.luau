@@ -37,6 +37,11 @@ local MangoBottomSheet = require(script.MangoBottomSheet)
 local MangoBlurProxy = require(script.MangoBlurProxy)
 local MangoForm = require(script.MangoForm)
 local MangoFocusManager = require(script.MangoFocusManager)
+local MangoSaveManager = require(script.MangoSaveManager)
+local MangoColorPicker = require(script.MangoColorPicker)
+local MangoKeybind = require(script.MangoKeybind)
+local MangoCarousel = require(script.MangoCarousel)
+local MangoWindow = require(script.MangoWindow)
 local MangoBuilder = require(script.MangoBuilder)
 
 -- Existing type exports
@@ -112,6 +117,19 @@ export type MangoFormConfig = Types.MangoFormConfig
 export type MangoForm = Types.MangoForm
 export type MangoFocusManagerConfig = Types.MangoFocusManagerConfig
 export type MangoFocusManager = Types.MangoFocusManager
+export type MangoColorPickerConfig = Types.MangoColorPickerConfig
+export type MangoColorPicker = Types.MangoColorPicker
+export type MangoKeybindConfig = Types.MangoKeybindConfig
+export type MangoKeybind = Types.MangoKeybind
+export type MangoCarouselConfig = Types.MangoCarouselConfig
+export type MangoCarousel = Types.MangoCarousel
+export type MangoCarouselTabConfig = Types.MangoCarouselTabConfig
+export type MangoSaveManagerConfig = Types.MangoSaveManagerConfig
+export type MangoSaveManager = Types.MangoSaveManager
+export type MangoWindowConfig = Types.MangoWindowConfig
+export type MangoWindow = Types.MangoWindow
+export type MangoWindowTab = Types.MangoWindowTab
+export type MangoWindowElement = Types.MangoWindowElement
 export type MangoBuilder = Types.MangoBuilder
 
 local MangoLiquidUI = {
@@ -152,6 +170,11 @@ local MangoLiquidUI = {
 	MangoBlurProxy = MangoBlurProxy,
 	MangoForm = MangoForm,
 	MangoFocusManager = MangoFocusManager,
+	MangoSaveManager = MangoSaveManager,
+	MangoColorPicker = MangoColorPicker,
+	MangoKeybind = MangoKeybind,
+	MangoCarousel = MangoCarousel,
+	MangoWindow = MangoWindow,
 	MangoBuilder = MangoBuilder,
 
 	-- Theme shortcuts
@@ -202,6 +225,11 @@ function MangoLiquidUI.bsheet(config: Types.MangoBottomSheetConfig): Types.Mango
 function MangoLiquidUI.blur(config: Types.MangoBlurProxyConfig): Types.MangoBlurProxy return MangoBlurProxy.new(config) end
 function MangoLiquidUI.form(config: Types.MangoFormConfig): Types.MangoForm return MangoForm.new(config) end
 function MangoLiquidUI.focus(config: Types.MangoFocusManagerConfig): Types.MangoFocusManager return MangoFocusManager.new(config) end
+function MangoLiquidUI.colr(config: Types.MangoColorPickerConfig): Types.MangoColorPicker return MangoColorPicker.new(config) end
+function MangoLiquidUI.key(config: Types.MangoKeybindConfig): Types.MangoKeybind return MangoKeybind.new(config) end
+function MangoLiquidUI.carousel(config: Types.MangoCarouselConfig): Types.MangoCarousel return MangoCarousel.new(config) end
+function MangoLiquidUI.csel(config: Types.MangoCarouselConfig): Types.MangoCarousel return MangoCarousel.new(config) end
+function MangoLiquidUI.window(config: Types.MangoWindowConfig): Types.MangoWindow return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType: string): Types.MangoBuilder return MangoBuilder.build(componentType) end
 
 -- ScreenGui helper

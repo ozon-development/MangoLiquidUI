@@ -130,6 +130,75 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	inputBox.ZIndex = 10
 	inputBox.Parent = fieldFrame
 
+	-- Masked mode (password field)
+	local isMasked = resolve(config.Masked, nil, false) :: boolean
+	local showingMask = isMasked
+	local realText: string = initialText
+
+	local eyeFrame: Frame? = nil
+	local eyeLabel: TextLabel? = nil
+
+	if isMasked then
+		-- Adjust input box width to make room for eye button
+		inputBox.Size = UDim2.new(1, -40, 1, 0)
+
+		-- Eye toggle button
+		eyeFrame = Instance.new("Frame")
+		eyeFrame.Name = "EyeFrame"
+		eyeFrame.Size = UDim2.new(0, 16, 0, 16)
+		eyeFrame.Position = UDim2.new(1, -22, 0.5, 0)
+		eyeFrame.AnchorPoint = Vector2.new(1, 0.5)
+		eyeFrame.BackgroundTransparency = 1
+		eyeFrame.BorderSizePixel = 0
+		eyeFrame.ZIndex = 10
+		eyeFrame.Parent = fieldFrame
+
+		eyeLabel = Instance.new("TextLabel")
+		eyeLabel.Name = "EyeLabel"
+		eyeLabel.Size = UDim2.new(1, 0, 1, 0)
+		eyeLabel.BackgroundTransparency = 1
+		eyeLabel.BorderSizePixel = 0
+		eyeLabel.Font = Enum.Font.Gotham
+		eyeLabel.TextSize = 14
+		eyeLabel.Text = "\240\159\145\129" -- eye emoji
+		eyeLabel.TextColor3 = secondaryText
+		eyeLabel.ZIndex = 10
+		eyeLabel.Parent = eyeFrame
+
+		local eyeHitArea = Instance.new("TextButton")
+		eyeHitArea.Name = "EyeHitArea"
+		eyeHitArea.Size = UDim2.new(1, 8, 1, 8)
+		eyeHitArea.AnchorPoint = Vector2.new(0.5, 0.5)
+		eyeHitArea.Position = UDim2.new(0.5, 0, 0.5, 0)
+		eyeHitArea.BackgroundTransparency = 1
+		eyeHitArea.Text = ""
+		eyeHitArea.BorderSizePixel = 0
+		eyeHitArea.ZIndex = 100
+		eyeHitArea.AutoButtonColor = false
+		eyeHitArea.Parent = eyeFrame
+
+		-- Toggle mask on eye click
+		local eyeConn = eyeHitArea.MouseButton1Click:Connect(function()
+			showingMask = not showingMask
+			if eyeLabel then
+				eyeLabel.Text = if showingMask then "\240\159\145\129" else "\240\159\145\129\226\128\141\240\159\151\168"
+			end
+			-- Update display
+			if showingMask then
+				inputBox.Text = string.rep("\226\151\143", utf8.len(realText) or 0) -- bullet character
+			else
+				inputBox.Text = realText
+			end
+		end)
+		table.insert(connections, eyeConn)
+
+		-- Set initial masked display
+		if initialText ~= "" then
+			realText = initialText
+			inputBox.Text = string.rep("\226\151\143", utf8.len(initialText) or 0)
+		end
+	end
+
 	-- Clear button (right side, visible when text is not empty)
 	local clearFrame = Instance.new("Frame")
 	clearFrame.Name = "ClearFrame"
@@ -188,22 +257,55 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 		tween:Play()
 
 		if config.OnFocusLost then
-			config.OnFocusLost(inputBox.Text, enterPressed)
+			local reportText = if isMasked then realText else inputBox.Text
+			config.OnFocusLost(reportText, enterPressed)
 		end
 	end)
 	table.insert(connections, focusLostConn)
 
 	-- Text changed: show/hide clear button, fire callback
+	local isUpdatingMask = false
 	local textChangedConn = inputBox:GetPropertyChangedSignal("Text"):Connect(function()
-		clearFrame.Visible = inputBox.Text ~= ""
+		if isMasked and not isUpdatingMask then
+			isUpdatingMask = true
+			local currentDisplay = inputBox.Text
+			local prevLen = utf8.len(realText) or 0
+			local currentLen = utf8.len(currentDisplay) or 0
+
+			if currentLen > prevLen then
+				-- Characters were added — extract new chars from the end
+				local newChars = string.sub(currentDisplay, utf8.offset(currentDisplay, prevLen + 1) or (#currentDisplay + 1))
+				realText = realText .. newChars
+			elseif currentLen < prevLen then
+				-- Characters were deleted
+				local keepLen = currentLen
+				if keepLen <= 0 then
+					realText = ""
+				else
+					local endPos = utf8.offset(realText, keepLen + 1)
+					realText = string.sub(realText, 1, (endPos or (#realText + 1)) - 1)
+				end
+			end
+
+			if showingMask then
+				inputBox.Text = string.rep("\226\151\143", utf8.len(realText) or 0)
+			end
+			isUpdatingMask = false
+		end
+
+		local displayText = if isMasked then realText else inputBox.Text
+		clearFrame.Visible = displayText ~= ""
 		if config.OnTextChanged then
-			config.OnTextChanged(inputBox.Text)
+			config.OnTextChanged(displayText)
 		end
 	end)
 	table.insert(connections, textChangedConn)
 
 	-- Clear button click
 	local clearConn = clearHitArea.MouseButton1Click:Connect(function()
+		if isMasked then
+			realText = ""
+		end
 		inputBox.Text = ""
 		if config.OnTextChanged then
 			config.OnTextChanged("")
@@ -221,10 +323,22 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	local self: Types.MangoTextField = {
 		Container = container,
 		GetText = function(self: Types.MangoTextField): string
+			if isMasked then
+				return realText
+			end
 			return inputBox.Text
 		end,
 		SetText = function(self: Types.MangoTextField, text: string)
-			inputBox.Text = text
+			if isMasked then
+				realText = text
+				if showingMask then
+					inputBox.Text = string.rep("\226\151\143", utf8.len(text) or 0)
+				else
+					inputBox.Text = text
+				end
+			else
+				inputBox.Text = text
+			end
 		end,
 		Focus = function(self: Types.MangoTextField)
 			inputBox:CaptureFocus()

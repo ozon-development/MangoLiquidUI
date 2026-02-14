@@ -34,6 +34,11 @@ local COMPONENT_MAP: {[string]: string} = {
     focus = "MangoFocusManager",
     layout = "MangoLayout",
     shimmer = "MangoShimmer",
+    window = "MangoWindow",
+    carousel = "MangoCarousel",
+    colorpicker = "MangoColorPicker",
+    keybind = "MangoKeybind",
+    savemanager = "MangoSaveManager",
 }
 
 function module.build(componentType: string): Types.MangoBuilder

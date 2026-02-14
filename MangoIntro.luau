@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 
 local Types = require(script.Parent.Types)
 local Themes = require(script.Parent.Themes)
+local resolve = Themes.resolve
 local MangoGlassFrame = require(script.Parent.MangoGlassFrame)
 
 local module = {}
@@ -38,6 +39,8 @@ function module.play(config: Types.MangoIntroConfig?)
 	local cfg = config or {} :: Types.MangoIntroConfig
 	local theme = cfg.Theme or Themes.Mango
 	local onComplete = cfg.OnComplete
+	local titleText = resolve(cfg.Title, nil, "Mango") :: string
+	local subtitleText = cfg.Subtitle
 	local parentInstance = cfg.Parent
 
 	local playerGui: Instance
@@ -92,7 +95,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- 3D Text Layer 1: Back shadow (depth shadow, ZIndex=7)
 	local backShadowText = Instance.new("TextLabel")
 	backShadowText.Name = "MangoBackShadow"
-	backShadowText.Text = "Mango"
+	backShadowText.Text = titleText
 	backShadowText.Font = Enum.Font.GothamBold
 	backShadowText.TextSize = 35
 	backShadowText.TextColor3 = Color3.fromRGB(120, 70, 20)
@@ -114,7 +117,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- 3D Text Layer 2: Glass edge (refraction edge, ZIndex=8)
 	local glassEdgeText = Instance.new("TextLabel")
 	glassEdgeText.Name = "MangoGlassEdge"
-	glassEdgeText.Text = "Mango"
+	glassEdgeText.Text = titleText
 	glassEdgeText.Font = Enum.Font.GothamBold
 	glassEdgeText.TextSize = 33
 	glassEdgeText.TextColor3 = Color3.fromRGB(255, 230, 170)
@@ -144,7 +147,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- Glow layer (soft amber halo, ZIndex=9)
 	local glowText = Instance.new("TextLabel")
 	glowText.Name = "MangoGlowText"
-	glowText.Text = "Mango"
+	glowText.Text = titleText
 	glowText.Font = Enum.Font.GothamBold
 	glowText.TextSize = 34
 	glowText.TextColor3 = Color3.fromRGB(255, 200, 80)
@@ -166,7 +169,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- Main text (warm amber, ZIndex=10)
 	local logoText = Instance.new("TextLabel")
 	logoText.Name = "MangoLogoText"
-	logoText.Text = "Mango"
+	logoText.Text = titleText
 	logoText.Font = Enum.Font.GothamBold
 	logoText.TextSize = 32
 	logoText.TextColor3 = Color3.fromRGB(255, 200, 100)
@@ -183,6 +186,26 @@ function module.play(config: Types.MangoIntroConfig?)
 	local logoTextScale = Instance.new("UIScale")
 	logoTextScale.Scale = 0.01
 	logoTextScale.Parent = logoText
+
+	-- Subtitle (optional, below title)
+	local subtitleLabel: TextLabel? = nil
+	if subtitleText and subtitleText ~= "" then
+		subtitleLabel = Instance.new("TextLabel")
+		subtitleLabel.Name = "SubtitleLabel"
+		subtitleLabel.Text = subtitleText
+		subtitleLabel.Font = Enum.Font.GothamMedium
+		subtitleLabel.TextSize = 14
+		subtitleLabel.TextColor3 = resolve(nil, theme and theme.SecondaryTextColor, Color3.fromRGB(120, 80, 40)) :: Color3
+		subtitleLabel.TextTransparency = 1
+		subtitleLabel.BackgroundTransparency = 1
+		subtitleLabel.Size = UDim2.new(1, 0, 0, 20)
+		subtitleLabel.Position = UDim2.new(0, 0, 0.65, 0)
+		subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+		subtitleLabel.TextYAlignment = Enum.TextYAlignment.Center
+		subtitleLabel.BorderSizePixel = 0
+		subtitleLabel.ZIndex = 10
+		subtitleLabel.Parent = introGlass.GlassSurface
+	end
 
 	-- UIScale for container scale animation
 	local logoScale = Instance.new("UIScale")
@@ -320,6 +343,16 @@ function module.play(config: Types.MangoIntroConfig?)
 		TweenService:Create(glowText, glowPulseInfo, { TextTransparency = 0.30 }):Play()
 	end)
 
+	-- Subtitle fade-in
+	if subtitleLabel then
+		task.delay(0.3, function()
+			if isDestroyed then return end
+			TweenService:Create(subtitleLabel :: TextLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				TextTransparency = 0.3,
+			}):Play()
+		end)
+	end
+
 	-- 0.5s: Shimmer sweep
 	task.delay(0.5, function()
 		if isDestroyed then return end
@@ -350,6 +383,9 @@ function module.play(config: Types.MangoIntroConfig?)
 		TweenService:Create(glassEdgeText, fadeOutInfo, { TextTransparency = 1 }):Play()
 		TweenService:Create(overlay, fadeOutInfo, { BackgroundTransparency = 1 }):Play()
 		TweenService:Create(spotlightFrame2, fadeOutInfo, { BackgroundTransparency = 1 }):Play()
+		if subtitleLabel then
+			TweenService:Create(subtitleLabel :: TextLabel, fadeOutInfo, { TextTransparency = 1 }):Play()
+		end
 	end)
 
 	-- 2.5s: Cleanup + callback

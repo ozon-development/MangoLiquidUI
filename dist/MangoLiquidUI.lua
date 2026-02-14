@@ -161,6 +161,20 @@ export type ThemePreset = {
 
 	-- Focus Manager
 	FocusRingColor: Color3?,
+
+	-- Window
+	WindowBackgroundTransparency: number?,
+	WindowTitleColor: Color3?,
+
+	-- Color Picker
+	ColorPickerCursorColor: Color3?,
+
+	-- Keybind
+	KeybindPillTransparency: number?,
+	KeybindListeningColor: Color3?,
+
+	-- Accent color (used by many components)
+	AccentColor: Color3?,
 }
 
 export type MangoGlassConfig = {
@@ -341,6 +355,8 @@ export type MangoNotificationConfig = {
 	Body: string?,
 	Icon: string?,
 	Duration: number?,
+	Type: string?,
+	Actions: {MangoNotificationActionConfig}?,
 	Theme: ThemePreset?,
 	OnDismissed: (() -> ())?,
 	Parent: Instance?,
@@ -415,8 +431,11 @@ export type MangoDropdownConfig = {
 	AnchorPoint: Vector2?,
 	Items: {string},
 	InitialIndex: number?,
+	MultiSelect: boolean?,
+	InitialItems: {string}?,
 	Theme: ThemePreset?,
 	OnChanged: ((index: number) -> ())?,
+	OnMultiChanged: (({string}) -> ())?,
 	Parent: GuiObject?,
 }
 
@@ -424,6 +443,7 @@ export type MangoDropdown = {
 	Container: Frame,
 	SetSelectedIndex: (self: MangoDropdown, index: number) -> (),
 	GetSelectedIndex: (self: MangoDropdown) -> number,
+	GetSelectedItems: (self: MangoDropdown) -> {string},
 	SetItems: (self: MangoDropdown, items: {string}) -> (),
 	Open: (self: MangoDropdown) -> (),
 	Close: (self: MangoDropdown) -> (),
@@ -473,6 +493,7 @@ export type MangoTextFieldConfig = {
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
 	InitialText: string?,
+	Masked: boolean?,
 	Theme: ThemePreset?,
 	OnTextChanged: ((text: string) -> ())?,
 	OnFocusLost: ((text: string, enterPressed: boolean) -> ())?,
@@ -570,6 +591,8 @@ export type MangoActionSheet = {
 -- Intro
 export type MangoIntroConfig = {
 	Theme: ThemePreset?,
+	Title: string?,
+	Subtitle: string?,
 	OnComplete: (() -> ())?,
 	Parent: Instance?,
 }
@@ -836,6 +859,243 @@ export type MangoFocusManager = {
 	Destroy: (self: MangoFocusManager) -> (),
 }
 
+-- Color Picker
+export type MangoColorPickerConfig = {
+	Position: UDim2,
+	Size: UDim2?,
+	AnchorPoint: Vector2?,
+	InitialColor: Color3?,
+	Theme: ThemePreset?,
+	OnChanged: ((color: Color3) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoColorPicker = {
+	Container: Frame,
+	GetColor: (self: MangoColorPicker) -> Color3,
+	SetColor: (self: MangoColorPicker, color: Color3) -> (),
+	Destroy: (self: MangoColorPicker) -> (),
+}
+
+-- Keybind
+export type MangoKeybindConfig = {
+	Position: UDim2,
+	AnchorPoint: Vector2?,
+	Label: string?,
+	DefaultKey: string?,
+	Theme: ThemePreset?,
+	OnKeyChanged: ((keyName: string) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoKeybind = {
+	Container: Frame,
+	GetKey: (self: MangoKeybind) -> string,
+	SetKey: (self: MangoKeybind, keyName: string) -> (),
+	Destroy: (self: MangoKeybind) -> (),
+}
+
+-- Carousel
+export type MangoCarouselTabConfig = {
+	Icon: string?,
+	Label: string?,
+	Color: Color3?,
+}
+
+export type MangoCarouselConfig = {
+	Tabs: {MangoCarouselTabConfig},
+	Position: UDim2?,
+	Size: UDim2?,
+	AnchorPoint: Vector2?,
+	InitialIndex: number?,
+	IconSize: number?,
+	Orientation: string?,
+	Theme: ThemePreset?,
+	OnChanged: ((index: number) -> ())?,
+	Parent: GuiObject?,
+}
+
+export type MangoCarousel = {
+	Container: Frame,
+	SetIndex: (self: MangoCarousel, index: number) -> (),
+	GetIndex: (self: MangoCarousel) -> number,
+	Destroy: (self: MangoCarousel) -> (),
+}
+
+-- Save Manager
+export type MangoSaveManagerConfig = {
+	FolderName: string,
+	FileName: string?,
+}
+
+export type MangoSaveManager = {
+	Save: (self: MangoSaveManager, data: {[string]: any}) -> boolean,
+	Load: (self: MangoSaveManager) -> {[string]: any}?,
+	Delete: (self: MangoSaveManager) -> boolean,
+}
+
+-- Notification Action Button
+export type MangoNotificationActionConfig = {
+	Text: string,
+	Style: string?,
+	Callback: (() -> ())?,
+}
+
+-- Window Element (unified wrapper for all interactive elements)
+export type MangoWindowElement = {
+	CurrentValue: any,
+	Set: (self: MangoWindowElement, value: any) -> (),
+	Visible: (self: MangoWindowElement, visible: boolean) -> (),
+	Lock: (self: MangoWindowElement, reason: string?) -> (),
+	Unlock: (self: MangoWindowElement) -> (),
+	Destroy: (self: MangoWindowElement) -> (),
+}
+
+-- Window Tab
+export type MangoWindowTab = {
+	Button: (self: MangoWindowTab, config: MangoWindowButtonConfig) -> MangoWindowElement,
+	Toggle: (self: MangoWindowTab, config: MangoWindowToggleConfig) -> MangoWindowElement,
+	Slider: (self: MangoWindowTab, config: MangoWindowSliderConfig) -> MangoWindowElement,
+	Dropdown: (self: MangoWindowTab, config: MangoWindowDropdownConfig) -> MangoWindowElement,
+	Input: (self: MangoWindowTab, config: MangoWindowInputConfig) -> MangoWindowElement,
+	Checkbox: (self: MangoWindowTab, config: MangoWindowCheckboxConfig) -> MangoWindowElement,
+	Stepper: (self: MangoWindowTab, config: MangoWindowStepperConfig) -> MangoWindowElement,
+	Progress: (self: MangoWindowTab, config: MangoWindowProgressConfig) -> MangoWindowElement,
+	ColorPicker: (self: MangoWindowTab, config: MangoWindowColorPickerConfig) -> MangoWindowElement,
+	Keybind: (self: MangoWindowTab, config: MangoWindowKeybindConfig) -> MangoWindowElement,
+	Label: (self: MangoWindowTab, text: string) -> MangoWindowElement,
+	Paragraph: (self: MangoWindowTab, config: MangoWindowParagraphConfig) -> MangoWindowElement,
+	Section: (self: MangoWindowTab, title: string) -> MangoWindowElement,
+	Separator: (self: MangoWindowTab) -> MangoWindowElement,
+}
+
+-- Window element config types
+export type MangoWindowButtonConfig = {
+	Name: string,
+	Callback: (() -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowToggleConfig = {
+	Name: string,
+	Default: boolean?,
+	Callback: ((value: boolean) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowSliderConfig = {
+	Name: string,
+	Range: {number},
+	Increment: number?,
+	Suffix: string?,
+	Default: number?,
+	Callback: ((value: number) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowDropdownConfig = {
+	Name: string,
+	Options: {string},
+	Default: (string | {string})?,
+	MultiSelect: boolean?,
+	Callback: ((value: any) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowInputConfig = {
+	Name: string,
+	Default: string?,
+	Placeholder: string?,
+	Masked: boolean?,
+	Callback: ((text: string) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowCheckboxConfig = {
+	Name: string,
+	Default: boolean?,
+	Callback: ((value: boolean) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowStepperConfig = {
+	Name: string,
+	Range: {number}?,
+	Default: number?,
+	Callback: ((value: number) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowProgressConfig = {
+	Name: string,
+	Default: number?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowColorPickerConfig = {
+	Name: string,
+	Default: Color3?,
+	Callback: ((color: Color3) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowKeybindConfig = {
+	Name: string,
+	Default: string?,
+	Callback: ((keyName: string) -> ())?,
+	Flag: string?,
+	Visible: (boolean | string)?,
+}
+
+export type MangoWindowParagraphConfig = {
+	Title: string,
+	Content: string,
+	Visible: (boolean | string)?,
+}
+
+-- Window Configuration Saving
+export type MangoWindowConfigSaving = {
+	Enabled: boolean,
+	FolderName: string?,
+	FileName: string?,
+}
+
+-- Window
+export type MangoWindowConfig = {
+	Name: string,
+	Theme: ThemePreset?,
+	Size: UDim2?,
+	Position: UDim2?,
+	ToggleKey: string?,
+	ShowButton: string?,
+	ConfigurationSaving: MangoWindowConfigSaving?,
+	LoadingTitle: string?,
+	LoadingSubtitle: string?,
+	LoadingEnabled: boolean?,
+}
+
+export type MangoWindow = {
+	Flags: {[string]: any},
+	Tab: (self: MangoWindow, name: string, icon: string?) -> MangoWindowTab,
+	Notify: (self: MangoWindow, config: MangoNotificationConfig) -> (),
+	Dialog: (self: MangoWindow, config: MangoDialogConfig) -> (),
+	Show: (self: MangoWindow) -> (),
+	Hide: (self: MangoWindow) -> (),
+	IsVisible: (self: MangoWindow) -> boolean,
+	SaveConfig: (self: MangoWindow) -> (),
+	LoadConfig: (self: MangoWindow) -> (),
+	Destroy: (self: MangoWindow) -> (),
+}
+
 -- Builder
 export type MangoBuilder = {
 	text: (self: MangoBuilder, text: string) -> MangoBuilder,
@@ -1021,6 +1281,20 @@ module.Light = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(0, 122, 255),
+
+	-- Window
+	WindowBackgroundTransparency = 0.12,
+	WindowTitleColor = Color3.fromRGB(0, 0, 0),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.70,
+	KeybindListeningColor = Color3.fromRGB(0, 122, 255),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(0, 122, 255),
 } :: Types.ThemePreset
 
 module.Mango = {
@@ -1168,6 +1442,20 @@ module.Mango = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(255, 149, 0),
+
+	-- Window
+	WindowBackgroundTransparency = 0.14,
+	WindowTitleColor = Color3.fromRGB(60, 35, 10),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.68,
+	KeybindListeningColor = Color3.fromRGB(255, 149, 0),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(255, 149, 0),
 } :: Types.ThemePreset
 
 module.Dark = {
@@ -1315,6 +1603,20 @@ module.Dark = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(10, 132, 255),
+
+	-- Window
+	WindowBackgroundTransparency = 0.15,
+	WindowTitleColor = Color3.fromRGB(255, 255, 255),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.72,
+	KeybindListeningColor = Color3.fromRGB(10, 132, 255),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(10, 132, 255),
 } :: Types.ThemePreset
 
 module.Mint = {
@@ -1462,7 +1764,29 @@ module.Mint = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(0, 199, 140),
+
+	-- Window
+	WindowBackgroundTransparency = 0.13,
+	WindowTitleColor = Color3.fromRGB(15, 55, 45),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.70,
+	KeybindListeningColor = Color3.fromRGB(0, 199, 140),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(0, 199, 140),
 } :: Types.ThemePreset
+
+function module.custom(base: Types.ThemePreset, overrides: {[string]: any}): Types.ThemePreset
+	local theme = table.clone(base)
+	for key, value in overrides do
+		(theme :: any)[key] = value
+	end
+	return theme
+end
 
 return module
 
@@ -4421,6 +4745,75 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	inputBox.ZIndex = 10
 	inputBox.Parent = fieldFrame
 
+	-- Masked mode (password field)
+	local isMasked = resolve(config.Masked, nil, false) :: boolean
+	local showingMask = isMasked
+	local realText: string = initialText
+
+	local eyeFrame: Frame? = nil
+	local eyeLabel: TextLabel? = nil
+
+	if isMasked then
+		-- Adjust input box width to make room for eye button
+		inputBox.Size = UDim2.new(1, -40, 1, 0)
+
+		-- Eye toggle button
+		eyeFrame = Instance.new("Frame")
+		eyeFrame.Name = "EyeFrame"
+		eyeFrame.Size = UDim2.new(0, 16, 0, 16)
+		eyeFrame.Position = UDim2.new(1, -22, 0.5, 0)
+		eyeFrame.AnchorPoint = Vector2.new(1, 0.5)
+		eyeFrame.BackgroundTransparency = 1
+		eyeFrame.BorderSizePixel = 0
+		eyeFrame.ZIndex = 10
+		eyeFrame.Parent = fieldFrame
+
+		eyeLabel = Instance.new("TextLabel")
+		eyeLabel.Name = "EyeLabel"
+		eyeLabel.Size = UDim2.new(1, 0, 1, 0)
+		eyeLabel.BackgroundTransparency = 1
+		eyeLabel.BorderSizePixel = 0
+		eyeLabel.Font = Enum.Font.Gotham
+		eyeLabel.TextSize = 14
+		eyeLabel.Text = "\240\159\145\129" -- eye emoji
+		eyeLabel.TextColor3 = secondaryText
+		eyeLabel.ZIndex = 10
+		eyeLabel.Parent = eyeFrame
+
+		local eyeHitArea = Instance.new("TextButton")
+		eyeHitArea.Name = "EyeHitArea"
+		eyeHitArea.Size = UDim2.new(1, 8, 1, 8)
+		eyeHitArea.AnchorPoint = Vector2.new(0.5, 0.5)
+		eyeHitArea.Position = UDim2.new(0.5, 0, 0.5, 0)
+		eyeHitArea.BackgroundTransparency = 1
+		eyeHitArea.Text = ""
+		eyeHitArea.BorderSizePixel = 0
+		eyeHitArea.ZIndex = 100
+		eyeHitArea.AutoButtonColor = false
+		eyeHitArea.Parent = eyeFrame
+
+		-- Toggle mask on eye click
+		local eyeConn = eyeHitArea.MouseButton1Click:Connect(function()
+			showingMask = not showingMask
+			if eyeLabel then
+				eyeLabel.Text = if showingMask then "\240\159\145\129" else "\240\159\145\129\226\128\141\240\159\151\168"
+			end
+			-- Update display
+			if showingMask then
+				inputBox.Text = string.rep("\226\151\143", utf8.len(realText) or 0) -- bullet character
+			else
+				inputBox.Text = realText
+			end
+		end)
+		table.insert(connections, eyeConn)
+
+		-- Set initial masked display
+		if initialText ~= "" then
+			realText = initialText
+			inputBox.Text = string.rep("\226\151\143", utf8.len(initialText) or 0)
+		end
+	end
+
 	-- Clear button (right side, visible when text is not empty)
 	local clearFrame = Instance.new("Frame")
 	clearFrame.Name = "ClearFrame"
@@ -4479,22 +4872,55 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 		tween:Play()
 
 		if config.OnFocusLost then
-			config.OnFocusLost(inputBox.Text, enterPressed)
+			local reportText = if isMasked then realText else inputBox.Text
+			config.OnFocusLost(reportText, enterPressed)
 		end
 	end)
 	table.insert(connections, focusLostConn)
 
 	-- Text changed: show/hide clear button, fire callback
+	local isUpdatingMask = false
 	local textChangedConn = inputBox:GetPropertyChangedSignal("Text"):Connect(function()
-		clearFrame.Visible = inputBox.Text ~= ""
+		if isMasked and not isUpdatingMask then
+			isUpdatingMask = true
+			local currentDisplay = inputBox.Text
+			local prevLen = utf8.len(realText) or 0
+			local currentLen = utf8.len(currentDisplay) or 0
+
+			if currentLen > prevLen then
+				-- Characters were added — extract new chars from the end
+				local newChars = string.sub(currentDisplay, utf8.offset(currentDisplay, prevLen + 1) or (#currentDisplay + 1))
+				realText = realText .. newChars
+			elseif currentLen < prevLen then
+				-- Characters were deleted
+				local keepLen = currentLen
+				if keepLen <= 0 then
+					realText = ""
+				else
+					local endPos = utf8.offset(realText, keepLen + 1)
+					realText = string.sub(realText, 1, (endPos or (#realText + 1)) - 1)
+				end
+			end
+
+			if showingMask then
+				inputBox.Text = string.rep("\226\151\143", utf8.len(realText) or 0)
+			end
+			isUpdatingMask = false
+		end
+
+		local displayText = if isMasked then realText else inputBox.Text
+		clearFrame.Visible = displayText ~= ""
 		if config.OnTextChanged then
-			config.OnTextChanged(inputBox.Text)
+			config.OnTextChanged(displayText)
 		end
 	end)
 	table.insert(connections, textChangedConn)
 
 	-- Clear button click
 	local clearConn = clearHitArea.MouseButton1Click:Connect(function()
+		if isMasked then
+			realText = ""
+		end
 		inputBox.Text = ""
 		if config.OnTextChanged then
 			config.OnTextChanged("")
@@ -4512,10 +4938,22 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	local self: Types.MangoTextField = {
 		Container = container,
 		GetText = function(self: Types.MangoTextField): string
+			if isMasked then
+				return realText
+			end
 			return inputBox.Text
 		end,
 		SetText = function(self: Types.MangoTextField, text: string)
-			inputBox.Text = text
+			if isMasked then
+				realText = text
+				if showingMask then
+					inputBox.Text = string.rep("\226\151\143", utf8.len(text) or 0)
+				else
+					inputBox.Text = text
+				end
+			else
+				inputBox.Text = text
+			end
 		end,
 		Focus = function(self: Types.MangoTextField)
 			inputBox:CaptureFocus()
@@ -4981,6 +5419,21 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local primaryTextColor = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
 	local secondaryTextColor = resolve(nil, theme and theme.SecondaryTextColor, Color3.fromRGB(60, 60, 70)) :: Color3
 
+	-- Notification type styling
+	local notifType = config.Type
+	local typeColors: {[string]: Color3} = {
+		success = Color3.fromRGB(34, 197, 94),
+		warning = Color3.fromRGB(245, 158, 11),
+		error = Color3.fromRGB(239, 68, 68),
+		info = Color3.fromRGB(59, 130, 246),
+	}
+	local typeIcons: {[string]: string} = {
+		success = "\226\156\147", -- checkmark
+		warning = "\226\154\160", -- warning sign
+		error = "\226\156\149", -- x mark
+		info = "\226\132\185", -- info sign
+	}
+
 	-- Measure text to calculate height
 	local titleFont = Enum.Font.GothamBold
 	local bodyFont = Enum.Font.Gotham
@@ -4988,6 +5441,13 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local bodySize = 13
 	local contentWidth = 380 - 28 -- 14px padding on each side
 	local hasIcon = icon ~= nil and icon ~= ""
+
+	-- Auto-set icon from type if no explicit icon
+	if notifType and typeIcons[notifType] and not hasIcon then
+		icon = typeIcons[notifType]
+		hasIcon = true
+	end
+
 	if hasIcon then
 		contentWidth = contentWidth - 48 -- 36px icon + 12px gap
 	end
@@ -5001,8 +5461,14 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		totalHeight = totalHeight + 2 + (bodyBounds :: Vector2).Y -- 2px gap
 	end
 
+	-- Account for action buttons height
+	local actions = config.Actions
+	if actions and #actions > 0 then
+		totalHeight = totalHeight + 36
+	end
+
 	-- Clamp height
-	totalHeight = math.clamp(totalHeight, 64, 120)
+	totalHeight = math.clamp(totalHeight, 64, 160)
 
 	-- State
 	local isShowing = false
@@ -5077,6 +5543,23 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	-- Store target transparency for fade-in animation
 	local targetBgTransparency = glassFrame.GlassSurface.BackgroundTransparency
 
+	-- Accent stripe for typed notifications
+	if notifType and typeColors[notifType] then
+		local accentStripe = Instance.new("Frame")
+		accentStripe.Name = "AccentStripe"
+		accentStripe.Size = UDim2.new(0, 3, 1, -8)
+		accentStripe.Position = UDim2.new(0, 4, 0, 4)
+		accentStripe.BackgroundColor3 = typeColors[notifType]
+		accentStripe.BackgroundTransparency = 0.1
+		accentStripe.BorderSizePixel = 0
+		accentStripe.ZIndex = 15
+		accentStripe.Parent = glassFrame.GlassSurface
+
+		local stripeCorner = Instance.new("UICorner")
+		stripeCorner.CornerRadius = UDim.new(0, 2)
+		stripeCorner.Parent = accentStripe
+	end
+
 	-- UIPadding on GlassSurface
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, 14)
@@ -5093,21 +5576,51 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	hLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	hLayout.Parent = glassFrame.GlassSurface
 
-	-- Icon (optional)
-	if hasIcon then
-		local iconFrame = Instance.new("ImageLabel")
-		iconFrame.Name = "IconFrame"
-		iconFrame.Size = UDim2.new(0, 36, 0, 36)
-		iconFrame.Image = icon :: string
-		iconFrame.BackgroundTransparency = 1
-		iconFrame.BorderSizePixel = 0
-		iconFrame.LayoutOrder = 1
-		iconFrame.ZIndex = 10
-		iconFrame.Parent = glassFrame.GlassSurface
+	-- Icon (optional — supports both image IDs and text emoji from type icons)
+	if hasIcon and icon then
+		local isImageIcon = string.find(icon, "rbxassetid") ~= nil or string.find(icon, "rbxthumb") ~= nil
+		if isImageIcon then
+			local iconFrame = Instance.new("ImageLabel")
+			iconFrame.Name = "IconFrame"
+			iconFrame.Size = UDim2.new(0, 36, 0, 36)
+			iconFrame.Image = icon
+			iconFrame.BackgroundTransparency = 1
+			iconFrame.BorderSizePixel = 0
+			iconFrame.LayoutOrder = 1
+			iconFrame.ZIndex = 10
+			iconFrame.Parent = glassFrame.GlassSurface
 
-		local iconCorner = Instance.new("UICorner")
-		iconCorner.CornerRadius = UDim.new(0, 8)
-		iconCorner.Parent = iconFrame
+			local iconCorner = Instance.new("UICorner")
+			iconCorner.CornerRadius = UDim.new(0, 8)
+			iconCorner.Parent = iconFrame
+		else
+			-- Text-based icon (emoji from type or user-provided text)
+			local iconContainer = Instance.new("Frame")
+			iconContainer.Name = "IconFrame"
+			iconContainer.Size = UDim2.new(0, 36, 0, 36)
+			iconContainer.BackgroundColor3 = if notifType and typeColors[notifType] then typeColors[notifType] else Color3.fromRGB(200, 200, 200)
+			iconContainer.BackgroundTransparency = 0.85
+			iconContainer.BorderSizePixel = 0
+			iconContainer.LayoutOrder = 1
+			iconContainer.ZIndex = 10
+			iconContainer.Parent = glassFrame.GlassSurface
+
+			local iconContainerCorner = Instance.new("UICorner")
+			iconContainerCorner.CornerRadius = UDim.new(0, 8)
+			iconContainerCorner.Parent = iconContainer
+
+			local iconText = Instance.new("TextLabel")
+			iconText.Name = "IconText"
+			iconText.Size = UDim2.new(1, 0, 1, 0)
+			iconText.BackgroundTransparency = 1
+			iconText.BorderSizePixel = 0
+			iconText.Font = Enum.Font.GothamBold
+			iconText.TextSize = 18
+			iconText.Text = icon
+			iconText.TextColor3 = if notifType and typeColors[notifType] then typeColors[notifType] else primaryTextColor
+			iconText.ZIndex = 10
+			iconText.Parent = iconContainer
+		end
 	end
 
 	-- TextContainer
@@ -5161,6 +5674,83 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		bodyLabel.LayoutOrder = 2
 		bodyLabel.ZIndex = 10
 		bodyLabel.Parent = textContainer
+	end
+
+	-- Action buttons
+	if actions and #actions > 0 then
+		local actionsRow = Instance.new("Frame")
+		actionsRow.Name = "ActionsRow"
+		actionsRow.Size = UDim2.new(1, 0, 0, 28)
+		actionsRow.BackgroundTransparency = 1
+		actionsRow.BorderSizePixel = 0
+		actionsRow.LayoutOrder = 3
+		actionsRow.ZIndex = 10
+		actionsRow.Parent = textContainer
+
+		local actionsLayout = Instance.new("UIListLayout")
+		actionsLayout.FillDirection = Enum.FillDirection.Horizontal
+		actionsLayout.Padding = UDim.new(0, 8)
+		actionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		actionsLayout.Parent = actionsRow
+
+		for i, action in actions do
+			local actionBtn = Instance.new("TextButton")
+			actionBtn.Name = "Action" .. i
+			actionBtn.Size = UDim2.new(0, 70, 0, 28)
+			actionBtn.BackgroundColor3 = if action.Style == "cancel" then Color3.fromRGB(200, 200, 205) else (notifType and typeColors[notifType] or Color3.fromRGB(0, 122, 255))
+			actionBtn.BackgroundTransparency = 0.75
+			actionBtn.BorderSizePixel = 0
+			actionBtn.Font = if action.Style == "cancel" then Enum.Font.GothamMedium else Enum.Font.GothamBold
+			actionBtn.TextSize = 12
+			actionBtn.Text = action.Text
+			actionBtn.TextColor3 = if action.Style == "cancel" then secondaryTextColor else primaryTextColor
+			actionBtn.AutoButtonColor = false
+			actionBtn.ZIndex = 10
+			actionBtn.LayoutOrder = i
+			actionBtn.Parent = actionsRow
+
+			local btnCorner = Instance.new("UICorner")
+			btnCorner.CornerRadius = UDim.new(0, 999)
+			btnCorner.Parent = actionBtn
+
+			local btnConn = actionBtn.MouseButton1Click:Connect(function()
+				if action.Callback then
+					action.Callback()
+				end
+				if not isDismissing and not isDestroyed and isShowing then
+					isDismissing = true
+					if dismissThread then
+						task.cancel(dismissThread)
+						dismissThread = nil
+					end
+					cancelAllTweens()
+					local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+					local slideTween = TweenService:Create(notifContainer, tweenOut, {
+						Position = UDim2.new(0.5, 0, 0, -80),
+					})
+					trackTween(slideTween)
+					slideTween:Play()
+					slideTween.Completed:Connect(function()
+						if not isDestroyed then
+							if config.OnDismissed then
+								config.OnDismissed()
+							end
+							isDestroyed = true
+							for _, conn in connections do
+								conn:Disconnect()
+							end
+							table.clear(connections)
+							glassFrame:Destroy()
+							notifContainer:Destroy()
+							if screenGui then
+								screenGui:Destroy()
+							end
+						end
+					end)
+				end
+			end)
+			table.insert(connections, btnConn)
+		end
 	end
 
 	-- Hit area for tap-to-dismiss (transparent TextButton for reliable input on transparent container)
@@ -7508,6 +8098,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local itemHoverColor = resolve(nil, theme and theme.DropdownItemHoverColor, Color3.fromRGB(0, 122, 255)) :: Color3
 	local itemHoverTransparency = resolve(nil, theme and theme.DropdownItemHoverTransparency, 0.85) :: number
 
+	-- Multi-select support
+	local isMultiSelect = config.MultiSelect == true
+	local selectedIndices: {[number]: boolean} = {}
+
 	-- State
 	local selectedIndex: number = math.clamp(initialIndex, 1, math.max(itemCount, 1))
 	local isOpen = false
@@ -7540,6 +8134,31 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local function trackItemHoverTween(tween: Tween): Tween
 		table.insert(itemHoverTweens, tween)
 		return tween
+	end
+
+	-- Initialize multi-select
+	if isMultiSelect and config.InitialItems then
+		for _, itemName in config.InitialItems do
+			for i, name in items do
+				if name == itemName then
+					selectedIndices[i] = true
+				end
+			end
+		end
+	elseif isMultiSelect then
+		selectedIndices[selectedIndex] = true
+	end
+
+	local function getMultiSelectDisplayText(): string
+		local selected: {string} = {}
+		for i, item in items do
+			if selectedIndices[i] then
+				table.insert(selected, item)
+			end
+		end
+		if #selected == 0 then return "Select..." end
+		if #selected <= 2 then return table.concat(selected, ", ") end
+		return #selected .. " selected"
 	end
 
 	-- Forward declaration for closeDropdown (used by click-blocker before definition)
@@ -7619,7 +8238,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	selectedLabel.TextColor3 = primaryText
 	selectedLabel.TextXAlignment = Enum.TextXAlignment.Left
 	selectedLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	selectedLabel.Text = if itemCount > 0 then items[selectedIndex] else ""
+	selectedLabel.Text = if isMultiSelect then getMultiSelectDisplayText() elseif itemCount > 0 then items[selectedIndex] else ""
 	selectedLabel.ZIndex = 10
 	selectedLabel.Parent = triggerGlass.GlassSurface
 
@@ -7755,7 +8374,11 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			checkLabel.Font = Enum.Font.GothamBold
 			checkLabel.TextSize = 14
 			checkLabel.TextColor3 = primaryText
-			checkLabel.Text = if i == selectedIndex then "\226\156\147" else ""
+			if isMultiSelect then
+				checkLabel.Text = if selectedIndices[i] then "\226\152\145" else "\226\152\144" -- checkbox style
+			else
+				checkLabel.Text = if i == selectedIndex then "\226\156\147" else "" -- checkmark
+			end
 			checkLabel.ZIndex = 10
 			checkLabel.Parent = itemFrame
 
@@ -7804,22 +8427,50 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 			-- Click
 			local clickConn = itemHitArea.MouseButton1Click:Connect(function()
-				selectedIndex = i
-				selectedLabel.Text = items[i]
-				-- Update all item label colors and checkmarks
-				for j, f in itemFrames do
-					local lbl = f:FindFirstChild("ItemLabel")
-					if lbl and lbl:IsA("TextLabel") then
-						lbl.TextColor3 = if j == i then primaryText else secondaryText
+				if isMultiSelect then
+					-- Toggle selection for this item
+					selectedIndices[i] = not selectedIndices[i] or nil
+					selectedLabel.Text = getMultiSelectDisplayText()
+					-- Update all checkmarks for multi-select
+					for j, f in itemFrames do
+						local lbl = f:FindFirstChild("ItemLabel")
+						if lbl and lbl:IsA("TextLabel") then
+							lbl.TextColor3 = if selectedIndices[j] then primaryText else secondaryText
+						end
+						local chk = f:FindFirstChild("CheckLabel")
+						if chk and chk:IsA("TextLabel") then
+							chk.Text = if selectedIndices[j] then "\226\152\145" else "\226\152\144"
+						end
 					end
-					local chk = f:FindFirstChild("CheckLabel")
-					if chk and chk:IsA("TextLabel") then
-						chk.Text = if j == i then "\226\156\147" else ""
+					-- Fire multi-select callback
+					if config.OnMultiChanged then
+						local selected: {string} = {}
+						for si, item in items do
+							if selectedIndices[si] then
+								table.insert(selected, item)
+							end
+						end
+						config.OnMultiChanged(selected)
 					end
-				end
-				closeDropdown()
-				if config.OnChanged then
-					config.OnChanged(i)
+					-- Don't close dropdown in multi-select mode
+				else
+					selectedIndex = i
+					selectedLabel.Text = items[i]
+					-- Update all item label colors and checkmarks
+					for j, f in itemFrames do
+						local lbl = f:FindFirstChild("ItemLabel")
+						if lbl and lbl:IsA("TextLabel") then
+							lbl.TextColor3 = if j == i then primaryText else secondaryText
+						end
+						local chk = f:FindFirstChild("CheckLabel")
+						if chk and chk:IsA("TextLabel") then
+							chk.Text = if j == i then "\226\156\147" else ""
+						end
+					end
+					closeDropdown()
+					if config.OnChanged then
+						config.OnChanged(i)
+					end
 				end
 			end)
 			table.insert(itemConnections, clickConn)
@@ -7935,8 +8586,30 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		SetItems = function(self: Types.MangoDropdown, newItems: {string})
 			items = table.clone(newItems)
 			selectedIndex = math.clamp(selectedIndex, 1, math.max(#items, 1))
-			selectedLabel.Text = if #items > 0 then items[selectedIndex] else ""
+			if isMultiSelect then
+				-- Clear selections that no longer exist
+				local newIndices: {[number]: boolean} = {}
+				for si, _ in selectedIndices do
+					if si <= #items then
+						newIndices[si] = true
+					end
+				end
+				selectedIndices = newIndices
+				selectedLabel.Text = getMultiSelectDisplayText()
+			else
+				selectedLabel.Text = if #items > 0 then items[selectedIndex] else ""
+			end
 			buildItems()
+		end,
+		GetSelectedItems = function(self: Types.MangoDropdown): {string}
+			if not isMultiSelect then return {items[selectedIndex]} end
+			local result: {string} = {}
+			for i, item in items do
+				if selectedIndices[i] then
+					table.insert(result, item)
+				end
+			end
+			return result
 		end,
 		Open = function(self: Types.MangoDropdown)
 			openDropdown()
@@ -10094,6 +10767,7 @@ local Players = game:GetService("Players")
 
 local Types = _require("Types")
 local Themes = _require("Themes")
+local resolve = Themes.resolve
 local MangoGlassFrame = _require("MangoGlassFrame")
 
 local module = {}
@@ -10126,6 +10800,8 @@ function module.play(config: Types.MangoIntroConfig?)
 	local cfg = config or {} :: Types.MangoIntroConfig
 	local theme = cfg.Theme or Themes.Mango
 	local onComplete = cfg.OnComplete
+	local titleText = resolve(cfg.Title, nil, "Mango") :: string
+	local subtitleText = cfg.Subtitle
 	local parentInstance = cfg.Parent
 
 	local playerGui: Instance
@@ -10180,7 +10856,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- 3D Text Layer 1: Back shadow (depth shadow, ZIndex=7)
 	local backShadowText = Instance.new("TextLabel")
 	backShadowText.Name = "MangoBackShadow"
-	backShadowText.Text = "Mango"
+	backShadowText.Text = titleText
 	backShadowText.Font = Enum.Font.GothamBold
 	backShadowText.TextSize = 35
 	backShadowText.TextColor3 = Color3.fromRGB(120, 70, 20)
@@ -10202,7 +10878,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- 3D Text Layer 2: Glass edge (refraction edge, ZIndex=8)
 	local glassEdgeText = Instance.new("TextLabel")
 	glassEdgeText.Name = "MangoGlassEdge"
-	glassEdgeText.Text = "Mango"
+	glassEdgeText.Text = titleText
 	glassEdgeText.Font = Enum.Font.GothamBold
 	glassEdgeText.TextSize = 33
 	glassEdgeText.TextColor3 = Color3.fromRGB(255, 230, 170)
@@ -10232,7 +10908,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- Glow layer (soft amber halo, ZIndex=9)
 	local glowText = Instance.new("TextLabel")
 	glowText.Name = "MangoGlowText"
-	glowText.Text = "Mango"
+	glowText.Text = titleText
 	glowText.Font = Enum.Font.GothamBold
 	glowText.TextSize = 34
 	glowText.TextColor3 = Color3.fromRGB(255, 200, 80)
@@ -10254,7 +10930,7 @@ function module.play(config: Types.MangoIntroConfig?)
 	-- Main text (warm amber, ZIndex=10)
 	local logoText = Instance.new("TextLabel")
 	logoText.Name = "MangoLogoText"
-	logoText.Text = "Mango"
+	logoText.Text = titleText
 	logoText.Font = Enum.Font.GothamBold
 	logoText.TextSize = 32
 	logoText.TextColor3 = Color3.fromRGB(255, 200, 100)
@@ -10271,6 +10947,26 @@ function module.play(config: Types.MangoIntroConfig?)
 	local logoTextScale = Instance.new("UIScale")
 	logoTextScale.Scale = 0.01
 	logoTextScale.Parent = logoText
+
+	-- Subtitle (optional, below title)
+	local subtitleLabel: TextLabel? = nil
+	if subtitleText and subtitleText ~= "" then
+		subtitleLabel = Instance.new("TextLabel")
+		subtitleLabel.Name = "SubtitleLabel"
+		subtitleLabel.Text = subtitleText
+		subtitleLabel.Font = Enum.Font.GothamMedium
+		subtitleLabel.TextSize = 14
+		subtitleLabel.TextColor3 = resolve(nil, theme and theme.SecondaryTextColor, Color3.fromRGB(120, 80, 40)) :: Color3
+		subtitleLabel.TextTransparency = 1
+		subtitleLabel.BackgroundTransparency = 1
+		subtitleLabel.Size = UDim2.new(1, 0, 0, 20)
+		subtitleLabel.Position = UDim2.new(0, 0, 0.65, 0)
+		subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+		subtitleLabel.TextYAlignment = Enum.TextYAlignment.Center
+		subtitleLabel.BorderSizePixel = 0
+		subtitleLabel.ZIndex = 10
+		subtitleLabel.Parent = introGlass.GlassSurface
+	end
 
 	-- UIScale for container scale animation
 	local logoScale = Instance.new("UIScale")
@@ -10408,6 +11104,16 @@ function module.play(config: Types.MangoIntroConfig?)
 		TweenService:Create(glowText, glowPulseInfo, { TextTransparency = 0.30 }):Play()
 	end)
 
+	-- Subtitle fade-in
+	if subtitleLabel then
+		task.delay(0.3, function()
+			if isDestroyed then return end
+			TweenService:Create(subtitleLabel :: TextLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				TextTransparency = 0.3,
+			}):Play()
+		end)
+	end
+
 	-- 0.5s: Shimmer sweep
 	task.delay(0.5, function()
 		if isDestroyed then return end
@@ -10438,6 +11144,9 @@ function module.play(config: Types.MangoIntroConfig?)
 		TweenService:Create(glassEdgeText, fadeOutInfo, { TextTransparency = 1 }):Play()
 		TweenService:Create(overlay, fadeOutInfo, { BackgroundTransparency = 1 }):Play()
 		TweenService:Create(spotlightFrame2, fadeOutInfo, { BackgroundTransparency = 1 }):Play()
+		if subtitleLabel then
+			TweenService:Create(subtitleLabel :: TextLabel, fadeOutInfo, { TextTransparency = 1 }):Play()
+		end
 	end)
 
 	-- 2.5s: Cleanup + callback
@@ -10457,6 +11166,2849 @@ function module.play(config: Types.MangoIntroConfig?)
 			onComplete()
 		end
 	end)
+end
+
+return module
+
+end
+
+_modules["MangoSaveManager"] = function()
+
+
+local Types = _require("Types")
+
+local HttpService = game:GetService("HttpService")
+
+local module = {}
+
+-- Check if executor file system functions are available
+local function hasFileSystem(): boolean
+	local success, _ = pcall(function()
+		return type(writefile) == "function"
+			and type(readfile) == "function"
+			and type(isfolder) == "function"
+			and type(makefolder) == "function"
+			and type(isfile) == "function"
+			and type(delfile) == "function"
+	end)
+	return success
+end
+
+local filesystemAvailable: boolean = hasFileSystem()
+
+function module.new(config: Types.MangoSaveManagerConfig): Types.MangoSaveManager
+	local folderName: string = config.FolderName
+	local fileName: string = config.FileName or "config"
+	local filePath: string = folderName .. "/" .. fileName .. ".json"
+
+	local self = {} :: Types.MangoSaveManager
+
+	function self.Save(_self: Types.MangoSaveManager, data: {[string]: any}): boolean
+		if not filesystemAvailable then
+			return false
+		end
+
+		local success = pcall(function()
+			-- Create folder if it doesn't exist
+			if not isfolder(folderName) then
+				makefolder(folderName)
+			end
+
+			local encoded = HttpService:JSONEncode(data)
+			writefile(filePath, encoded)
+		end)
+
+		return success
+	end
+
+	function self.Load(_self: Types.MangoSaveManager): {[string]: any}?
+		if not filesystemAvailable then
+			return nil
+		end
+
+		local success, result = pcall(function(): {[string]: any}?
+			if not isfile(filePath) then
+				return nil
+			end
+
+			local contents = readfile(filePath)
+			local decoded = HttpService:JSONDecode(contents)
+			return decoded :: {[string]: any}
+		end)
+
+		if success then
+			return result
+		end
+
+		return nil
+	end
+
+	function self.Delete(_self: Types.MangoSaveManager): boolean
+		if not filesystemAvailable then
+			return false
+		end
+
+		local success = pcall(function()
+			if isfile(filePath) then
+				delfile(filePath)
+			end
+		end)
+
+		return success
+	end
+
+	return self
+end
+
+return module
+
+end
+
+_modules["MangoColorPicker"] = function()
+
+
+local Types = _require("Types")
+local Themes = _require("Themes")
+local MangoGlassFrame = _require("MangoGlassFrame")
+local resolve = Themes.resolve
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local module = {}
+
+function module.new(config: Types.MangoColorPickerConfig): Types.MangoColorPicker
+	local theme = config.Theme
+
+	-- Resolve all config values with nil-safe helper
+	local size = resolve(config.Size, nil, UDim2.new(0, 260, 0, 200)) :: UDim2
+	local position = config.Position
+	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
+	local initialColor = resolve(config.InitialColor, nil, Color3.fromRGB(255, 0, 0)) :: Color3
+	local cursorColor = resolve(nil, theme and theme.ColorPickerCursorColor, Color3.fromRGB(255, 255, 255)) :: Color3
+	local secondaryTextColor = resolve(nil, theme and theme.SecondaryTextColor, Color3.fromRGB(60, 60, 70)) :: Color3
+
+	-- HSV state (0-1 each)
+	local h: number, s: number, v: number = Color3.toHSV(initialColor)
+	local isDraggingSB = false
+	local isDraggingHue = false
+	local connections: {RBXScriptConnection} = {}
+	local activeTweens: {Tween} = {}
+
+	local function cancelAllTweens()
+		for _, tween in activeTweens do
+			tween:Cancel()
+		end
+		table.clear(activeTweens)
+	end
+
+	local function trackTween(tween: Tween): Tween
+		table.insert(activeTweens, tween)
+		return tween
+	end
+
+	local function currentColor(): Color3
+		return Color3.fromHSV(h, s, v)
+	end
+
+	local function toHex(color: Color3): string
+		local r = math.floor(color.R * 255 + 0.5)
+		local g = math.floor(color.G * 255 + 0.5)
+		local b = math.floor(color.B * 255 + 0.5)
+		return string.format("#%02X%02X%02X", r, g, b)
+	end
+
+	-- ============================================================
+	-- Instance Hierarchy
+	-- ============================================================
+
+	-- Container (transparent wrapper)
+	local container = Instance.new("Frame")
+	container.Name = "MangoColorPicker"
+	container.Size = size
+	container.Position = position
+	container.AnchorPoint = anchorPoint
+	container.BackgroundTransparency = 1
+	container.BorderSizePixel = 0
+
+	-- Glass background via MangoGlassFrame
+	local glass = MangoGlassFrame.new({
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		CornerRadius = UDim.new(0, 12),
+		LightweightMode = true,
+		ShadowLayerCount = 2,
+		Theme = theme,
+		Parent = container,
+	})
+
+	-- UIPadding inside GlassSurface
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 10)
+	padding.PaddingRight = UDim.new(0, 10)
+	padding.Parent = glass.GlassSurface
+
+	-- ============================================================
+	-- Saturation-Brightness Box
+	-- ============================================================
+
+	local satBrightBox = Instance.new("Frame")
+	satBrightBox.Name = "SatBrightBox"
+	satBrightBox.Size = UDim2.new(1, 0, 0, 140)
+	satBrightBox.Position = UDim2.new(0, 0, 0, 0)
+	satBrightBox.BackgroundTransparency = 1
+	satBrightBox.ClipsDescendants = true
+	satBrightBox.BorderSizePixel = 0
+	satBrightBox.ZIndex = 2
+	satBrightBox.Parent = glass.GlassSurface
+
+	local sbCorner = Instance.new("UICorner")
+	sbCorner.CornerRadius = UDim.new(0, 6)
+	sbCorner.Parent = satBrightBox
+
+	-- HueBase: solid hue color background
+	local hueBase = Instance.new("Frame")
+	hueBase.Name = "HueBase"
+	hueBase.Size = UDim2.new(1, 0, 1, 0)
+	hueBase.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+	hueBase.BackgroundTransparency = 0
+	hueBase.BorderSizePixel = 0
+	hueBase.ZIndex = 2
+	hueBase.Parent = satBrightBox
+
+	-- SatOverlay: white gradient left-to-right (white -> transparent)
+	local satOverlay = Instance.new("Frame")
+	satOverlay.Name = "SatOverlay"
+	satOverlay.Size = UDim2.new(1, 0, 1, 0)
+	satOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	satOverlay.BackgroundTransparency = 0
+	satOverlay.BorderSizePixel = 0
+	satOverlay.ZIndex = 3
+	satOverlay.Parent = satBrightBox
+
+	local satGradient = Instance.new("UIGradient")
+	satGradient.Name = "SatGradient"
+	satGradient.Rotation = 0
+	satGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	satGradient.Parent = satOverlay
+
+	-- BrightOverlay: black gradient top-to-bottom (transparent -> black)
+	local brightOverlay = Instance.new("Frame")
+	brightOverlay.Name = "BrightOverlay"
+	brightOverlay.Size = UDim2.new(1, 0, 1, 0)
+	brightOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	brightOverlay.BackgroundTransparency = 0
+	brightOverlay.BorderSizePixel = 0
+	brightOverlay.ZIndex = 4
+	brightOverlay.Parent = satBrightBox
+
+	local brightGradient = Instance.new("UIGradient")
+	brightGradient.Name = "BrightGradient"
+	brightGradient.Rotation = 90
+	brightGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	brightGradient.Parent = brightOverlay
+
+	-- SB Cursor (12x12 circle with white stroke)
+	local sbCursor = Instance.new("Frame")
+	sbCursor.Name = "Cursor"
+	sbCursor.Size = UDim2.new(0, 12, 0, 12)
+	sbCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+	sbCursor.Position = UDim2.new(s, 0, 1 - v, 0)
+	sbCursor.BackgroundColor3 = currentColor()
+	sbCursor.BackgroundTransparency = 0
+	sbCursor.BorderSizePixel = 0
+	sbCursor.ZIndex = 15
+	sbCursor.Parent = satBrightBox
+
+	local sbCursorCorner = Instance.new("UICorner")
+	sbCursorCorner.CornerRadius = UDim.new(0, 999)
+	sbCursorCorner.Parent = sbCursor
+
+	local sbCursorStroke = Instance.new("UIStroke")
+	sbCursorStroke.Color = cursorColor
+	sbCursorStroke.Thickness = 2
+	sbCursorStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	sbCursorStroke.Parent = sbCursor
+
+	-- SB HitArea
+	local sbHitArea = Instance.new("TextButton")
+	sbHitArea.Name = "SBHitArea"
+	sbHitArea.Size = UDim2.new(1, 0, 1, 0)
+	sbHitArea.BackgroundTransparency = 1
+	sbHitArea.Text = ""
+	sbHitArea.BorderSizePixel = 0
+	sbHitArea.ZIndex = 100
+	sbHitArea.AutoButtonColor = false
+	sbHitArea.Parent = satBrightBox
+
+	-- ============================================================
+	-- Hue Bar
+	-- ============================================================
+
+	local hueBar = Instance.new("Frame")
+	hueBar.Name = "HueBar"
+	hueBar.Size = UDim2.new(1, 0, 0, 16)
+	hueBar.Position = UDim2.new(0, 0, 0, 146)
+	hueBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	hueBar.BackgroundTransparency = 0
+	hueBar.BorderSizePixel = 0
+	hueBar.ZIndex = 2
+	hueBar.Parent = glass.GlassSurface
+
+	local hueBarCorner = Instance.new("UICorner")
+	hueBarCorner.CornerRadius = UDim.new(0, 8)
+	hueBarCorner.Parent = hueBar
+
+	-- Rainbow gradient (7-point HSV spectrum)
+	local rainbowGradient = Instance.new("UIGradient")
+	rainbowGradient.Name = "RainbowGradient"
+	rainbowGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromHSV(0 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(0.167, Color3.fromHSV(1 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(0.333, Color3.fromHSV(2 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(0.500, Color3.fromHSV(3 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(0.667, Color3.fromHSV(4 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(0.833, Color3.fromHSV(5 / 6, 1, 1)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromHSV(6 / 6, 1, 1)),
+	})
+	rainbowGradient.Parent = hueBar
+
+	-- Hue slider handle (12x16 rounded white pill)
+	local hueSlider = Instance.new("Frame")
+	hueSlider.Name = "HueSlider"
+	hueSlider.Size = UDim2.new(0, 12, 0, 16)
+	hueSlider.AnchorPoint = Vector2.new(0.5, 0.5)
+	hueSlider.Position = UDim2.new(h, 0, 0.5, 0)
+	hueSlider.BackgroundColor3 = cursorColor
+	hueSlider.BackgroundTransparency = 0
+	hueSlider.BorderSizePixel = 0
+	hueSlider.ZIndex = 15
+	hueSlider.Parent = hueBar
+
+	local hueSliderCorner = Instance.new("UICorner")
+	hueSliderCorner.CornerRadius = UDim.new(0, 6)
+	hueSliderCorner.Parent = hueSlider
+
+	local hueSliderStroke = Instance.new("UIStroke")
+	hueSliderStroke.Color = Color3.fromRGB(200, 200, 205)
+	hueSliderStroke.Thickness = 0.5
+	hueSliderStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	hueSliderStroke.Transparency = 0.4
+	hueSliderStroke.Parent = hueSlider
+
+	-- Hue HitArea
+	local hueHitArea = Instance.new("TextButton")
+	hueHitArea.Name = "HueHitArea"
+	hueHitArea.Size = UDim2.new(1, 0, 1, 0)
+	hueHitArea.BackgroundTransparency = 1
+	hueHitArea.Text = ""
+	hueHitArea.BorderSizePixel = 0
+	hueHitArea.ZIndex = 100
+	hueHitArea.AutoButtonColor = false
+	hueHitArea.Parent = hueBar
+
+	-- ============================================================
+	-- Preview Row
+	-- ============================================================
+
+	local previewRow = Instance.new("Frame")
+	previewRow.Name = "PreviewRow"
+	previewRow.Size = UDim2.new(1, 0, 0, 24)
+	previewRow.Position = UDim2.new(0, 0, 0, 168)
+	previewRow.BackgroundTransparency = 1
+	previewRow.BorderSizePixel = 0
+	previewRow.ZIndex = 2
+	previewRow.Parent = glass.GlassSurface
+
+	local previewLayout = Instance.new("UIListLayout")
+	previewLayout.FillDirection = Enum.FillDirection.Horizontal
+	previewLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	previewLayout.Padding = UDim.new(0, 8)
+	previewLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	previewLayout.Parent = previewRow
+
+	-- Color swatch circle
+	local colorPreview = Instance.new("Frame")
+	colorPreview.Name = "ColorPreview"
+	colorPreview.Size = UDim2.new(0, 24, 0, 24)
+	colorPreview.BackgroundColor3 = currentColor()
+	colorPreview.BackgroundTransparency = 0
+	colorPreview.BorderSizePixel = 0
+	colorPreview.ZIndex = 2
+	colorPreview.LayoutOrder = 1
+	colorPreview.Parent = previewRow
+
+	local previewCorner = Instance.new("UICorner")
+	previewCorner.CornerRadius = UDim.new(0, 999)
+	previewCorner.Parent = colorPreview
+
+	local previewStroke = Instance.new("UIStroke")
+	previewStroke.Color = Color3.fromRGB(200, 200, 205)
+	previewStroke.Thickness = 0.5
+	previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	previewStroke.Transparency = 0.4
+	previewStroke.Parent = colorPreview
+
+	-- Hex label
+	local hexLabel = Instance.new("TextLabel")
+	hexLabel.Name = "HexLabel"
+	hexLabel.Size = UDim2.new(0, 80, 0, 24)
+	hexLabel.BackgroundTransparency = 1
+	hexLabel.BorderSizePixel = 0
+	hexLabel.Font = Enum.Font.GothamMedium
+	hexLabel.TextSize = 12
+	hexLabel.TextColor3 = secondaryTextColor
+	hexLabel.TextXAlignment = Enum.TextXAlignment.Left
+	hexLabel.Text = toHex(currentColor())
+	hexLabel.ZIndex = 2
+	hexLabel.LayoutOrder = 2
+	hexLabel.Parent = previewRow
+
+	-- ============================================================
+	-- Update Visuals
+	-- ============================================================
+
+	local function updateVisuals()
+		local color = currentColor()
+		-- SB box hue base
+		hueBase.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+		-- SB cursor position and fill
+		sbCursor.Position = UDim2.new(s, 0, 1 - v, 0)
+		sbCursor.BackgroundColor3 = color
+		-- Hue slider position
+		hueSlider.Position = UDim2.new(h, 0, 0.5, 0)
+		-- Preview swatch
+		colorPreview.BackgroundColor3 = color
+		-- Hex text
+		hexLabel.Text = toHex(color)
+	end
+
+	-- ============================================================
+	-- Drag Logic
+	-- ============================================================
+
+	-- SB box drag start
+	local sbInputBeganConn = sbHitArea.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			isDraggingSB = true
+			local boxPos = satBrightBox.AbsolutePosition
+			local boxSize = satBrightBox.AbsoluteSize
+			s = math.clamp((input.Position.X - boxPos.X) / boxSize.X, 0, 1)
+			v = 1 - math.clamp((input.Position.Y - boxPos.Y) / boxSize.Y, 0, 1)
+			updateVisuals()
+			if config.OnChanged then
+				config.OnChanged(currentColor())
+			end
+		end
+	end)
+	table.insert(connections, sbInputBeganConn)
+
+	-- Hue bar drag start
+	local hueInputBeganConn = hueHitArea.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			isDraggingHue = true
+			local barPos = hueBar.AbsolutePosition
+			local barWidth = hueBar.AbsoluteSize.X
+			h = math.clamp((input.Position.X - barPos.X) / barWidth, 0, 1)
+			updateVisuals()
+			if config.OnChanged then
+				config.OnChanged(currentColor())
+			end
+		end
+	end)
+	table.insert(connections, hueInputBeganConn)
+
+	-- Global drag tracking via UserInputService.InputChanged
+	local inputChangedConn = UserInputService.InputChanged:Connect(function(input: InputObject)
+		if not isDraggingSB and not isDraggingHue then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+			if isDraggingSB then
+				local boxPos = satBrightBox.AbsolutePosition
+				local boxSize = satBrightBox.AbsoluteSize
+				s = math.clamp((input.Position.X - boxPos.X) / boxSize.X, 0, 1)
+				v = 1 - math.clamp((input.Position.Y - boxPos.Y) / boxSize.Y, 0, 1)
+			elseif isDraggingHue then
+				local barPos = hueBar.AbsolutePosition
+				local barWidth = hueBar.AbsoluteSize.X
+				h = math.clamp((input.Position.X - barPos.X) / barWidth, 0, 1)
+			end
+			updateVisuals()
+			if config.OnChanged then
+				config.OnChanged(currentColor())
+			end
+		end
+	end)
+	table.insert(connections, inputChangedConn)
+
+	-- End drag on UserInputService.InputEnded
+	local inputEndedConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			isDraggingSB = false
+			isDraggingHue = false
+		end
+	end)
+	table.insert(connections, inputEndedConn)
+
+	-- ============================================================
+	-- Parent Assignment
+	-- ============================================================
+
+	if config.Parent then
+		container.Parent = config.Parent
+	end
+
+	-- ============================================================
+	-- Return Table
+	-- ============================================================
+
+	local self: Types.MangoColorPicker = {
+		Container = container,
+		GetColor = function(self: Types.MangoColorPicker): Color3
+			return currentColor()
+		end,
+		SetColor = function(self: Types.MangoColorPicker, color: Color3)
+			h, s, v = Color3.toHSV(color)
+			updateVisuals()
+		end,
+		Destroy = function(self: Types.MangoColorPicker)
+			for _, conn in connections do
+				conn:Disconnect()
+			end
+			table.clear(connections)
+			cancelAllTweens()
+			glass:Destroy()
+			container:Destroy()
+		end,
+	}
+
+	return self
+end
+
+return module
+
+end
+
+_modules["MangoKeybind"] = function()
+
+
+local Types = _require("Types")
+local Themes = _require("Themes")
+local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoHaptics = _require("MangoHaptics")
+local resolve = Themes.resolve
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local module = {}
+
+local function abbreviateKey(keyName: string): string
+	local abbrevMap: {[string]: string} = {
+		LeftShift = "LShift", RightShift = "RShift",
+		LeftControl = "LCtrl", RightControl = "RCtrl",
+		LeftAlt = "LAlt", RightAlt = "RAlt",
+		Backspace = "BkSp", Return = "Enter",
+		Space = "Space", Tab = "Tab", Escape = "Esc",
+	}
+	return abbrevMap[keyName] or keyName
+end
+
+function module.new(config: Types.MangoKeybindConfig): Types.MangoKeybind
+	local theme = config.Theme
+
+	-- Resolve config values
+	local position = config.Position
+	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
+	local labelText = config.Label
+	local defaultKey = resolve(config.DefaultKey, nil, "None") :: string
+
+	-- Theme values
+	local primaryText = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
+	local pillTransparency = resolve(nil, theme and theme.KeybindPillTransparency, 0.70) :: number
+	local listeningColor = resolve(nil, theme and theme.KeybindListeningColor, Color3.fromRGB(0, 122, 255)) :: Color3
+
+	-- State
+	local currentKey: string = defaultKey
+	local isListening: boolean = false
+	local activeTweens: {Tween} = {}
+	local connections: {RBXScriptConnection} = {}
+
+	local function cancelAllTweens()
+		for _, tween in activeTweens do
+			tween:Cancel()
+		end
+		table.clear(activeTweens)
+	end
+
+	local function trackTween(tween: Tween): Tween
+		table.insert(activeTweens, tween)
+		return tween
+	end
+
+	-- Container (horizontal layout, auto-sized)
+	local container = Instance.new("Frame")
+	container.Name = "MangoKeybind"
+	container.Size = UDim2.new(0, 0, 0, 28)
+	container.AutomaticSize = Enum.AutomaticSize.X
+	container.Position = position
+	container.AnchorPoint = anchorPoint
+	container.BackgroundTransparency = 1
+	container.BorderSizePixel = 0
+
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = container
+
+	-- LabelText (optional)
+	if labelText and labelText ~= "" then
+		local label = Instance.new("TextLabel")
+		label.Name = "LabelText"
+		label.Size = UDim2.new(0, 0, 1, 0)
+		label.AutomaticSize = Enum.AutomaticSize.X
+		label.BackgroundTransparency = 1
+		label.BorderSizePixel = 0
+		label.Font = Enum.Font.GothamMedium
+		label.TextSize = 14
+		label.Text = labelText
+		label.TextColor3 = primaryText
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Center
+		label.LayoutOrder = 1
+		label.Parent = container
+	end
+
+	-- KeyButton (MangoGlassFrame, LightweightMode, pill)
+	local glassFrame = MangoGlassFrame.new({
+		Size = UDim2.new(0, 80, 0, 28),
+		Position = UDim2.new(0, 0, 0, 0),
+		CornerRadius = UDim.new(0, 999),
+		BackgroundTransparency = pillTransparency,
+		Theme = theme,
+		ShadowEnabled = true,
+		ShadowLayerCount = 2,
+		ShadowSpread = 4,
+		ShadowOffsetY = 1,
+		LightweightMode = true,
+	})
+	glassFrame.Container.LayoutOrder = 2
+	glassFrame.Container.Parent = container
+
+	-- UIScale on Container for hover animation
+	local uiScale = Instance.new("UIScale")
+	uiScale.Scale = 1
+	uiScale.Parent = glassFrame.Container
+
+	-- KeyLabel inside GlassSurface
+	local keyLabel = Instance.new("TextLabel")
+	keyLabel.Name = "KeyLabel"
+	keyLabel.Size = UDim2.new(1, 0, 1, 0)
+	keyLabel.BackgroundTransparency = 1
+	keyLabel.BorderSizePixel = 0
+	keyLabel.Font = Enum.Font.GothamMedium
+	keyLabel.TextSize = 13
+	keyLabel.Text = abbreviateKey(currentKey)
+	keyLabel.TextColor3 = primaryText
+	keyLabel.TextXAlignment = Enum.TextXAlignment.Center
+	keyLabel.TextYAlignment = Enum.TextYAlignment.Center
+	keyLabel.ZIndex = 10
+	keyLabel.Parent = glassFrame.GlassSurface
+
+	-- HitArea
+	local hitArea = Instance.new("TextButton")
+	hitArea.Name = "HitArea"
+	hitArea.Size = UDim2.new(1, 0, 1, 0)
+	hitArea.BackgroundTransparency = 1
+	hitArea.Text = ""
+	hitArea.BorderSizePixel = 0
+	hitArea.ZIndex = 100
+	hitArea.AutoButtonColor = false
+	hitArea.Parent = glassFrame.GlassSurface
+
+	-- Store original glass transparency for restore
+	local originalBgTransparency = glassFrame.GlassSurface.BackgroundTransparency
+
+	-- Forward declare for mutual reference
+	local exitListening: () -> ()
+
+	local function enterListening()
+		if isListening then
+			return
+		end
+		isListening = true
+		cancelAllTweens()
+		MangoHaptics.light()
+
+		-- Visual: show "..." and thicken glass
+		keyLabel.Text = "..."
+		keyLabel.TextColor3 = listeningColor
+
+		local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local opacityTween = TweenService:Create(glassFrame.GlassSurface, tweenInfo, {
+			BackgroundTransparency = math.clamp(originalBgTransparency - 0.08, 0, 1),
+		})
+		trackTween(opacityTween)
+		opacityTween:Play()
+
+		-- Listen for keyboard input
+		local keyConn: RBXScriptConnection
+		keyConn = UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+			if not isListening then
+				return
+			end
+			if input.UserInputType == Enum.UserInputType.Keyboard then
+				if input.KeyCode == Enum.KeyCode.Escape then
+					-- Cancel: restore previous key
+					exitListening()
+				else
+					-- Capture the new key
+					currentKey = input.KeyCode.Name
+					exitListening()
+					if config.OnKeyChanged then
+						config.OnKeyChanged(currentKey)
+					end
+				end
+			end
+		end)
+		table.insert(connections, keyConn)
+
+		-- Listen for mouse/touch click outside to cancel
+		local outsideConn: RBXScriptConnection
+		outsideConn = UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+			if not isListening then
+				return
+			end
+			if input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch then
+				-- Check if click is outside the key button
+				local mousePos = input.Position
+				local absPos = glassFrame.Container.AbsolutePosition
+				local absSize = glassFrame.Container.AbsoluteSize
+				if mousePos.X < absPos.X or mousePos.X > absPos.X + absSize.X
+					or mousePos.Y < absPos.Y or mousePos.Y > absPos.Y + absSize.Y then
+					exitListening()
+				end
+			end
+		end)
+		table.insert(connections, outsideConn)
+	end
+
+	exitListening = function()
+		if not isListening then
+			return
+		end
+		isListening = false
+		cancelAllTweens()
+
+		-- Restore visual
+		keyLabel.Text = abbreviateKey(currentKey)
+		keyLabel.TextColor3 = primaryText
+
+		local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local opacityTween = TweenService:Create(glassFrame.GlassSurface, tweenInfo, {
+			BackgroundTransparency = originalBgTransparency,
+		})
+		trackTween(opacityTween)
+		opacityTween:Play()
+
+		-- Disconnect the listening connections (last 2 added)
+		-- Remove from end to avoid index shift
+		if #connections >= 1 then
+			connections[#connections]:Disconnect()
+			table.remove(connections, #connections)
+		end
+		if #connections >= 1 then
+			connections[#connections]:Disconnect()
+			table.remove(connections, #connections)
+		end
+	end
+
+	-- Click handler: enter listening mode
+	local clickConn = hitArea.MouseButton1Click:Connect(function()
+		if isListening then
+			return
+		end
+		enterListening()
+	end)
+	table.insert(connections, clickConn)
+
+	-- Hover animation: UIScale 1.02 on hover (0.2s Quad Out), 1.0 on leave
+	local isHovering = false
+
+	local hoverEnterConn = hitArea.MouseEnter:Connect(function()
+		if isListening then
+			return
+		end
+		isHovering = true
+		cancelAllTweens()
+		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local scaleTween = TweenService:Create(uiScale, tweenInfo, { Scale = 1.02 })
+		trackTween(scaleTween)
+		scaleTween:Play()
+	end)
+	table.insert(connections, hoverEnterConn)
+
+	local hoverLeaveConn = hitArea.MouseLeave:Connect(function()
+		isHovering = false
+		if isListening then
+			return
+		end
+		cancelAllTweens()
+		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local scaleTween = TweenService:Create(uiScale, tweenInfo, { Scale = 1.0 })
+		trackTween(scaleTween)
+		scaleTween:Play()
+	end)
+	table.insert(connections, hoverLeaveConn)
+
+	-- Parent assignment
+	if config.Parent then
+		container.Parent = config.Parent
+	end
+
+	-- Return table
+	local self: Types.MangoKeybind = {
+		Container = container,
+		GetKey = function(self: Types.MangoKeybind): string
+			return currentKey
+		end,
+		SetKey = function(self: Types.MangoKeybind, keyName: string)
+			if isListening then
+				exitListening()
+			end
+			currentKey = keyName
+			keyLabel.Text = abbreviateKey(currentKey)
+		end,
+		Destroy = function(self: Types.MangoKeybind)
+			isListening = false
+			cancelAllTweens()
+			for _, conn in connections do
+				conn:Disconnect()
+			end
+			table.clear(connections)
+			glassFrame:Destroy()
+			container:Destroy()
+		end,
+	}
+
+	return self
+end
+
+return module
+
+end
+
+_modules["MangoCarousel"] = function()
+
+
+local Types = _require("Types")
+local Themes = _require("Themes")
+local MangoGlassFrame = _require("MangoGlassFrame")
+local resolve = Themes.resolve
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local module = {}
+
+-- Default accent colors for tabs (cycles if more tabs than colors)
+local DEFAULT_COLORS: {Color3} = {
+	Color3.fromRGB(90, 135, 230),  -- soft blue
+	Color3.fromRGB(175, 100, 220), -- soft purple
+	Color3.fromRGB(230, 140, 70),  -- warm orange
+	Color3.fromRGB(80, 185, 140),  -- soft green
+}
+
+local function lightenColor(c: Color3, amount: number): Color3
+	return Color3.new(math.min(c.R + amount, 1), math.min(c.G + amount, 1), math.min(c.B + amount, 1))
+end
+
+local function darkenColor(c: Color3, amount: number): Color3
+	return Color3.new(math.max(c.R - amount, 0), math.max(c.G - amount, 0), math.max(c.B - amount, 0))
+end
+
+function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
+	local theme = config.Theme
+	local tabs = config.Tabs
+	local tabCount = #tabs
+
+	-- Resolve config values
+	local ICON_SIZE = resolve(config.IconSize, nil, 44) :: number
+	local ICON_GAP = 10
+	local ICON_STEP = ICON_SIZE + ICON_GAP
+	local DOCK_WIDTH = ICON_SIZE + 20
+	local VIEWPORT_HEIGHT = 3 * ICON_STEP + ICON_SIZE
+
+	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
+	local position = resolve(config.Position, nil, UDim2.new(0, 8, 1, -62)) :: UDim2
+	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 1)) :: Vector2
+	local dockSize = resolve(config.Size, nil, UDim2.new(0, DOCK_WIDTH, 0, VIEWPORT_HEIGHT)) :: UDim2
+
+	-- Theme values
+	local strokeColor = resolve(nil, theme and theme.StrokeColor, Color3.fromRGB(255, 255, 255)) :: Color3
+	local fresnelStart = resolve(nil, theme and theme.FresnelStartTransparency, 0.35) :: number
+	local fresnelMid = resolve(nil, theme and theme.FresnelMidTransparency, 0.65) :: number
+	local fresnelMidPoint = resolve(nil, theme and theme.FresnelMidPoint, 0.40) :: number
+	local fresnelEnd = resolve(nil, theme and theme.FresnelEndTransparency, 0.95) :: number
+
+	-- State
+	local currentIndex: number = math.clamp(initialIndex, 1, tabCount)
+	local scrollGen: number = 0
+	local activeTweens: {Tween} = {}
+	local connections: {RBXScriptConnection} = {}
+	local isDestroyed = false
+	local isTweening = false
+
+	local function cancelAllTweens()
+		for _, tween in activeTweens do
+			tween:Cancel()
+		end
+		table.clear(activeTweens)
+	end
+
+	local function trackTween(tween: Tween): Tween
+		table.insert(activeTweens, tween)
+		return tween
+	end
+
+	-- Get accent color for a tab index
+	local function getTabColor(index: number): Color3
+		local tabConfig = tabs[index]
+		if tabConfig.Color then
+			return tabConfig.Color
+		end
+		return DEFAULT_COLORS[((index - 1) % #DEFAULT_COLORS) + 1]
+	end
+
+	-- Compute the Y offset for the track to center a given tab index
+	local function getIconCenterOffset(tabIdx: number): number
+		local centerY = VIEWPORT_HEIGHT / 2
+		local iconCenterY = (tabIdx - 1) * ICON_STEP + ICON_SIZE / 2
+		return centerY - iconCenterY
+	end
+
+	-- ============================================================
+	-- Instance Hierarchy
+	-- ============================================================
+
+	-- Container (transparent outer wrapper)
+	local container = Instance.new("Frame")
+	container.Name = "MangoCarousel"
+	container.Size = dockSize
+	container.Position = position
+	container.AnchorPoint = anchorPoint
+	container.BackgroundTransparency = 1
+	container.BorderSizePixel = 0
+
+	-- DockGlass (MangoGlassFrame backdrop, pill shape)
+	local dockGlass = MangoGlassFrame.new({
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		CornerRadius = UDim.new(0, math.floor(DOCK_WIDTH / 2)),
+		BackgroundTransparency = 0.75,
+		Theme = theme,
+		ShadowEnabled = true,
+		ShadowLayerCount = 3,
+		ShadowSpread = 6,
+		ShadowOffsetY = 2,
+		LightweightMode = true,
+		Parent = container,
+	})
+
+	-- ClipFrame (clips the scrolling track, inside GlassSurface)
+	local edgePad = 8
+	local clipFrame = Instance.new("Frame")
+	clipFrame.Name = "ClipFrame"
+	clipFrame.Size = UDim2.new(1, 0, 1, -edgePad * 2)
+	clipFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	clipFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	clipFrame.BackgroundTransparency = 1
+	clipFrame.BorderSizePixel = 0
+	clipFrame.ClipsDescendants = true
+	clipFrame.Parent = dockGlass.GlassSurface
+
+	-- TrackFrame (holds all icons, moves vertically via tween)
+	local trackFrame = Instance.new("Frame")
+	trackFrame.Name = "TrackFrame"
+	trackFrame.Size = UDim2.new(1, 0, 0, tabCount * ICON_STEP)
+	trackFrame.Position = UDim2.new(0, 0, 0, getIconCenterOffset(currentIndex))
+	trackFrame.BackgroundTransparency = 1
+	trackFrame.BorderSizePixel = 0
+	trackFrame.Parent = clipFrame
+
+	-- Icon data arrays
+	local iconFrames: {Frame} = {}
+	local iconScales: {UIScale} = {}
+	local iconDotScales: {UIScale} = {}
+	local iconHoverStates: {boolean} = {}
+
+	-- Build icon instances (no event wiring yet — forward-declared functions needed)
+	for i = 1, tabCount do
+		local tabConfig = tabs[i]
+		local accent = getTabColor(i)
+		local isSelected = i == currentIndex
+
+		-- Icon_N frame
+		local iconFrame = Instance.new("Frame")
+		iconFrame.Name = "Icon_" .. i
+		iconFrame.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
+		iconFrame.AnchorPoint = Vector2.new(0.5, 0)
+		iconFrame.Position = UDim2.new(0.5, 0, 0, (i - 1) * ICON_STEP)
+		iconFrame.BackgroundTransparency = 1
+		iconFrame.BorderSizePixel = 0
+		iconFrame.Parent = trackFrame
+
+		-- UIScale for paraboloid focus + hover
+		local iconScale = Instance.new("UIScale")
+		iconScale.Scale = 1
+		iconScale.Parent = iconFrame
+
+		-- IconShadow (accent-tinted drop shadow)
+		local iconShadow = Instance.new("Frame")
+		iconShadow.Name = "IconShadow"
+		iconShadow.Size = UDim2.new(0, ICON_SIZE + 4, 0, ICON_SIZE + 4)
+		iconShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+		iconShadow.Position = UDim2.new(0.5, 0, 0.5, 2)
+		iconShadow.BackgroundColor3 = accent
+		iconShadow.BackgroundTransparency = 0.78
+		iconShadow.BorderSizePixel = 0
+		iconShadow.ZIndex = 0
+		iconShadow.Parent = iconFrame
+
+		local shadowCorner = Instance.new("UICorner")
+		shadowCorner.CornerRadius = UDim.new(0, 12)
+		shadowCorner.Parent = iconShadow
+
+		-- IconBg (squircle, gradient fill)
+		local iconBg = Instance.new("Frame")
+		iconBg.Name = "IconBg"
+		iconBg.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
+		iconBg.AnchorPoint = Vector2.new(0.5, 0.5)
+		iconBg.Position = UDim2.new(0.5, 0, 0.5, 0)
+		iconBg.BackgroundColor3 = accent
+		iconBg.BackgroundTransparency = 0.20
+		iconBg.BorderSizePixel = 0
+		iconBg.ZIndex = 1
+		iconBg.Parent = iconFrame
+
+		local bgCorner = Instance.new("UICorner")
+		bgCorner.CornerRadius = UDim.new(0, 10)
+		bgCorner.Parent = iconBg
+
+		-- Gradient fill (lighten top, darken bottom)
+		local bgGradient = Instance.new("UIGradient")
+		bgGradient.Name = "IconBgGradient"
+		bgGradient.Rotation = 90
+		bgGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, lightenColor(accent, 0.10)),
+			ColorSequenceKeypoint.new(1, darkenColor(accent, 0.10)),
+		})
+		bgGradient.Parent = iconBg
+
+		-- IconHighlight (white inner glow, 35% height)
+		local iconHighlight = Instance.new("Frame")
+		iconHighlight.Name = "IconHighlight"
+		iconHighlight.Size = UDim2.new(1, 0, 0.35, 0)
+		iconHighlight.Position = UDim2.new(0, 0, 0, 0)
+		iconHighlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		iconHighlight.BackgroundTransparency = 0.70
+		iconHighlight.BorderSizePixel = 0
+		iconHighlight.ZIndex = 2
+		iconHighlight.Parent = iconBg
+
+		local highlightCorner = Instance.new("UICorner")
+		highlightCorner.CornerRadius = UDim.new(0, 10)
+		highlightCorner.Parent = iconHighlight
+
+		local highlightGradient = Instance.new("UIGradient")
+		highlightGradient.Name = "HighlightGradient"
+		highlightGradient.Rotation = 90
+		highlightGradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		highlightGradient.Parent = iconHighlight
+
+		-- Specular stroke on icon (fresnel rim)
+		local specFrame = Instance.new("Frame")
+		specFrame.Name = "SpecularFrame"
+		specFrame.Size = UDim2.new(1, 0, 1, 0)
+		specFrame.BackgroundTransparency = 1
+		specFrame.BorderSizePixel = 0
+		specFrame.ZIndex = 3
+		specFrame.Parent = iconBg
+
+		local specCorner = Instance.new("UICorner")
+		specCorner.CornerRadius = UDim.new(0, 10)
+		specCorner.Parent = specFrame
+
+		local specStroke = Instance.new("UIStroke")
+		specStroke.Name = "SpecularStroke"
+		specStroke.Color = strokeColor
+		specStroke.Thickness = 1
+		specStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		specStroke.Parent = specFrame
+
+		local specGradient = Instance.new("UIGradient")
+		specGradient.Name = "SpecularGradient"
+		specGradient.Rotation = 90
+		specGradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, fresnelStart + 0.10),
+			NumberSequenceKeypoint.new(fresnelMidPoint, fresnelMid + 0.05),
+			NumberSequenceKeypoint.new(1, fresnelEnd),
+		})
+		specGradient.Parent = specStroke
+
+		-- IconLabel (emoji or text)
+		local iconLabel = Instance.new("TextLabel")
+		iconLabel.Name = "IconLabel"
+		iconLabel.Size = UDim2.new(1, 0, 1, 0)
+		iconLabel.BackgroundTransparency = 1
+		iconLabel.BorderSizePixel = 0
+		iconLabel.Font = Enum.Font.GothamBold
+		iconLabel.TextSize = 18
+		iconLabel.Text = tabConfig.Icon or tabConfig.Label or ""
+		iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		iconLabel.TextStrokeTransparency = 0.85
+		iconLabel.TextXAlignment = Enum.TextXAlignment.Center
+		iconLabel.TextYAlignment = Enum.TextYAlignment.Center
+		iconLabel.ZIndex = 5
+		iconLabel.Parent = iconFrame
+
+		-- ActiveDot (6x6 circle below icon, accent-colored)
+		local activeDot = Instance.new("Frame")
+		activeDot.Name = "ActiveDot"
+		activeDot.Size = UDim2.new(0, 6, 0, 6)
+		activeDot.AnchorPoint = Vector2.new(0.5, 0)
+		activeDot.Position = UDim2.new(0.5, 0, 1, 3)
+		activeDot.BackgroundColor3 = accent
+		activeDot.BackgroundTransparency = 0
+		activeDot.BorderSizePixel = 0
+		activeDot.ZIndex = 5
+		activeDot.Parent = iconFrame
+
+		local dotCorner = Instance.new("UICorner")
+		dotCorner.CornerRadius = UDim.new(0, 999)
+		dotCorner.Parent = activeDot
+
+		local dotScale = Instance.new("UIScale")
+		dotScale.Scale = if isSelected then 1 else 0
+		dotScale.Parent = activeDot
+
+		-- HitArea (TextButton for reliable input)
+		local hitArea = Instance.new("TextButton")
+		hitArea.Name = "HitArea"
+		hitArea.Size = UDim2.new(1, 0, 1, 0)
+		hitArea.BackgroundTransparency = 1
+		hitArea.Text = ""
+		hitArea.BorderSizePixel = 0
+		hitArea.ZIndex = 100
+		hitArea.AutoButtonColor = false
+		hitArea.Parent = iconFrame
+
+		-- Store references
+		table.insert(iconFrames, iconFrame)
+		table.insert(iconScales, iconScale)
+		table.insert(iconDotScales, dotScale)
+		table.insert(iconHoverStates, false)
+	end
+
+	-- ============================================================
+	-- Active Dot Animation
+	-- ============================================================
+
+	local function updateDots(selectedIndex: number)
+		local dotInInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		local dotOutInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		for i = 1, tabCount do
+			local targetScale = if i == selectedIndex then 1 else 0
+			local info = if i == selectedIndex then dotInInfo else dotOutInfo
+			trackTween(TweenService:Create(iconDotScales[i], info, {
+				Scale = targetScale,
+			})):Play()
+		end
+	end
+
+	-- ============================================================
+	-- Paraboloid Focus
+	-- ============================================================
+
+	local function applyParaboloidFocus()
+		if isDestroyed then return end
+		local trackY = trackFrame.Position.Y.Offset
+		local centerViewY = VIEWPORT_HEIGHT / 2
+
+		local focusInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		for i = 1, tabCount do
+			if not iconHoverStates[i] then
+				local iconCenterY = trackY + (i - 1) * ICON_STEP + ICON_SIZE / 2
+				local distance = math.abs(iconCenterY - centerViewY)
+				local t = distance / ICON_STEP
+				local focusScale = math.max(0.50, 1.0 - t * t)
+				trackTween(TweenService:Create(iconScales[i], focusInfo, {
+					Scale = focusScale,
+				})):Play()
+			end
+		end
+	end
+
+	-- ============================================================
+	-- Scroll Logic (Infinite Loop Wrapping)
+	-- ============================================================
+
+	local function scrollToIndex(newIndex: number)
+		if isDestroyed then return end
+		scrollGen += 1
+		local gen = scrollGen
+
+		-- Wrap index with modular arithmetic
+		newIndex = ((newIndex - 1) % tabCount) + 1
+		local oldIndex = currentIndex
+		currentIndex = newIndex
+
+		-- Compute shortest wrap distance for variable duration
+		local rawDelta = math.abs(newIndex - oldIndex)
+		local scrollDelta = math.min(rawDelta, tabCount - rawDelta)
+		local duration = 0.22 + scrollDelta * 0.03
+
+		local targetY = getIconCenterOffset(newIndex)
+		cancelAllTweens()
+
+		local scrollInfo = TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		local scrollTween = TweenService:Create(trackFrame, scrollInfo, {
+			Position = UDim2.new(0, 0, 0, targetY),
+		})
+		trackTween(scrollTween)
+		isTweening = true
+		scrollTween:Play()
+
+		scrollTween.Completed:Connect(function()
+			if gen == scrollGen then
+				isTweening = false
+			end
+		end)
+
+		updateDots(newIndex)
+
+		if config.OnChanged then
+			config.OnChanged(newIndex)
+		end
+	end
+
+	-- ============================================================
+	-- Wire Event Handlers (after all functions are defined)
+	-- ============================================================
+
+	for i = 1, tabCount do
+		local iconFrame = iconFrames[i]
+		local iconScale = iconScales[i]
+		local hitArea = iconFrame:FindFirstChild("HitArea") :: TextButton
+
+		-- Click handler
+		local clickConn = hitArea.MouseButton1Click:Connect(function()
+			if isDestroyed then return end
+			if currentIndex ~= i then
+				scrollToIndex(i)
+			end
+		end)
+		table.insert(connections, clickConn)
+
+		-- Hover feedback (1.04x, 0.2s Back Out)
+		local hoverConn = hitArea.MouseEnter:Connect(function()
+			if isDestroyed then return end
+			iconHoverStates[i] = true
+			local hoverInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+			trackTween(TweenService:Create(iconScale, hoverInfo, { Scale = 1.04 })):Play()
+		end)
+		table.insert(connections, hoverConn)
+
+		local leaveConn = hitArea.MouseLeave:Connect(function()
+			if isDestroyed then return end
+			iconHoverStates[i] = false
+			applyParaboloidFocus()
+		end)
+		table.insert(connections, leaveConn)
+
+		-- Press feedback (0.92x, 0.1s Quad Out)
+		local pressConn = hitArea.MouseButton1Down:Connect(function()
+			if isDestroyed then return end
+			local pressInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			trackTween(TweenService:Create(iconScale, pressInfo, { Scale = 0.92 })):Play()
+		end)
+		table.insert(connections, pressConn)
+
+		local releaseConn = hitArea.MouseButton1Up:Connect(function()
+			if isDestroyed then return end
+			if iconHoverStates[i] then
+				local hoverInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+				trackTween(TweenService:Create(iconScale, hoverInfo, { Scale = 1.04 })):Play()
+			else
+				applyParaboloidFocus()
+			end
+		end)
+		table.insert(connections, releaseConn)
+	end
+
+	-- ============================================================
+	-- Mouse Wheel Input
+	-- ============================================================
+
+	local scrollConn = UserInputService.InputChanged:Connect(function(input: InputObject)
+		if isDestroyed then return end
+		if input.UserInputType ~= Enum.UserInputType.MouseWheel then return end
+
+		-- Check if mouse is over dock bounds
+		local mousePos = UserInputService:GetMouseLocation()
+		local absPos = container.AbsolutePosition
+		local absSize = container.AbsoluteSize
+		if mousePos.X < absPos.X or mousePos.X > absPos.X + absSize.X then return end
+		if mousePos.Y < absPos.Y or mousePos.Y > absPos.Y + absSize.Y then return end
+
+		-- Scroll direction: negative Z = scroll down = next tab
+		local direction = if input.Position.Z < 0 then 1 else -1
+		scrollToIndex(currentIndex + direction)
+	end)
+	table.insert(connections, scrollConn)
+
+	-- ============================================================
+	-- Touch Swipe Support
+	-- ============================================================
+
+	local touchStartY: number? = nil
+
+	local touchBeganConn = UserInputService.InputBegan:Connect(function(input: InputObject)
+		if isDestroyed then return end
+		if input.UserInputType ~= Enum.UserInputType.Touch then return end
+
+		-- Check if touch is over dock bounds
+		local absPos = container.AbsolutePosition
+		local absSize = container.AbsoluteSize
+		local touchX = input.Position.X
+		local touchY = input.Position.Y
+		if touchX < absPos.X or touchX > absPos.X + absSize.X then return end
+		if touchY < absPos.Y or touchY > absPos.Y + absSize.Y then return end
+
+		touchStartY = touchY
+	end)
+	table.insert(connections, touchBeganConn)
+
+	local touchEndedConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+		if isDestroyed then return end
+		if input.UserInputType ~= Enum.UserInputType.Touch then return end
+		if touchStartY == nil then return end
+
+		local deltaY = input.Position.Y - (touchStartY :: number)
+		touchStartY = nil
+
+		-- Y delta > 20px threshold for swipe detection
+		if math.abs(deltaY) > 20 then
+			local direction = if deltaY < 0 then 1 else -1
+			scrollToIndex(currentIndex + direction)
+		end
+	end)
+	table.insert(connections, touchEndedConn)
+
+	-- ============================================================
+	-- Per-Frame Focus Update (RenderStepped)
+	-- ============================================================
+
+	local renderConn = RunService.RenderStepped:Connect(function()
+		if isDestroyed then return end
+		if isTweening then
+			applyParaboloidFocus()
+		end
+	end)
+	table.insert(connections, renderConn)
+
+	-- Apply initial state
+	applyParaboloidFocus()
+	updateDots(currentIndex)
+
+	-- ============================================================
+	-- Parent Assignment
+	-- ============================================================
+
+	if config.Parent then
+		container.Parent = config.Parent
+	end
+
+	-- ============================================================
+	-- Return Table
+	-- ============================================================
+
+	local self: Types.MangoCarousel = {
+		Container = container,
+		SetIndex = function(self: Types.MangoCarousel, index: number)
+			scrollToIndex(index)
+		end,
+		GetIndex = function(self: Types.MangoCarousel): number
+			return currentIndex
+		end,
+		Destroy = function(self: Types.MangoCarousel)
+			isDestroyed = true
+			cancelAllTweens()
+			for _, conn in connections do
+				conn:Disconnect()
+			end
+			table.clear(connections)
+			dockGlass:Destroy()
+			container:Destroy()
+		end,
+	}
+
+	return self
+end
+
+return module
+
+end
+
+_modules["MangoWindow"] = function()
+
+
+local Types = _require("Types")
+local Themes = _require("Themes")
+local MangoGlassFrame = _require("MangoGlassFrame")
+local MangoToggle = _require("MangoToggle")
+local MangoSlider = _require("MangoSlider")
+local MangoButton = _require("MangoButton")
+local MangoCheckbox = _require("MangoCheckbox")
+local MangoProgressBar = _require("MangoProgressBar")
+local MangoDropdown = _require("MangoDropdown")
+local MangoTextField = _require("MangoTextField")
+local MangoStepper = _require("MangoStepper")
+local MangoSegmentedControl = _require("MangoSegmentedControl")
+local MangoNotificationStack = _require("MangoNotificationStack")
+local MangoDialog = _require("MangoDialog")
+local MangoColorPicker = _require("MangoColorPicker")
+local MangoKeybind = _require("MangoKeybind")
+local MangoSaveManager = _require("MangoSaveManager")
+local MangoIntro = _require("MangoIntro")
+local resolve = Themes.resolve
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local module = {}
+
+-- Helper: create a MangoWindowElement wrapper
+local function createWindowElement(config: {
+	getValue: () -> any,
+	setValue: (any) -> (),
+	rowFrame: Frame,
+	destroyInner: () -> (),
+}): Types.MangoWindowElement
+	local isLocked = false
+	local lockOverlay: Frame? = nil
+	local currentValue = config.getValue()
+
+	local self: Types.MangoWindowElement = {
+		CurrentValue = currentValue,
+		Set = function(self: Types.MangoWindowElement, value: any)
+			config.setValue(value)
+			self.CurrentValue = config.getValue()
+		end,
+		Visible = function(self: Types.MangoWindowElement, visible: boolean)
+			config.rowFrame.Visible = visible
+		end,
+		Lock = function(self: Types.MangoWindowElement, reason: string?)
+			if isLocked then return end
+			isLocked = true
+			local overlay = Instance.new("Frame")
+			overlay.Name = "LockOverlay"
+			overlay.Size = UDim2.new(1, 0, 1, 0)
+			overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			overlay.BackgroundTransparency = 0.85
+			overlay.BorderSizePixel = 0
+			overlay.ZIndex = 200
+			overlay.Parent = config.rowFrame
+			lockOverlay = overlay
+
+			if reason then
+				local label = Instance.new("TextLabel")
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.BackgroundTransparency = 1
+				label.Font = Enum.Font.GothamMedium
+				label.TextSize = 11
+				label.Text = reason
+				label.TextColor3 = Color3.fromRGB(200, 200, 200)
+				label.ZIndex = 201
+				label.Parent = overlay
+			end
+		end,
+		Unlock = function(self: Types.MangoWindowElement)
+			if not isLocked then return end
+			isLocked = false
+			if lockOverlay then
+				lockOverlay:Destroy()
+				lockOverlay = nil
+			end
+		end,
+		Destroy = function(self: Types.MangoWindowElement)
+			config.destroyInner()
+			config.rowFrame:Destroy()
+		end,
+	}
+	return self
+end
+
+function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
+	local theme = config.Theme or Themes.Light
+	local windowName = config.Name or "MangoUI"
+	local windowSize = resolve(config.Size, nil, UDim2.new(0, 400, 0, 500)) :: UDim2
+	local windowPos = resolve(config.Position, nil, UDim2.new(0.5, 0, 0.5, 0)) :: UDim2
+	local toggleKeyName = config.ToggleKey
+	local showButtonText = config.ShowButton or windowName
+	local configSaving = config.ConfigurationSaving
+	local loadingEnabled = resolve(config.LoadingEnabled, nil, true) :: boolean
+
+	-- Theme values
+	local primaryText = resolve(nil, theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
+	local secondaryText = resolve(nil, theme.SecondaryTextColor, Color3.fromRGB(60, 60, 70)) :: Color3
+	local bgColor = resolve(nil, theme.BackgroundColor3, Color3.fromRGB(255, 255, 255)) :: Color3
+	local accentColor = resolve(nil, theme.AccentColor, Color3.fromRGB(0, 122, 255)) :: Color3
+	local windowBgTransp = resolve(nil, theme.WindowBackgroundTransparency, 0.12) :: number
+
+	-- State
+	local isVisible = true
+	local isDestroyed = false
+	local isDragging = false
+	local dragOffset = Vector2.zero
+	local activeTweens: {Tween} = {}
+	local connections: {RBXScriptConnection} = {}
+	local tabData: {{name: string, icon: string?, frame: ScrollingFrame, elements: {Types.MangoWindowElement}}} = {}
+	local currentTabIndex = 1
+	local flags: {[string]: any} = {}
+	local flagElements: {[string]: Types.MangoWindowElement} = {}
+	local flagDependents: {[string]: {Types.MangoWindowElement}} = {}
+	local saveDebounceThread: thread? = nil
+	local saveManager: Types.MangoSaveManager? = nil
+	local innerDestroyables: {any} = {}
+
+	local function cancelAllTweens()
+		for _, tween in activeTweens do
+			tween:Cancel()
+		end
+		table.clear(activeTweens)
+	end
+
+	local function trackTween(tween: Tween): Tween
+		table.insert(activeTweens, tween)
+		return tween
+	end
+
+	-- Play intro if enabled
+	if loadingEnabled then
+		MangoIntro.play({
+			Theme = theme,
+			Title = config.LoadingTitle,
+			Subtitle = config.LoadingSubtitle,
+		})
+	end
+
+	-- Setup save manager
+	if configSaving and configSaving.Enabled then
+		local folderName = configSaving.FolderName or windowName
+		local fileName = configSaving.FileName or "config"
+		saveManager = MangoSaveManager.new({
+			FolderName = folderName,
+			FileName = fileName,
+		})
+	end
+
+	-- Create ScreenGui
+	local player = Players.LocalPlayer
+	local playerGui = player:WaitForChild("PlayerGui")
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "MangoWindow_" .. windowName
+	screenGui.DisplayOrder = 100
+	screenGui.ResetOnSpawn = false
+	screenGui.IgnoreGuiInset = true
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.Parent = playerGui
+
+	-- Window container (animation target)
+	local windowContainer = Instance.new("Frame")
+	windowContainer.Name = "WindowContainer"
+	windowContainer.Size = windowSize
+	windowContainer.Position = windowPos
+	windowContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+	windowContainer.BackgroundTransparency = 1
+	windowContainer.BorderSizePixel = 0
+	windowContainer.Parent = screenGui
+
+	local windowUIScale = Instance.new("UIScale")
+	windowUIScale.Scale = 1
+	windowUIScale.Parent = windowContainer
+
+	-- Glass frame
+	local glassFrame = MangoGlassFrame.new({
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		CornerRadius = UDim.new(0, 16),
+		BackgroundTransparency = windowBgTransp,
+		Theme = theme,
+		ShadowEnabled = true,
+		ShadowLayerCount = 4,
+		ShadowSpread = 16,
+		ShadowOffsetY = 4,
+		Parent = windowContainer,
+	})
+	table.insert(innerDestroyables, glassFrame)
+
+	-- Window content frame
+	local windowContent = Instance.new("Frame")
+	windowContent.Name = "WindowContent"
+	windowContent.Size = UDim2.new(1, 0, 1, 0)
+	windowContent.BackgroundTransparency = 1
+	windowContent.BorderSizePixel = 0
+	windowContent.ZIndex = 10
+	windowContent.Parent = glassFrame.GlassSurface
+
+	local contentPadding = Instance.new("UIPadding")
+	contentPadding.PaddingTop = UDim.new(0, 14)
+	contentPadding.PaddingBottom = UDim.new(0, 14)
+	contentPadding.PaddingLeft = UDim.new(0, 14)
+	contentPadding.PaddingRight = UDim.new(0, 14)
+	contentPadding.Parent = windowContent
+
+	-- Title bar (32px)
+	local titleBar = Instance.new("Frame")
+	titleBar.Name = "TitleBar"
+	titleBar.Size = UDim2.new(1, 0, 0, 32)
+	titleBar.Position = UDim2.new(0, 0, 0, 0)
+	titleBar.BackgroundTransparency = 1
+	titleBar.BorderSizePixel = 0
+	titleBar.ZIndex = 10
+	titleBar.Parent = windowContent
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Name = "TitleLabel"
+	titleLabel.Size = UDim2.new(1, -40, 1, 0)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Font = Enum.Font.GothamBold
+	titleLabel.TextSize = 17
+	titleLabel.TextColor3 = primaryText
+	titleLabel.Text = windowName
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.TextYAlignment = Enum.TextYAlignment.Center
+	titleLabel.BorderSizePixel = 0
+	titleLabel.ZIndex = 10
+	titleLabel.Parent = titleBar
+
+	-- Close button (24x24 glass circle)
+	local closeFrame = Instance.new("Frame")
+	closeFrame.Name = "CloseButton"
+	closeFrame.Size = UDim2.new(0, 24, 0, 24)
+	closeFrame.Position = UDim2.new(1, 0, 0.5, 0)
+	closeFrame.AnchorPoint = Vector2.new(1, 0.5)
+	closeFrame.BackgroundColor3 = bgColor
+	closeFrame.BackgroundTransparency = 0.75
+	closeFrame.BorderSizePixel = 0
+	closeFrame.ZIndex = 15
+	closeFrame.Parent = titleBar
+
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius = UDim.new(0, 999)
+	closeCorner.Parent = closeFrame
+
+	local closeStroke = Instance.new("UIStroke")
+	closeStroke.Thickness = 0.5
+	closeStroke.Color = Color3.fromRGB(200, 200, 205)
+	closeStroke.Transparency = 0.5
+	closeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	closeStroke.Parent = closeFrame
+
+	local closeLabel = Instance.new("TextLabel")
+	closeLabel.Size = UDim2.new(1, 0, 1, 0)
+	closeLabel.BackgroundTransparency = 1
+	closeLabel.Font = Enum.Font.GothamBold
+	closeLabel.TextSize = 14
+	closeLabel.Text = "\226\156\149" -- ✕
+	closeLabel.TextColor3 = secondaryText
+	closeLabel.ZIndex = 15
+	closeLabel.Parent = closeFrame
+
+	local closeHitArea = Instance.new("TextButton")
+	closeHitArea.Name = "CloseHitArea"
+	closeHitArea.Size = UDim2.new(1, 8, 1, 8)
+	closeHitArea.AnchorPoint = Vector2.new(0.5, 0.5)
+	closeHitArea.Position = UDim2.new(0.5, 0, 0.5, 0)
+	closeHitArea.BackgroundTransparency = 1
+	closeHitArea.Text = ""
+	closeHitArea.BorderSizePixel = 0
+	closeHitArea.ZIndex = 100
+	closeHitArea.AutoButtonColor = false
+	closeHitArea.Parent = closeFrame
+
+	-- Drag hit area (title bar area)
+	local dragHitArea = Instance.new("TextButton")
+	dragHitArea.Name = "DragHitArea"
+	dragHitArea.Size = UDim2.new(1, -32, 1, 0)
+	dragHitArea.BackgroundTransparency = 1
+	dragHitArea.Text = ""
+	dragHitArea.BorderSizePixel = 0
+	dragHitArea.ZIndex = 5
+	dragHitArea.AutoButtonColor = false
+	dragHitArea.Parent = titleBar
+
+	-- Tab selector area (placeholder, filled when tabs > 1)
+	local tabSelectorFrame = Instance.new("Frame")
+	tabSelectorFrame.Name = "TabSelectorFrame"
+	tabSelectorFrame.Size = UDim2.new(1, 0, 0, 0)
+	tabSelectorFrame.Position = UDim2.new(0, 0, 0, 36)
+	tabSelectorFrame.BackgroundTransparency = 1
+	tabSelectorFrame.BorderSizePixel = 0
+	tabSelectorFrame.ZIndex = 10
+	tabSelectorFrame.Parent = windowContent
+
+	local segmentedControl: Types.MangoSegmentedControl? = nil
+
+	-- Content area (below title bar + tab selector)
+	local contentArea = Instance.new("Frame")
+	contentArea.Name = "ContentArea"
+	contentArea.Size = UDim2.new(1, 0, 1, -36)
+	contentArea.Position = UDim2.new(0, 0, 0, 36)
+	contentArea.BackgroundTransparency = 1
+	contentArea.BorderSizePixel = 0
+	contentArea.ZIndex = 10
+	contentArea.ClipsDescendants = true
+	contentArea.Parent = windowContent
+
+	-- Reopener pill (hidden initially)
+	local reopenerGlass = MangoGlassFrame.new({
+		Size = UDim2.new(0, 140, 0, 30),
+		Position = UDim2.new(0.5, 0, 0, -40),
+		AnchorPoint = Vector2.new(0.5, 0),
+		CornerRadius = UDim.new(0, 999),
+		BackgroundTransparency = 0.70,
+		Theme = theme,
+		ShadowEnabled = true,
+		ShadowLayerCount = 1,
+		ShadowSpread = 4,
+		ShadowOffsetY = 1,
+		LightweightMode = true,
+		Parent = screenGui,
+	})
+	table.insert(innerDestroyables, reopenerGlass)
+
+	local reopenerLabel = Instance.new("TextLabel")
+	reopenerLabel.Name = "ReopenerLabel"
+	reopenerLabel.Size = UDim2.new(1, 0, 1, 0)
+	reopenerLabel.BackgroundTransparency = 1
+	reopenerLabel.Font = Enum.Font.GothamMedium
+	reopenerLabel.TextSize = 13
+	reopenerLabel.TextColor3 = primaryText
+	reopenerLabel.Text = "\226\150\190 " .. showButtonText -- ▾
+	reopenerLabel.ZIndex = 10
+	reopenerLabel.Parent = reopenerGlass.GlassSurface
+
+	local reopenerHitArea = Instance.new("TextButton")
+	reopenerHitArea.Name = "HitArea"
+	reopenerHitArea.Size = UDim2.new(1, 0, 1, 0)
+	reopenerHitArea.BackgroundTransparency = 1
+	reopenerHitArea.Text = ""
+	reopenerHitArea.BorderSizePixel = 0
+	reopenerHitArea.ZIndex = 100
+	reopenerHitArea.AutoButtonColor = false
+	reopenerHitArea.Parent = reopenerGlass.GlassSurface
+
+	-- Notification stack
+	local notifStack = MangoNotificationStack.new({
+		MaxVisible = 3,
+		Theme = theme,
+		Parent = screenGui,
+	})
+	table.insert(innerDestroyables, notifStack)
+
+	-- === Drag system ===
+	local dragStartConn = dragHitArea.MouseButton1Down:Connect(function()
+		isDragging = true
+		local mousePos = UserInputService:GetMouseLocation()
+		local containerPos = windowContainer.AbsolutePosition
+		dragOffset = Vector2.new(mousePos.X - containerPos.X, mousePos.Y - containerPos.Y)
+	end)
+	table.insert(connections, dragStartConn)
+
+	local dragMoveConn = UserInputService.InputChanged:Connect(function(input: InputObject)
+		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local mousePos = Vector2.new(input.Position.X, input.Position.Y)
+			windowContainer.Position = UDim2.new(0, mousePos.X - dragOffset.X + windowContainer.AbsoluteSize.X * 0.5, 0, mousePos.Y - dragOffset.Y + windowContainer.AbsoluteSize.Y * 0.5)
+		end
+	end)
+	table.insert(connections, dragMoveConn)
+
+	local dragEndConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = false
+		end
+	end)
+	table.insert(connections, dragEndConn)
+
+	-- === Close button hover ===
+	local closeHoverConn = closeHitArea.MouseEnter:Connect(function()
+		TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = 0.50,
+		}):Play()
+	end)
+	table.insert(connections, closeHoverConn)
+
+	local closeLeaveConn = closeHitArea.MouseLeave:Connect(function()
+		TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = 0.75,
+		}):Play()
+	end)
+	table.insert(connections, closeLeaveConn)
+
+	-- === Flag dependency system ===
+	local function evaluateDependencies(changedFlag: string)
+		local dependents = flagDependents[changedFlag]
+		if not dependents then return end
+		local flagValue = flags[changedFlag]
+		local isTruthy = flagValue and flagValue ~= false and flagValue ~= 0 and flagValue ~= ""
+		for _, element in dependents do
+			element:Visible(isTruthy)
+		end
+	end
+
+	-- === Auto-save (debounced) ===
+	local function triggerAutoSave()
+		if not saveManager or not configSaving or not configSaving.Enabled then return end
+		if saveDebounceThread then
+			task.cancel(saveDebounceThread)
+		end
+		saveDebounceThread = task.delay(1, function()
+			if isDestroyed then return end
+			saveManager:Save(flags)
+			saveDebounceThread = nil
+		end)
+	end
+
+	local function registerFlag(flagName: string, element: Types.MangoWindowElement, initialValue: any)
+		flags[flagName] = initialValue
+		flagElements[flagName] = element
+		element.CurrentValue = initialValue
+	end
+
+	local function updateFlag(flagName: string, value: any)
+		flags[flagName] = value
+		local el = flagElements[flagName]
+		if el then
+			el.CurrentValue = value
+		end
+		evaluateDependencies(flagName)
+		triggerAutoSave()
+	end
+
+	local function registerDependency(element: Types.MangoWindowElement, visibleFlag: string)
+		if not flagDependents[visibleFlag] then
+			flagDependents[visibleFlag] = {}
+		end
+		table.insert(flagDependents[visibleFlag], element)
+		-- Evaluate immediately
+		local flagValue = flags[visibleFlag]
+		local isTruthy = flagValue and flagValue ~= false and flagValue ~= 0 and flagValue ~= ""
+		element:Visible(isTruthy)
+	end
+
+	-- === Tab switching ===
+	local function switchToTab(index: number)
+		if index == currentTabIndex then return end
+		-- Hide current
+		if tabData[currentTabIndex] then
+			tabData[currentTabIndex].frame.Visible = false
+		end
+		currentTabIndex = index
+		-- Show new with spring animation
+		local newTab = tabData[index]
+		if newTab then
+			newTab.frame.Visible = true
+			local tabScale = newTab.frame:FindFirstChildOfClass("UIScale")
+			if tabScale then
+				tabScale.Scale = 0.98
+				TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+					Scale = 1,
+				}):Play()
+			end
+		end
+	end
+
+	-- === Show / Hide animations ===
+	local function showWindow()
+		if isVisible then return end
+		isVisible = true
+		windowContainer.Visible = true
+		cancelAllTweens()
+
+		-- Hide reopener
+		local reopenerTween = TweenService:Create(reopenerGlass.Container, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, 0, 0, -40),
+		})
+		trackTween(reopenerTween)
+		reopenerTween:Play()
+
+		-- Materialize in
+		windowUIScale.Scale = 0.95
+		glassFrame.GlassSurface.BackgroundTransparency = 1
+
+		local scaleTween = TweenService:Create(windowUIScale, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Scale = 1,
+		})
+		trackTween(scaleTween)
+		scaleTween:Play()
+
+		task.delay(0.03, function()
+			if isDestroyed then return end
+			local surfaceTween = TweenService:Create(glassFrame.GlassSurface, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				BackgroundTransparency = windowBgTransp,
+			})
+			trackTween(surfaceTween)
+			surfaceTween:Play()
+		end)
+
+		task.delay(0.08, function()
+			if isDestroyed then return end
+			for _, shadow in glassFrame.ShadowLayers do
+				shadow.Visible = true
+			end
+		end)
+	end
+
+	local function hideWindow()
+		if not isVisible then return end
+		isVisible = false
+		cancelAllTweens()
+
+		-- Shadows fade first
+		for _, shadow in glassFrame.ShadowLayers do
+			shadow.Visible = false
+		end
+
+		-- Surface dissolves
+		task.delay(0.04, function()
+			if isDestroyed then return end
+			TweenService:Create(glassFrame.GlassSurface, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				BackgroundTransparency = 1,
+			}):Play()
+		end)
+
+		-- Scale out
+		local scaleTween = TweenService:Create(windowUIScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Scale = 0.95,
+		})
+		trackTween(scaleTween)
+		scaleTween:Play()
+		scaleTween.Completed:Once(function()
+			if isDestroyed then return end
+			windowContainer.Visible = false
+		end)
+
+		-- Show reopener
+		task.delay(0.1, function()
+			if isDestroyed then return end
+			local reopenerTween = TweenService:Create(reopenerGlass.Container, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				Position = UDim2.new(0.5, 0, 0, 8),
+			})
+			trackTween(reopenerTween)
+			reopenerTween:Play()
+		end)
+	end
+
+	-- Close button click
+	local closeClickConn = closeHitArea.MouseButton1Click:Connect(function()
+		hideWindow()
+	end)
+	table.insert(connections, closeClickConn)
+
+	-- Reopener click
+	local reopenerClickConn = reopenerHitArea.MouseButton1Click:Connect(function()
+		showWindow()
+	end)
+	table.insert(connections, reopenerClickConn)
+
+	-- Toggle keybind
+	if toggleKeyName then
+		local keyCode = (Enum.KeyCode :: any)[toggleKeyName]
+		if keyCode then
+			local toggleConn = UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+				if gameProcessed then return end
+				if input.KeyCode == keyCode then
+					if isVisible then
+						hideWindow()
+					else
+						showWindow()
+					end
+				end
+			end)
+			table.insert(connections, toggleConn)
+		end
+	end
+
+	-- === Helper: create element row ===
+	local function createRow(parentFrame: ScrollingFrame, height: number, name: string?): Frame
+		local row = Instance.new("Frame")
+		row.Name = name or "Row"
+		row.Size = UDim2.new(1, 0, 0, height)
+		row.BackgroundTransparency = 1
+		row.BorderSizePixel = 0
+		row.ZIndex = 10
+		row.Parent = parentFrame
+		return row
+	end
+
+	-- Update segmented control when tabs change
+	local function rebuildTabSelector()
+		if segmentedControl then
+			segmentedControl:Destroy()
+			segmentedControl = nil
+		end
+
+		if #tabData <= 1 then
+			tabSelectorFrame.Size = UDim2.new(1, 0, 0, 0)
+			contentArea.Size = UDim2.new(1, 0, 1, -36)
+			contentArea.Position = UDim2.new(0, 0, 0, 36)
+			return
+		end
+
+		local segNames: {string} = {}
+		for _, t in tabData do
+			local display = t.name
+			if t.icon then
+				display = t.icon .. " " .. display
+			end
+			table.insert(segNames, display)
+		end
+
+		local segWidth = math.min(90, math.floor((windowSize.X.Offset - 28) / #tabData))
+
+		segmentedControl = MangoSegmentedControl.new({
+			Position = UDim2.new(0.5, 0, 0, 0),
+			AnchorPoint = Vector2.new(0.5, 0),
+			Segments = segNames,
+			InitialIndex = currentTabIndex,
+			SegmentWidth = segWidth,
+			Height = 32,
+			Theme = theme,
+			OnChanged = function(index: number)
+				switchToTab(index)
+			end,
+			Parent = tabSelectorFrame,
+		})
+		table.insert(innerDestroyables, segmentedControl)
+
+		tabSelectorFrame.Size = UDim2.new(1, 0, 0, 36)
+		contentArea.Size = UDim2.new(1, 0, 1, -76)
+		contentArea.Position = UDim2.new(0, 0, 0, 76)
+	end
+
+	-- === Window return table ===
+	local self: Types.MangoWindow
+
+	-- Tab constructor
+	local function createTab(name: string, icon: string?): Types.MangoWindowTab
+		-- ScrollingFrame for tab content
+		local tabFrame = Instance.new("ScrollingFrame")
+		tabFrame.Name = "Tab_" .. name
+		tabFrame.Size = UDim2.new(1, 0, 1, 0)
+		tabFrame.BackgroundTransparency = 1
+		tabFrame.BorderSizePixel = 0
+		tabFrame.ScrollBarThickness = 4
+		tabFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+		tabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+		tabFrame.ZIndex = 10
+		tabFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		tabFrame.Visible = #tabData == 0 -- First tab is visible
+		tabFrame.Parent = contentArea
+
+		local tabUIScale = Instance.new("UIScale")
+		tabUIScale.Scale = 1
+		tabUIScale.Parent = tabFrame
+
+		local tabLayout = Instance.new("UIListLayout")
+		tabLayout.FillDirection = Enum.FillDirection.Vertical
+		tabLayout.Padding = UDim.new(0, 10)
+		tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		tabLayout.Parent = tabFrame
+
+		local tabPadding = Instance.new("UIPadding")
+		tabPadding.PaddingTop = UDim.new(0, 4)
+		tabPadding.PaddingBottom = UDim.new(0, 4)
+		tabPadding.Parent = tabFrame
+
+		local elements: {Types.MangoWindowElement} = {}
+		local entry = {name = name, icon = icon, frame = tabFrame, elements = elements}
+		table.insert(tabData, entry)
+
+		rebuildTabSelector()
+
+		-- Element layout order counter
+		local layoutOrder = 0
+		local function nextOrder(): number
+			layoutOrder += 1
+			return layoutOrder
+		end
+
+		-- Tab methods
+		local tab: Types.MangoWindowTab = {
+			Button = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowButtonConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 40)
+				row.LayoutOrder = nextOrder()
+
+				local btn = MangoButton.new({
+					Position = UDim2.new(0, 0, 0, 0),
+					Size = UDim2.new(1, 0, 0, 36),
+					Text = cfg.Name,
+					Theme = theme,
+					OnActivated = cfg.Callback,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, btn)
+
+				local element = createWindowElement({
+					getValue = function() return nil end,
+					setValue = function(_val: any)
+						if cfg.Callback then cfg.Callback() end
+					end,
+					rowFrame = row,
+					destroyInner = function() btn:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, true) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Toggle = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowToggleConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 36)
+				row.LayoutOrder = nextOrder()
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(1, -60, 1, 0)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 14
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local defaultVal = resolve(cfg.Default, nil, false) :: boolean
+				local toggle = MangoToggle.new({
+					Position = UDim2.new(1, -51, 0.5, 0),
+					AnchorPoint = Vector2.new(0, 0.5),
+					Theme = theme,
+					InitialState = defaultVal,
+					OnToggled = function(state: boolean)
+						if cfg.Flag then updateFlag(cfg.Flag, state) end
+						if cfg.Callback then cfg.Callback(state) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, toggle)
+
+				local element = createWindowElement({
+					getValue = function() return toggle:GetState() end,
+					setValue = function(val: any) toggle:SetState(val :: boolean) end,
+					rowFrame = row,
+					destroyInner = function() toggle:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultVal) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Slider = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowSliderConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 54)
+				row.LayoutOrder = nextOrder()
+
+				local range = cfg.Range or {0, 100}
+				local minVal = range[1] or 0
+				local maxVal = range[2] or 100
+				local defaultVal = resolve(cfg.Default, nil, minVal) :: number
+				local suffix = cfg.Suffix or ""
+
+				local valueLabel = Instance.new("TextLabel")
+				valueLabel.Size = UDim2.new(1, 0, 0, 18)
+				valueLabel.BackgroundTransparency = 1
+				valueLabel.Font = Enum.Font.GothamMedium
+				valueLabel.TextSize = 13
+				valueLabel.TextColor3 = primaryText
+				valueLabel.Text = cfg.Name .. ": " .. tostring(defaultVal) .. suffix
+				valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+				valueLabel.ZIndex = 10
+				valueLabel.Parent = row
+
+				local slider = MangoSlider.new({
+					Position = UDim2.new(0, 0, 0, 22),
+					Size = UDim2.new(1, 0, 0, 32),
+					Theme = theme,
+					InitialValue = defaultVal,
+					Min = minVal,
+					Max = maxVal,
+					Step = cfg.Increment,
+					OnChanged = function(value: number)
+						valueLabel.Text = cfg.Name .. ": " .. tostring(value) .. suffix
+						if cfg.Flag then updateFlag(cfg.Flag, value) end
+						if cfg.Callback then cfg.Callback(value) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, slider)
+
+				local element = createWindowElement({
+					getValue = function() return slider:GetValue() end,
+					setValue = function(val: any)
+						slider:SetValue(val :: number)
+						valueLabel.Text = cfg.Name .. ": " .. tostring(val) .. suffix
+					end,
+					rowFrame = row,
+					destroyInner = function() slider:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultVal) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Dropdown = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowDropdownConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 40)
+				row.LayoutOrder = nextOrder()
+
+				local options = cfg.Options or {}
+				local isMulti = cfg.MultiSelect == true
+
+				-- Find initial index from Default
+				local initIndex = 1
+				local initItems: {string}? = nil
+				if type(cfg.Default) == "string" then
+					for i, opt in options do
+						if opt == cfg.Default then
+							initIndex = i
+							break
+						end
+					end
+				elseif type(cfg.Default) == "table" then
+					initItems = cfg.Default :: {string}
+				end
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 14
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local dropdown = MangoDropdown.new({
+					Position = UDim2.new(0.42, 0, 0, 2),
+					Size = UDim2.new(0.56, 0, 0, 36),
+					Items = options,
+					InitialIndex = initIndex,
+					MultiSelect = isMulti,
+					InitialItems = initItems,
+					Theme = theme,
+					OnChanged = function(index: number)
+						if not isMulti then
+							local val = options[index]
+							if cfg.Flag then updateFlag(cfg.Flag, val) end
+							if cfg.Callback then cfg.Callback(val) end
+						end
+					end,
+					OnMultiChanged = if isMulti then function(selected: {string})
+						if cfg.Flag then updateFlag(cfg.Flag, selected) end
+						if cfg.Callback then cfg.Callback(selected) end
+					end else nil,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, dropdown)
+
+				local defaultValue: any = if isMulti then (initItems or {}) else (options[initIndex] or "")
+				local element = createWindowElement({
+					getValue = function()
+						if isMulti then
+							return dropdown:GetSelectedItems()
+						end
+						local idx = dropdown:GetSelectedIndex()
+						return options[idx] or ""
+					end,
+					setValue = function(val: any)
+						if type(val) == "string" then
+							for i, opt in options do
+								if opt == val then
+									dropdown:SetSelectedIndex(i)
+									break
+								end
+							end
+						end
+					end,
+					rowFrame = row,
+					destroyInner = function() dropdown:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultValue) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Input = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowInputConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 56)
+				row.LayoutOrder = nextOrder()
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(1, 0, 0, 18)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 13
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local defaultText = resolve(cfg.Default, nil, "") :: string
+				local textField = MangoTextField.new({
+					Position = UDim2.new(0, 0, 0, 20),
+					Size = UDim2.new(1, 0, 0, 36),
+					Placeholder = cfg.Placeholder,
+					InitialText = defaultText,
+					Masked = cfg.Masked,
+					Theme = theme,
+					OnFocusLost = function(text: string, _enterPressed: boolean)
+						if cfg.Flag then updateFlag(cfg.Flag, text) end
+						if cfg.Callback then cfg.Callback(text) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, textField)
+
+				local element = createWindowElement({
+					getValue = function() return textField:GetText() end,
+					setValue = function(val: any) textField:SetText(val :: string) end,
+					rowFrame = row,
+					destroyInner = function() textField:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultText) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Checkbox = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowCheckboxConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 32)
+				row.LayoutOrder = nextOrder()
+
+				local defaultVal = resolve(cfg.Default, nil, false) :: boolean
+				local checkbox = MangoCheckbox.new({
+					Position = UDim2.new(0, 0, 0, 0),
+					Label = cfg.Name,
+					InitialState = defaultVal,
+					Theme = theme,
+					OnToggled = function(state: boolean)
+						if cfg.Flag then updateFlag(cfg.Flag, state) end
+						if cfg.Callback then cfg.Callback(state) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, checkbox)
+
+				local element = createWindowElement({
+					getValue = function() return checkbox:GetState() end,
+					setValue = function(val: any) checkbox:SetState(val :: boolean) end,
+					rowFrame = row,
+					destroyInner = function() checkbox:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultVal) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Stepper = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowStepperConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 40)
+				row.LayoutOrder = nextOrder()
+
+				local range = cfg.Range or {0, 100}
+				local defaultVal = resolve(cfg.Default, nil, range[1] or 0) :: number
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(0.5, 0, 1, 0)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 14
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local stepper = MangoStepper.new({
+					Position = UDim2.new(1, -120, 0.5, 0),
+					AnchorPoint = Vector2.new(0, 0.5),
+					InitialValue = defaultVal,
+					Min = range[1],
+					Max = range[2],
+					Theme = theme,
+					OnChanged = function(value: number)
+						if cfg.Flag then updateFlag(cfg.Flag, value) end
+						if cfg.Callback then cfg.Callback(value) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, stepper)
+
+				local element = createWindowElement({
+					getValue = function() return stepper:GetValue() end,
+					setValue = function(val: any) stepper:SetValue(val :: number) end,
+					rowFrame = row,
+					destroyInner = function() stepper:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultVal) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Progress = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowProgressConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 40)
+				row.LayoutOrder = nextOrder()
+
+				local defaultVal = resolve(cfg.Default, nil, 0) :: number
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(1, 0, 0, 18)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 13
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local progressBar = MangoProgressBar.new({
+					Position = UDim2.new(0, 0, 0, 20),
+					Size = UDim2.new(1, 0, 0, 20),
+					InitialValue = defaultVal,
+					Theme = theme,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, progressBar)
+
+				local element = createWindowElement({
+					getValue = function() return progressBar:GetValue() end,
+					setValue = function(val: any) progressBar:SetValue(val :: number) end,
+					rowFrame = row,
+					destroyInner = function() progressBar:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultVal) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			ColorPicker = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowColorPickerConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 40)
+				row.LayoutOrder = nextOrder()
+
+				local defaultColor = resolve(cfg.Default, nil, Color3.fromRGB(255, 0, 0)) :: Color3
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(1, -36, 1, 0)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 14
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				-- Color preview circle
+				local preview = Instance.new("Frame")
+				preview.Name = "ColorPreview"
+				preview.Size = UDim2.new(0, 24, 0, 24)
+				preview.Position = UDim2.new(1, 0, 0.5, 0)
+				preview.AnchorPoint = Vector2.new(1, 0.5)
+				preview.BackgroundColor3 = defaultColor
+				preview.BorderSizePixel = 0
+				preview.ZIndex = 10
+				preview.Parent = row
+
+				local previewCorner = Instance.new("UICorner")
+				previewCorner.CornerRadius = UDim.new(0, 999)
+				previewCorner.Parent = preview
+
+				local previewStroke = Instance.new("UIStroke")
+				previewStroke.Thickness = 1
+				previewStroke.Color = Color3.fromRGB(200, 200, 205)
+				previewStroke.Transparency = 0.5
+				previewStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+				previewStroke.Parent = preview
+
+				-- Popup color picker (created on click, destroyed on close)
+				local pickerInstance: Types.MangoColorPicker? = nil
+				local previewHitArea = Instance.new("TextButton")
+				previewHitArea.Name = "PreviewHitArea"
+				previewHitArea.Size = UDim2.new(0, 32, 0, 32)
+				previewHitArea.AnchorPoint = Vector2.new(1, 0.5)
+				previewHitArea.Position = UDim2.new(1, 4, 0.5, 0)
+				previewHitArea.BackgroundTransparency = 1
+				previewHitArea.Text = ""
+				previewHitArea.ZIndex = 100
+				previewHitArea.AutoButtonColor = false
+				previewHitArea.Parent = row
+
+				local previewConn = previewHitArea.MouseButton1Click:Connect(function()
+					if pickerInstance then
+						pickerInstance:Destroy()
+						pickerInstance = nil
+						return
+					end
+
+					local absPos = preview.AbsolutePosition
+					pickerInstance = MangoColorPicker.new({
+						Position = UDim2.new(0, absPos.X - 240, 0, absPos.Y + 30),
+						InitialColor = preview.BackgroundColor3,
+						Theme = theme,
+						OnChanged = function(color: Color3)
+							preview.BackgroundColor3 = color
+							if cfg.Flag then updateFlag(cfg.Flag, color) end
+							if cfg.Callback then cfg.Callback(color) end
+						end,
+						Parent = screenGui,
+					})
+					table.insert(innerDestroyables, pickerInstance)
+				end)
+				table.insert(connections, previewConn)
+
+				local element = createWindowElement({
+					getValue = function() return preview.BackgroundColor3 end,
+					setValue = function(val: any)
+						local c = val :: Color3
+						preview.BackgroundColor3 = c
+						if pickerInstance then
+							pickerInstance:SetColor(c)
+						end
+					end,
+					rowFrame = row,
+					destroyInner = function()
+						if pickerInstance then
+							pickerInstance:Destroy()
+							pickerInstance = nil
+						end
+					end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultColor) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Keybind = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowKeybindConfig): Types.MangoWindowElement
+				local row = createRow(tabFrame, 36)
+				row.LayoutOrder = nextOrder()
+
+				local defaultKey = resolve(cfg.Default, nil, "None") :: string
+
+				local nameLabel = Instance.new("TextLabel")
+				nameLabel.Size = UDim2.new(1, -90, 1, 0)
+				nameLabel.BackgroundTransparency = 1
+				nameLabel.Font = Enum.Font.GothamMedium
+				nameLabel.TextSize = 14
+				nameLabel.TextColor3 = primaryText
+				nameLabel.Text = cfg.Name
+				nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+				nameLabel.ZIndex = 10
+				nameLabel.Parent = row
+
+				local keybind = MangoKeybind.new({
+					Position = UDim2.new(1, -80, 0.5, 0),
+					AnchorPoint = Vector2.new(0, 0.5),
+					DefaultKey = defaultKey,
+					Theme = theme,
+					OnKeyChanged = function(keyName: string)
+						if cfg.Flag then updateFlag(cfg.Flag, keyName) end
+						if cfg.Callback then cfg.Callback(keyName) end
+					end,
+					Parent = row,
+				})
+				table.insert(innerDestroyables, keybind)
+
+				local element = createWindowElement({
+					getValue = function() return keybind:GetKey() end,
+					setValue = function(val: any) keybind:SetKey(val :: string) end,
+					rowFrame = row,
+					destroyInner = function() keybind:Destroy() end,
+				})
+				if cfg.Flag then registerFlag(cfg.Flag, element, defaultKey) end
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Label = function(self: Types.MangoWindowTab, text: string): Types.MangoWindowElement
+				local row = createRow(tabFrame, 20)
+				row.LayoutOrder = nextOrder()
+
+				local label = Instance.new("TextLabel")
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.BackgroundTransparency = 1
+				label.Font = Enum.Font.Gotham
+				label.TextSize = 13
+				label.TextColor3 = secondaryText
+				label.Text = text
+				label.TextXAlignment = Enum.TextXAlignment.Left
+				label.ZIndex = 10
+				label.Parent = row
+
+				local element = createWindowElement({
+					getValue = function() return label.Text end,
+					setValue = function(val: any) label.Text = val :: string end,
+					rowFrame = row,
+					destroyInner = function() end,
+				})
+				table.insert(elements, element)
+				return element
+			end,
+
+			Paragraph = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowParagraphConfig): Types.MangoWindowElement
+				local row = Instance.new("Frame")
+				row.Name = "Paragraph"
+				row.Size = UDim2.new(1, 0, 0, 0)
+				row.AutomaticSize = Enum.AutomaticSize.Y
+				row.BackgroundTransparency = 1
+				row.BorderSizePixel = 0
+				row.ZIndex = 10
+				row.LayoutOrder = nextOrder()
+				row.Parent = tabFrame
+
+				local paraLayout = Instance.new("UIListLayout")
+				paraLayout.FillDirection = Enum.FillDirection.Vertical
+				paraLayout.Padding = UDim.new(0, 2)
+				paraLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				paraLayout.Parent = row
+
+				local titleLbl = Instance.new("TextLabel")
+				titleLbl.Size = UDim2.new(1, 0, 0, 0)
+				titleLbl.AutomaticSize = Enum.AutomaticSize.Y
+				titleLbl.BackgroundTransparency = 1
+				titleLbl.Font = Enum.Font.GothamBold
+				titleLbl.TextSize = 14
+				titleLbl.TextColor3 = primaryText
+				titleLbl.Text = cfg.Title
+				titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+				titleLbl.TextWrapped = true
+				titleLbl.ZIndex = 10
+				titleLbl.LayoutOrder = 1
+				titleLbl.Parent = row
+
+				local contentLbl = Instance.new("TextLabel")
+				contentLbl.Size = UDim2.new(1, 0, 0, 0)
+				contentLbl.AutomaticSize = Enum.AutomaticSize.Y
+				contentLbl.BackgroundTransparency = 1
+				contentLbl.Font = Enum.Font.Gotham
+				contentLbl.TextSize = 13
+				contentLbl.TextColor3 = secondaryText
+				contentLbl.Text = cfg.Content
+				contentLbl.TextXAlignment = Enum.TextXAlignment.Left
+				contentLbl.TextWrapped = true
+				contentLbl.ZIndex = 10
+				contentLbl.LayoutOrder = 2
+				contentLbl.Parent = row
+
+				local element = createWindowElement({
+					getValue = function() return cfg.Content end,
+					setValue = function(val: any) contentLbl.Text = val :: string end,
+					rowFrame = row,
+					destroyInner = function() end,
+				})
+				if type(cfg.Visible) == "string" then registerDependency(element, cfg.Visible :: string) end
+				table.insert(elements, element)
+				return element
+			end,
+
+			Section = function(self: Types.MangoWindowTab, title: string): Types.MangoWindowElement
+				local row = createRow(tabFrame, 30)
+				row.LayoutOrder = nextOrder()
+
+				local sectionLabel = Instance.new("TextLabel")
+				sectionLabel.Size = UDim2.new(1, 0, 0, 22)
+				sectionLabel.BackgroundTransparency = 1
+				sectionLabel.Font = Enum.Font.GothamBold
+				sectionLabel.TextSize = 15
+				sectionLabel.TextColor3 = primaryText
+				sectionLabel.Text = title
+				sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+				sectionLabel.ZIndex = 10
+				sectionLabel.Parent = row
+
+				local sep = Instance.new("Frame")
+				sep.Size = UDim2.new(1, 0, 0, 1)
+				sep.Position = UDim2.new(0, 0, 1, -1)
+				sep.BackgroundColor3 = bgColor
+				sep.BackgroundTransparency = 0.80
+				sep.BorderSizePixel = 0
+				sep.ZIndex = 10
+				sep.Parent = row
+
+				local element = createWindowElement({
+					getValue = function() return title end,
+					setValue = function(val: any) sectionLabel.Text = val :: string end,
+					rowFrame = row,
+					destroyInner = function() end,
+				})
+				table.insert(elements, element)
+				return element
+			end,
+
+			Separator = function(self: Types.MangoWindowTab): Types.MangoWindowElement
+				local row = createRow(tabFrame, 9)
+				row.LayoutOrder = nextOrder()
+
+				local sep = Instance.new("Frame")
+				sep.Size = UDim2.new(1, 0, 0, 1)
+				sep.Position = UDim2.new(0, 0, 0.5, 0)
+				sep.AnchorPoint = Vector2.new(0, 0.5)
+				sep.BackgroundColor3 = bgColor
+				sep.BackgroundTransparency = 0.80
+				sep.BorderSizePixel = 0
+				sep.ZIndex = 10
+				sep.Parent = row
+
+				local element = createWindowElement({
+					getValue = function() return nil end,
+					setValue = function(_val: any) end,
+					rowFrame = row,
+					destroyInner = function() end,
+				})
+				table.insert(elements, element)
+				return element
+			end,
+		}
+
+		return tab
+	end
+
+	self = {
+		Flags = flags,
+		Tab = function(self: Types.MangoWindow, name: string, icon: string?): Types.MangoWindowTab
+			return createTab(name, icon)
+		end,
+		Notify = function(self: Types.MangoWindow, cfg: Types.MangoNotificationConfig)
+			local notif = notifStack:Push(cfg)
+			notif:Show()
+		end,
+		Dialog = function(self: Types.MangoWindow, cfg: Types.MangoDialogConfig)
+			local dialog = MangoDialog.new({
+				Title = cfg.Title,
+				Message = cfg.Message,
+				Buttons = cfg.Buttons,
+				Theme = theme,
+				OnDismissed = cfg.OnDismissed,
+				Parent = screenGui,
+			})
+			table.insert(innerDestroyables, dialog)
+			dialog:Show()
+		end,
+		Show = function(self: Types.MangoWindow)
+			showWindow()
+		end,
+		Hide = function(self: Types.MangoWindow)
+			hideWindow()
+		end,
+		IsVisible = function(self: Types.MangoWindow): boolean
+			return isVisible
+		end,
+		SaveConfig = function(self: Types.MangoWindow)
+			if saveManager then
+				-- Serialize Color3 values to table format
+				local serialized: {[string]: any} = {}
+				for key, value in flags do
+					if typeof(value) == "Color3" then
+						local c = value :: Color3
+						serialized[key] = {_type = "Color3", R = c.R, G = c.G, B = c.B}
+					else
+						serialized[key] = value
+					end
+				end
+				saveManager:Save(serialized)
+			end
+		end,
+		LoadConfig = function(self: Types.MangoWindow)
+			if not saveManager then return end
+			local data = saveManager:Load()
+			if not data then return end
+			for key, value in data do
+				-- Deserialize Color3
+				if type(value) == "table" and (value :: any)._type == "Color3" then
+					value = Color3.new((value :: any).R, (value :: any).G, (value :: any).B)
+				end
+				flags[key] = value
+				local element = flagElements[key]
+				if element then
+					element:Set(value)
+				end
+				evaluateDependencies(key)
+			end
+		end,
+		Destroy = function(self: Types.MangoWindow)
+			if isDestroyed then return end
+			isDestroyed = true
+
+			if saveDebounceThread then
+				task.cancel(saveDebounceThread)
+				saveDebounceThread = nil
+			end
+
+			cancelAllTweens()
+			for _, conn in connections do
+				conn:Disconnect()
+			end
+			table.clear(connections)
+
+			for _, destroyable in innerDestroyables do
+				if typeof(destroyable) == "table" and (destroyable :: any).Destroy then
+					(destroyable :: any):Destroy()
+				end
+			end
+			table.clear(innerDestroyables)
+
+			notifStack:Destroy()
+			glassFrame:Destroy()
+			reopenerGlass:Destroy()
+			screenGui:Destroy()
+		end,
+	}
+
+	-- Auto-load saved config
+	if saveManager then
+		task.defer(function()
+			if isDestroyed then return end
+			self:LoadConfig()
+		end)
+	end
+
+	return self
 end
 
 return module
@@ -10500,6 +14052,11 @@ local COMPONENT_MAP: {[string]: string} = {
     focus = "MangoFocusManager",
     layout = "MangoLayout",
     shimmer = "MangoShimmer",
+    window = "MangoWindow",
+    carousel = "MangoCarousel",
+    colorpicker = "MangoColorPicker",
+    keybind = "MangoKeybind",
+    savemanager = "MangoSaveManager",
 }
 
 function module.build(componentType: string): Types.MangoBuilder
@@ -10606,6 +14163,11 @@ local MangoBottomSheet = _require("MangoBottomSheet")
 local MangoBlurProxy = _require("MangoBlurProxy")
 local MangoForm = _require("MangoForm")
 local MangoFocusManager = _require("MangoFocusManager")
+local MangoSaveManager = _require("MangoSaveManager")
+local MangoColorPicker = _require("MangoColorPicker")
+local MangoKeybind = _require("MangoKeybind")
+local MangoCarousel = _require("MangoCarousel")
+local MangoWindow = _require("MangoWindow")
 local MangoBuilder = _require("MangoBuilder")
 
 local MangoLiquidUI = {
@@ -10647,6 +14209,11 @@ local MangoLiquidUI = {
     MangoBlurProxy = MangoBlurProxy,
     MangoForm = MangoForm,
     MangoFocusManager = MangoFocusManager,
+    MangoSaveManager = MangoSaveManager,
+    MangoColorPicker = MangoColorPicker,
+    MangoKeybind = MangoKeybind,
+    MangoCarousel = MangoCarousel,
+    MangoWindow = MangoWindow,
     MangoBuilder = MangoBuilder,
 
     -- Theme shortcuts
@@ -10697,6 +14264,11 @@ function MangoLiquidUI.bsheet(config) return MangoBottomSheet.new(config) end
 function MangoLiquidUI.blur(config) return MangoBlurProxy.new(config) end
 function MangoLiquidUI.form(config) return MangoForm.new(config) end
 function MangoLiquidUI.focus(config) return MangoFocusManager.new(config) end
+function MangoLiquidUI.colr(config) return MangoColorPicker.new(config) end
+function MangoLiquidUI.key(config) return MangoKeybind.new(config) end
+function MangoLiquidUI.carousel(config) return MangoCarousel.new(config) end
+function MangoLiquidUI.csel(config) return MangoCarousel.new(config) end
+function MangoLiquidUI.window(config) return MangoWindow.new(config) end
 function MangoLiquidUI.build(componentType) return MangoBuilder.build(componentType) end
 
 -- ScreenGui helper

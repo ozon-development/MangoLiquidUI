@@ -164,6 +164,20 @@ module.Light = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(0, 122, 255),
+
+	-- Window
+	WindowBackgroundTransparency = 0.12,
+	WindowTitleColor = Color3.fromRGB(0, 0, 0),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.70,
+	KeybindListeningColor = Color3.fromRGB(0, 122, 255),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(0, 122, 255),
 } :: Types.ThemePreset
 
 module.Mango = {
@@ -311,6 +325,20 @@ module.Mango = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(255, 149, 0),
+
+	-- Window
+	WindowBackgroundTransparency = 0.14,
+	WindowTitleColor = Color3.fromRGB(60, 35, 10),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.68,
+	KeybindListeningColor = Color3.fromRGB(255, 149, 0),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(255, 149, 0),
 } :: Types.ThemePreset
 
 module.Dark = {
@@ -458,6 +486,20 @@ module.Dark = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(10, 132, 255),
+
+	-- Window
+	WindowBackgroundTransparency = 0.15,
+	WindowTitleColor = Color3.fromRGB(255, 255, 255),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.72,
+	KeybindListeningColor = Color3.fromRGB(10, 132, 255),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(10, 132, 255),
 } :: Types.ThemePreset
 
 module.Mint = {
@@ -605,6 +647,28 @@ module.Mint = {
 
 	-- Focus Manager
 	FocusRingColor = Color3.fromRGB(0, 199, 140),
+
+	-- Window
+	WindowBackgroundTransparency = 0.13,
+	WindowTitleColor = Color3.fromRGB(15, 55, 45),
+
+	-- Color Picker
+	ColorPickerCursorColor = Color3.fromRGB(255, 255, 255),
+
+	-- Keybind
+	KeybindPillTransparency = 0.70,
+	KeybindListeningColor = Color3.fromRGB(0, 199, 140),
+
+	-- Accent
+	AccentColor = Color3.fromRGB(0, 199, 140),
 } :: Types.ThemePreset
+
+function module.custom(base: Types.ThemePreset, overrides: {[string]: any}): Types.ThemePreset
+	local theme = table.clone(base)
+	for key, value in overrides do
+		(theme :: any)[key] = value
+	end
+	return theme
+end
 
 return module

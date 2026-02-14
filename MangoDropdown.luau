@@ -26,6 +26,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local itemHoverColor = resolve(nil, theme and theme.DropdownItemHoverColor, Color3.fromRGB(0, 122, 255)) :: Color3
 	local itemHoverTransparency = resolve(nil, theme and theme.DropdownItemHoverTransparency, 0.85) :: number
 
+	-- Multi-select support
+	local isMultiSelect = config.MultiSelect == true
+	local selectedIndices: {[number]: boolean} = {}
+
 	-- State
 	local selectedIndex: number = math.clamp(initialIndex, 1, math.max(itemCount, 1))
 	local isOpen = false
@@ -58,6 +62,31 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local function trackItemHoverTween(tween: Tween): Tween
 		table.insert(itemHoverTweens, tween)
 		return tween
+	end
+
+	-- Initialize multi-select
+	if isMultiSelect and config.InitialItems then
+		for _, itemName in config.InitialItems do
+			for i, name in items do
+				if name == itemName then
+					selectedIndices[i] = true
+				end
+			end
+		end
+	elseif isMultiSelect then
+		selectedIndices[selectedIndex] = true
+	end
+
+	local function getMultiSelectDisplayText(): string
+		local selected: {string} = {}
+		for i, item in items do
+			if selectedIndices[i] then
+				table.insert(selected, item)
+			end
+		end
+		if #selected == 0 then return "Select..." end
+		if #selected <= 2 then return table.concat(selected, ", ") end
+		return #selected .. " selected"
 	end
 
 	-- Forward declaration for closeDropdown (used by click-blocker before definition)
@@ -137,7 +166,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	selectedLabel.TextColor3 = primaryText
 	selectedLabel.TextXAlignment = Enum.TextXAlignment.Left
 	selectedLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	selectedLabel.Text = if itemCount > 0 then items[selectedIndex] else ""
+	selectedLabel.Text = if isMultiSelect then getMultiSelectDisplayText() elseif itemCount > 0 then items[selectedIndex] else ""
 	selectedLabel.ZIndex = 10
 	selectedLabel.Parent = triggerGlass.GlassSurface
 
@@ -273,7 +302,11 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			checkLabel.Font = Enum.Font.GothamBold
 			checkLabel.TextSize = 14
 			checkLabel.TextColor3 = primaryText
-			checkLabel.Text = if i == selectedIndex then "\226\156\147" else ""
+			if isMultiSelect then
+				checkLabel.Text = if selectedIndices[i] then "\226\152\145" else "\226\152\144" -- checkbox style
+			else
+				checkLabel.Text = if i == selectedIndex then "\226\156\147" else "" -- checkmark
+			end
 			checkLabel.ZIndex = 10
 			checkLabel.Parent = itemFrame
 
@@ -322,22 +355,50 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 			-- Click
 			local clickConn = itemHitArea.MouseButton1Click:Connect(function()
-				selectedIndex = i
-				selectedLabel.Text = items[i]
-				-- Update all item label colors and checkmarks
-				for j, f in itemFrames do
-					local lbl = f:FindFirstChild("ItemLabel")
-					if lbl and lbl:IsA("TextLabel") then
-						lbl.TextColor3 = if j == i then primaryText else secondaryText
+				if isMultiSelect then
+					-- Toggle selection for this item
+					selectedIndices[i] = not selectedIndices[i] or nil
+					selectedLabel.Text = getMultiSelectDisplayText()
+					-- Update all checkmarks for multi-select
+					for j, f in itemFrames do
+						local lbl = f:FindFirstChild("ItemLabel")
+						if lbl and lbl:IsA("TextLabel") then
+							lbl.TextColor3 = if selectedIndices[j] then primaryText else secondaryText
+						end
+						local chk = f:FindFirstChild("CheckLabel")
+						if chk and chk:IsA("TextLabel") then
+							chk.Text = if selectedIndices[j] then "\226\152\145" else "\226\152\144"
+						end
 					end
-					local chk = f:FindFirstChild("CheckLabel")
-					if chk and chk:IsA("TextLabel") then
-						chk.Text = if j == i then "\226\156\147" else ""
+					-- Fire multi-select callback
+					if config.OnMultiChanged then
+						local selected: {string} = {}
+						for si, item in items do
+							if selectedIndices[si] then
+								table.insert(selected, item)
+							end
+						end
+						config.OnMultiChanged(selected)
 					end
-				end
-				closeDropdown()
-				if config.OnChanged then
-					config.OnChanged(i)
+					-- Don't close dropdown in multi-select mode
+				else
+					selectedIndex = i
+					selectedLabel.Text = items[i]
+					-- Update all item label colors and checkmarks
+					for j, f in itemFrames do
+						local lbl = f:FindFirstChild("ItemLabel")
+						if lbl and lbl:IsA("TextLabel") then
+							lbl.TextColor3 = if j == i then primaryText else secondaryText
+						end
+						local chk = f:FindFirstChild("CheckLabel")
+						if chk and chk:IsA("TextLabel") then
+							chk.Text = if j == i then "\226\156\147" else ""
+						end
+					end
+					closeDropdown()
+					if config.OnChanged then
+						config.OnChanged(i)
+					end
 				end
 			end)
 			table.insert(itemConnections, clickConn)
@@ -453,8 +514,30 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		SetItems = function(self: Types.MangoDropdown, newItems: {string})
 			items = table.clone(newItems)
 			selectedIndex = math.clamp(selectedIndex, 1, math.max(#items, 1))
-			selectedLabel.Text = if #items > 0 then items[selectedIndex] else ""
+			if isMultiSelect then
+				-- Clear selections that no longer exist
+				local newIndices: {[number]: boolean} = {}
+				for si, _ in selectedIndices do
+					if si <= #items then
+						newIndices[si] = true
+					end
+				end
+				selectedIndices = newIndices
+				selectedLabel.Text = getMultiSelectDisplayText()
+			else
+				selectedLabel.Text = if #items > 0 then items[selectedIndex] else ""
+			end
 			buildItems()
+		end,
+		GetSelectedItems = function(self: Types.MangoDropdown): {string}
+			if not isMultiSelect then return {items[selectedIndex]} end
+			local result: {string} = {}
+			for i, item in items do
+				if selectedIndices[i] then
+					table.insert(result, item)
+				end
+			end
+			return result
 		end,
 		Open = function(self: Types.MangoDropdown)
 			openDropdown()
