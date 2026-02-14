@@ -178,10 +178,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	chevronLabel.Position = UDim2.new(1, -28, 0, 0)
 	chevronLabel.BackgroundTransparency = 1
 	chevronLabel.BorderSizePixel = 0
-	chevronLabel.Font = Enum.Font.Gotham
-	chevronLabel.TextSize = 12
+	chevronLabel.Font = Enum.Font.GothamMedium
+	chevronLabel.TextSize = 10
 	chevronLabel.TextColor3 = secondaryText
-	chevronLabel.Text = "\226\150\188" -- ▼
+	chevronLabel.Text = "v"
 	chevronLabel.ZIndex = 10
 	chevronLabel.Parent = triggerGlass.GlassSurface
 
@@ -300,7 +300,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			checkLabel.Position = UDim2.new(1, -28, 0, 0)
 			checkLabel.BackgroundTransparency = 1
 			checkLabel.BorderSizePixel = 0
-			checkLabel.Font = Enum.Font.GothamBold
+			checkLabel.Font = Enum.Font.SourceSansBold
 			checkLabel.TextSize = 14
 			checkLabel.TextColor3 = primaryText
 			if isMultiSelect then

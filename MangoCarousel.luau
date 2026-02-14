@@ -358,6 +358,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 
 	local function scrollToIndex(newIndex: number)
 		if isDestroyed then return end
+		cancelAllTweens()
 		scrollGen += 1
 		local gen = scrollGen
 
@@ -372,7 +373,6 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		local duration = 0.22 + scrollDelta * 0.03
 
 		local targetY = getIconCenterOffset(newIndex)
-		cancelAllTweens()
 
 		local scrollInfo = TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		local scrollTween = TweenService:Create(trackFrame, scrollInfo, {
@@ -383,6 +383,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		scrollTween:Play()
 
 		scrollTween.Completed:Connect(function()
+			if isDestroyed then return end
 			if gen == scrollGen then
 				isTweening = false
 			end

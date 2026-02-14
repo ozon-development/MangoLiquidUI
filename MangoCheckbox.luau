@@ -103,7 +103,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	checkmarkLabel.Size = UDim2.new(1, 0, 1, 0)
 	checkmarkLabel.BackgroundTransparency = 1
 	checkmarkLabel.BorderSizePixel = 0
-	checkmarkLabel.Font = Enum.Font.GothamBold
+	checkmarkLabel.Font = Enum.Font.SourceSansBold
 	checkmarkLabel.TextSize = 14
 	checkmarkLabel.Text = "\226\156\147" -- checkmark ✓
 	checkmarkLabel.TextColor3 = checkColor

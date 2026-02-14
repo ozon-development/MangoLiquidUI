@@ -1296,6 +1296,7 @@ end
 	Also listens for future descendants.
 ]]
 function module.registerInstance(instance: Instance)
+	if not instance then return end
 	if not protectionEnabled then return end
 
 	protectedInstances[instance] = true
@@ -2866,6 +2867,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 	if config.Parent then
 		container.Parent = config.Parent
 	end
+	MangoProtection.registerInstance(container)
 
 	-- Parallax system
 	local Workspace = game:GetService("Workspace")
@@ -4152,7 +4154,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	checkmarkLabel.Size = UDim2.new(1, 0, 1, 0)
 	checkmarkLabel.BackgroundTransparency = 1
 	checkmarkLabel.BorderSizePixel = 0
-	checkmarkLabel.Font = Enum.Font.GothamBold
+	checkmarkLabel.Font = Enum.Font.SourceSansBold
 	checkmarkLabel.TextSize = 14
 	checkmarkLabel.Text = "\226\156\147" -- checkmark ✓
 	checkmarkLabel.TextColor3 = checkColor
@@ -4870,8 +4872,8 @@ function module.new(config: Types.MangoSearchBarConfig): Types.MangoSearchBar
 	clearLabel.BackgroundTransparency = 1
 	clearLabel.BorderSizePixel = 0
 	clearLabel.Font = Enum.Font.GothamBold
-	clearLabel.TextSize = 14
-	clearLabel.Text = "\226\156\149" -- ✕
+	clearLabel.TextSize = 10
+	clearLabel.Text = "X"
 	clearLabel.TextColor3 = placeholderColor
 	clearLabel.ZIndex = 10
 	clearLabel.Parent = clearFrame
@@ -5191,8 +5193,8 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	clearLabel.BackgroundTransparency = 1
 	clearLabel.BorderSizePixel = 0
 	clearLabel.Font = Enum.Font.GothamBold
-	clearLabel.TextSize = 12
-	clearLabel.Text = "\226\156\149" -- ✕
+	clearLabel.TextSize = 10
+	clearLabel.Text = "X"
 	clearLabel.TextColor3 = secondaryText
 	clearLabel.ZIndex = 10
 	clearLabel.Parent = clearFrame
@@ -7239,11 +7241,11 @@ function module.new(config: Types.MangoToastConfig): Types.MangoToast
 		slideTween:Play()
 		slideTween.Completed:Connect(function()
 			if not isDestroyed then
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
 				-- Auto-destroy after dismiss
-				isDestroyed = true
 				for _, conn in connections do
 					conn:Disconnect()
 				end
@@ -8584,10 +8586,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	chevronLabel.Position = UDim2.new(1, -28, 0, 0)
 	chevronLabel.BackgroundTransparency = 1
 	chevronLabel.BorderSizePixel = 0
-	chevronLabel.Font = Enum.Font.Gotham
-	chevronLabel.TextSize = 12
+	chevronLabel.Font = Enum.Font.GothamMedium
+	chevronLabel.TextSize = 10
 	chevronLabel.TextColor3 = secondaryText
-	chevronLabel.Text = "\226\150\188" -- ▼
+	chevronLabel.Text = "v"
 	chevronLabel.ZIndex = 10
 	chevronLabel.Parent = triggerGlass.GlassSurface
 
@@ -8706,7 +8708,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			checkLabel.Position = UDim2.new(1, -28, 0, 0)
 			checkLabel.BackgroundTransparency = 1
 			checkLabel.BorderSizePixel = 0
-			checkLabel.Font = Enum.Font.GothamBold
+			checkLabel.Font = Enum.Font.SourceSansBold
 			checkLabel.TextSize = 14
 			checkLabel.TextColor3 = primaryText
 			if isMultiSelect then
@@ -12702,6 +12704,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 
 	local function scrollToIndex(newIndex: number)
 		if isDestroyed then return end
+		cancelAllTweens()
 		scrollGen += 1
 		local gen = scrollGen
 
@@ -12716,7 +12719,6 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		local duration = 0.22 + scrollDelta * 0.03
 
 		local targetY = getIconCenterOffset(newIndex)
-		cancelAllTweens()
 
 		local scrollInfo = TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		local scrollTween = TweenService:Create(trackFrame, scrollInfo, {
@@ -12727,6 +12729,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		scrollTween:Play()
 
 		scrollTween.Completed:Connect(function()
+			if isDestroyed then return end
 			if gen == scrollGen then
 				isTweening = false
 			end
@@ -13029,6 +13032,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	local saveDebounceThread: thread? = nil
 	local saveManager: Types.MangoSaveManager? = nil
 	local innerDestroyables: {any} = {}
+	local pendingDelays: {thread} = {}
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -13139,7 +13143,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	local closeFrame = Instance.new("Frame")
 	closeFrame.Name = "CloseButton"
 	closeFrame.Size = UDim2.new(0, 24, 0, 24)
-	closeFrame.Position = UDim2.new(1, 0, 0.5, 0)
+	closeFrame.Position = UDim2.new(1, -8, 0.5, 0)
 	closeFrame.AnchorPoint = Vector2.new(1, 0.5)
 	closeFrame.BackgroundColor3 = bgColor
 	closeFrame.BackgroundTransparency = 0.75
@@ -13162,8 +13166,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	closeLabel.Size = UDim2.new(1, 0, 1, 0)
 	closeLabel.BackgroundTransparency = 1
 	closeLabel.Font = Enum.Font.GothamBold
-	closeLabel.TextSize = 14
-	closeLabel.Text = "\226\156\149" -- ✕
+	closeLabel.TextSize = 12
+	closeLabel.Text = "X"
 	closeLabel.TextColor3 = secondaryText
 	closeLabel.ZIndex = 15
 	closeLabel.Parent = closeFrame
@@ -13214,6 +13218,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	contentArea.ClipsDescendants = true
 	contentArea.Parent = windowContent
 
+	local contentAreaPadding = Instance.new("UIPadding")
+	contentAreaPadding.PaddingTop = UDim.new(0, 8)
+	contentAreaPadding.PaddingBottom = UDim.new(0, 8)
+	contentAreaPadding.PaddingLeft = UDim.new(0, 8)
+	contentAreaPadding.PaddingRight = UDim.new(0, 8)
+	contentAreaPadding.Parent = contentArea
+
 	-- Reopener pill (hidden initially)
 	local reopenerGlass = MangoGlassFrame.new({
 		Size = UDim2.new(0, 140, 0, 30),
@@ -13238,7 +13249,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	reopenerLabel.Font = Enum.Font.GothamMedium
 	reopenerLabel.TextSize = 13
 	reopenerLabel.TextColor3 = primaryText
-	reopenerLabel.Text = "\226\150\190 " .. showButtonText -- ▾
+	reopenerLabel.Text = showButtonText .. " v"
 	reopenerLabel.ZIndex = 10
 	reopenerLabel.Parent = reopenerGlass.GlassSurface
 
@@ -13285,17 +13296,22 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	table.insert(connections, dragEndConn)
 
 	-- === Close button hover ===
+	local closeHoverTween: Tween? = nil
 	local closeHoverConn = closeHitArea.MouseEnter:Connect(function()
-		TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		if closeHoverTween then closeHoverTween:Cancel() end
+		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.50,
-		}):Play()
+		})
+		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeHoverConn)
 
 	local closeLeaveConn = closeHitArea.MouseLeave:Connect(function()
-		TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		if closeHoverTween then closeHoverTween:Cancel() end
+		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.75,
-		}):Play()
+		})
+		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeLeaveConn)
 
@@ -13361,13 +13377,17 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		-- Show new with spring animation
 		local newTab = tabData[index]
 		if newTab then
-			newTab.frame.Visible = true
 			local tabScale = newTab.frame:FindFirstChildOfClass("UIScale")
 			if tabScale then
 				tabScale.Scale = 0.98
-				TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+			end
+			newTab.frame.Visible = true
+			if tabScale then
+				local tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					Scale = 1,
-				}):Play()
+				})
+				trackTween(tabSwitchTween)
+				tabSwitchTween:Play()
 			end
 		end
 	end
@@ -13396,7 +13416,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		trackTween(scaleTween)
 		scaleTween:Play()
 
-		task.delay(0.03, function()
+		local delayThread1 = task.delay(0.03, function()
 			if isDestroyed then return end
 			local surfaceTween = TweenService:Create(glassFrame.GlassSurface, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				BackgroundTransparency = windowBgTransp,
@@ -13404,13 +13424,15 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			trackTween(surfaceTween)
 			surfaceTween:Play()
 		end)
+		table.insert(pendingDelays, delayThread1)
 
-		task.delay(0.08, function()
+		local delayThread2 = task.delay(0.08, function()
 			if isDestroyed then return end
 			for _, shadow in glassFrame.ShadowLayers do
 				shadow.Visible = true
 			end
 		end)
+		table.insert(pendingDelays, delayThread2)
 	end
 
 	local function hideWindow()
@@ -14302,6 +14324,16 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			if saveDebounceThread then
 				task.cancel(saveDebounceThread)
 				saveDebounceThread = nil
+			end
+
+			for _, delayThread in pendingDelays do
+				task.cancel(delayThread)
+			end
+			table.clear(pendingDelays)
+
+			if closeHoverTween then
+				closeHoverTween:Cancel()
+				closeHoverTween = nil
 			end
 
 			cancelAllTweens()

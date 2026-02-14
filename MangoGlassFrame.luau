@@ -264,6 +264,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 	if config.Parent then
 		container.Parent = config.Parent
 	end
+	MangoProtection.registerInstance(container)
 
 	-- Parallax system
 	local Workspace = game:GetService("Workspace")

@@ -169,6 +169,7 @@ end
 	Also listens for future descendants.
 ]]
 function module.registerInstance(instance: Instance)
+	if not instance then return end
 	if not protectionEnabled then return end
 
 	protectedInstances[instance] = true

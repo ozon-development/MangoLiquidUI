@@ -194,11 +194,11 @@ function module.new(config: Types.MangoToastConfig): Types.MangoToast
 		slideTween:Play()
 		slideTween.Completed:Connect(function()
 			if not isDestroyed then
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
 				-- Auto-destroy after dismiss
-				isDestroyed = true
 				for _, conn in connections do
 					conn:Disconnect()
 				end

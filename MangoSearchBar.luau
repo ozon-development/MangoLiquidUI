@@ -114,8 +114,8 @@ function module.new(config: Types.MangoSearchBarConfig): Types.MangoSearchBar
 	clearLabel.BackgroundTransparency = 1
 	clearLabel.BorderSizePixel = 0
 	clearLabel.Font = Enum.Font.GothamBold
-	clearLabel.TextSize = 14
-	clearLabel.Text = "\226\156\149" -- ✕
+	clearLabel.TextSize = 10
+	clearLabel.Text = "X"
 	clearLabel.TextColor3 = placeholderColor
 	clearLabel.ZIndex = 10
 	clearLabel.Parent = clearFrame
