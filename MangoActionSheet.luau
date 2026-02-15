@@ -274,6 +274,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 		actionLabel.Size = UDim2.new(1, 0, 1, 0)
 		actionLabel.TextXAlignment = Enum.TextXAlignment.Center
 		actionLabel.TextYAlignment = Enum.TextYAlignment.Center
+		actionLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		actionLabel.BorderSizePixel = 0
 		actionLabel.ZIndex = 10
 		actionLabel.Parent = actionFrame
@@ -333,6 +334,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	cancelLabel.Size = UDim2.new(1, 0, 1, 0)
 	cancelLabel.TextXAlignment = Enum.TextXAlignment.Center
 	cancelLabel.TextYAlignment = Enum.TextYAlignment.Center
+	cancelLabel.TextTruncate = Enum.TextTruncate.AtEnd
 	cancelLabel.BorderSizePixel = 0
 	cancelLabel.ZIndex = 10
 	cancelLabel.Parent = cancelGlass.GlassSurface
@@ -398,11 +400,11 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 
 		slideTween.Completed:Once(function()
 			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
-				-- Auto-destroy
-				isDestroyed = true
 				cancelAllTweens()
 				for _, conn in connections do
 					conn:Disconnect()

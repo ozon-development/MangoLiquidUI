@@ -144,6 +144,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 		btn.Font = Enum.Font.GothamMedium
 		btn.TextSize = 14
 		btn.TextColor3 = if i == currentIndex then primaryText else secondaryText
+		btn.TextTruncate = Enum.TextTruncate.AtEnd
 		btn.ZIndex = 10
 		btn.AutoButtonColor = false
 		btn.Parent = container

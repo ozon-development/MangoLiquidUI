@@ -306,7 +306,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		})
 		trackTween(slideTween)
 		slideTween:Play()
-		slideTween.Completed:Connect(function()
+		slideTween.Completed:Once(function()
 			if not isDestroyed then
 				-- Set isDestroyed BEFORE callback to prevent re-entrancy
 				isDestroyed = true

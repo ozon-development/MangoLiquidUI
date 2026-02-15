@@ -35,6 +35,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 
 	-- State
 	local isOn: boolean = initialState
+	local isDestroyed = false
 	local activeTweens: { Tween } = {}
 	local inputConnection: RBXScriptConnection? = nil
 
@@ -256,6 +257,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Animation
 	-- ============================================================
 	local function animateToState(state: boolean)
+		if isDestroyed then return end
 		cancelAllTweens()
 
 		-- Knob position: 0.25s, Back, Out
@@ -359,6 +361,8 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 			return isOn
 		end,
 		Destroy = function(self: Types.MangoToggle)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelAllTweens()
 			if inputConnection then
 				(inputConnection :: RBXScriptConnection):Disconnect()

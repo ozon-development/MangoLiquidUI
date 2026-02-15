@@ -499,6 +499,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		if isVisible then return end
 		isVisible = true
 		windowContainer.Visible = true
+		for _, delayThread in pendingDelays do
+			task.cancel(delayThread)
+		end
+		table.clear(pendingDelays)
 		cancelAllTweens()
 
 		-- Hide reopener
@@ -570,12 +574,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		end
 
 		-- Surface dissolves
-		task.delay(0.04, function()
+		local hideDelay1 = task.delay(0.04, function()
 			if isDestroyed then return end
 			TweenService:Create(glassFrame.GlassSurface, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				BackgroundTransparency = 1,
 			}):Play()
 		end)
+		table.insert(pendingDelays, hideDelay1)
 
 		-- Scale out
 		local scaleTween = TweenService:Create(windowUIScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -589,7 +594,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		end)
 
 		-- Show reopener
-		task.delay(0.1, function()
+		local hideDelay2 = task.delay(0.1, function()
 			if isDestroyed then return end
 			local reopenerTween = TweenService:Create(reopenerGlass.Container, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 				Position = UDim2.new(0.5, 0, 0, 8),
@@ -597,6 +602,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			trackTween(reopenerTween)
 			reopenerTween:Play()
 		end)
+		table.insert(pendingDelays, hideDelay2)
 	end
 
 	-- Close button click
@@ -908,8 +914,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local dropdown = MangoDropdown.new({
-					Position = UDim2.new(0.42, 0, 0, 2),
-					Size = UDim2.new(0.56, 0, 0, 36),
+					Position = UDim2.new(0.42, 2, 0, 2),
+					Size = UDim2.new(0.56, -4, 0, 36),
 					ShadowEnabled = false,
 					Items = options,
 					InitialIndex = initIndex,
@@ -976,8 +982,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 
 				local defaultText = resolve(cfg.Default, nil, "") :: string
 				local textField = MangoTextField.new({
-					Position = UDim2.new(0, 0, 0, 20),
-					Size = UDim2.new(1, 0, 0, 36),
+					Position = UDim2.new(0, 4, 0, 20),
+					Size = UDim2.new(1, -8, 0, 36),
 					Placeholder = cfg.Placeholder,
 					InitialText = defaultText,
 					Masked = cfg.Masked,
@@ -1052,7 +1058,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local stepper = MangoStepper.new({
-					Position = UDim2.new(1, -120, 0.5, 0),
+					Position = UDim2.new(1, -124, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					InitialValue = defaultVal,
 					Min = range[1],
@@ -1097,8 +1103,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local progressBar = MangoProgressBar.new({
-					Position = UDim2.new(0, 0, 0, 20),
-					Size = UDim2.new(1, 0, 0, 20),
+					Position = UDim2.new(0, 4, 0, 20),
+					Size = UDim2.new(1, -8, 0, 20),
 					InitialValue = defaultVal,
 					ShadowEnabled = false,
 					Theme = theme,
@@ -1139,7 +1145,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				local preview = Instance.new("Frame")
 				preview.Name = "ColorPreview"
 				preview.Size = UDim2.new(0, 24, 0, 24)
-				preview.Position = UDim2.new(1, 0, 0.5, 0)
+				preview.Position = UDim2.new(1, -4, 0.5, 0)
 				preview.AnchorPoint = Vector2.new(1, 0.5)
 				preview.BackgroundColor3 = defaultColor
 				preview.BorderSizePixel = 0
@@ -1234,7 +1240,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local keybind = MangoKeybind.new({
-					Position = UDim2.new(1, -80, 0.5, 0),
+					Position = UDim2.new(1, -84, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					DefaultKey = defaultKey,
 					ShadowEnabled = false,

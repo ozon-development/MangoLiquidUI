@@ -268,6 +268,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 		btnLabel.Size = UDim2.new(1, 0, 1, 0)
 		btnLabel.TextXAlignment = Enum.TextXAlignment.Center
 		btnLabel.TextYAlignment = Enum.TextYAlignment.Center
+		btnLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		btnLabel.BorderSizePixel = 0
 		btnLabel.ZIndex = 10
 		btnLabel.Parent = btnFrame
@@ -342,11 +343,11 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 
 		scaleTween.Completed:Once(function()
 			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
-				-- Auto-destroy
-				isDestroyed = true
 				cancelAllTweens()
 				for _, conn in connections do
 					conn:Disconnect()

@@ -531,6 +531,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			return selectedIndex
 		end,
 		SetItems = function(self: Types.MangoDropdown, newItems: {string})
+			if isOpen then
+				closeDropdown()
+			end
 			items = table.clone(newItems)
 			selectedIndex = math.clamp(selectedIndex, 1, math.max(#items, 1))
 			if isMultiSelect then

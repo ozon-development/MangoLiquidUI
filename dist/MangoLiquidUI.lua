@@ -3260,6 +3260,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 
 	-- State
 	local isOn: boolean = initialState
+	local isDestroyed = false
 	local activeTweens: { Tween } = {}
 	local inputConnection: RBXScriptConnection? = nil
 
@@ -3481,6 +3482,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Animation
 	-- ============================================================
 	local function animateToState(state: boolean)
+		if isDestroyed then return end
 		cancelAllTweens()
 
 		-- Knob position: 0.25s, Back, Out
@@ -3584,6 +3586,8 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 			return isOn
 		end,
 		Destroy = function(self: Types.MangoToggle)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelAllTweens()
 			if inputConnection then
 				(inputConnection :: RBXScriptConnection):Disconnect()
@@ -3649,6 +3653,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	-- State
 	local currentValue: number = math.clamp(initialValue, minVal, maxVal)
 	local isDragging = false
+	local isDestroyed = false
 	local connections: {RBXScriptConnection} = {}
 	local activeTweens: {Tween} = {}
 
@@ -3995,7 +4000,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Track drag globally via UserInputService.InputChanged
 	local inputChangedConn = UserInputService.InputChanged:Connect(function(input: InputObject)
-		if not isDragging then
+		if isDestroyed or not isDragging then
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.MouseMovement
@@ -4052,6 +4057,9 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 			return currentValue
 		end,
 		Destroy = function(self: Types.MangoSlider)
+			if isDestroyed then return end
+			isDestroyed = true
+			isDragging = false
 			for _, conn in connections do
 				conn:Disconnect()
 			end
@@ -4680,6 +4688,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 		btn.Font = Enum.Font.GothamMedium
 		btn.TextSize = 14
 		btn.TextColor3 = if i == currentIndex then primaryText else secondaryText
+		btn.TextTruncate = Enum.TextTruncate.AtEnd
 		btn.ZIndex = 10
 		btn.AutoButtonColor = false
 		btn.Parent = container
@@ -6109,7 +6118,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		})
 		trackTween(slideTween)
 		slideTween:Play()
-		slideTween.Completed:Connect(function()
+		slideTween.Completed:Once(function()
 			if not isDestroyed then
 				-- Set isDestroyed BEFORE callback to prevent re-entrancy
 				isDestroyed = true
@@ -7776,6 +7785,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 		btnLabel.Size = UDim2.new(1, 0, 1, 0)
 		btnLabel.TextXAlignment = Enum.TextXAlignment.Center
 		btnLabel.TextYAlignment = Enum.TextYAlignment.Center
+		btnLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		btnLabel.BorderSizePixel = 0
 		btnLabel.ZIndex = 10
 		btnLabel.Parent = btnFrame
@@ -7850,11 +7860,11 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 
 		scaleTween.Completed:Once(function()
 			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
-				-- Auto-destroy
-				isDestroyed = true
 				cancelAllTweens()
 				for _, conn in connections do
 					conn:Disconnect()
@@ -8215,6 +8225,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 		actionLabel.Size = UDim2.new(1, 0, 1, 0)
 		actionLabel.TextXAlignment = Enum.TextXAlignment.Center
 		actionLabel.TextYAlignment = Enum.TextYAlignment.Center
+		actionLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		actionLabel.BorderSizePixel = 0
 		actionLabel.ZIndex = 10
 		actionLabel.Parent = actionFrame
@@ -8274,6 +8285,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	cancelLabel.Size = UDim2.new(1, 0, 1, 0)
 	cancelLabel.TextXAlignment = Enum.TextXAlignment.Center
 	cancelLabel.TextYAlignment = Enum.TextYAlignment.Center
+	cancelLabel.TextTruncate = Enum.TextTruncate.AtEnd
 	cancelLabel.BorderSizePixel = 0
 	cancelLabel.ZIndex = 10
 	cancelLabel.Parent = cancelGlass.GlassSurface
@@ -8339,11 +8351,11 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 
 		slideTween.Completed:Once(function()
 			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
 				if config.OnDismissed then
 					config.OnDismissed()
 				end
-				-- Auto-destroy
-				isDestroyed = true
 				cancelAllTweens()
 				for _, conn in connections do
 					conn:Disconnect()
@@ -8956,6 +8968,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			return selectedIndex
 		end,
 		SetItems = function(self: Types.MangoDropdown, newItems: {string})
+			if isOpen then
+				closeDropdown()
+			end
 			items = table.clone(newItems)
 			selectedIndex = math.clamp(selectedIndex, 1, math.max(#items, 1))
 			if isMultiSelect then
@@ -13493,6 +13508,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		if isVisible then return end
 		isVisible = true
 		windowContainer.Visible = true
+		for _, delayThread in pendingDelays do
+			task.cancel(delayThread)
+		end
+		table.clear(pendingDelays)
 		cancelAllTweens()
 
 		-- Hide reopener
@@ -13564,12 +13583,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		end
 
 		-- Surface dissolves
-		task.delay(0.04, function()
+		local hideDelay1 = task.delay(0.04, function()
 			if isDestroyed then return end
 			TweenService:Create(glassFrame.GlassSurface, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 				BackgroundTransparency = 1,
 			}):Play()
 		end)
+		table.insert(pendingDelays, hideDelay1)
 
 		-- Scale out
 		local scaleTween = TweenService:Create(windowUIScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -13583,7 +13603,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		end)
 
 		-- Show reopener
-		task.delay(0.1, function()
+		local hideDelay2 = task.delay(0.1, function()
 			if isDestroyed then return end
 			local reopenerTween = TweenService:Create(reopenerGlass.Container, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 				Position = UDim2.new(0.5, 0, 0, 8),
@@ -13591,6 +13611,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			trackTween(reopenerTween)
 			reopenerTween:Play()
 		end)
+		table.insert(pendingDelays, hideDelay2)
 	end
 
 	-- Close button click
@@ -13902,8 +13923,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local dropdown = MangoDropdown.new({
-					Position = UDim2.new(0.42, 0, 0, 2),
-					Size = UDim2.new(0.56, 0, 0, 36),
+					Position = UDim2.new(0.42, 2, 0, 2),
+					Size = UDim2.new(0.56, -4, 0, 36),
 					ShadowEnabled = false,
 					Items = options,
 					InitialIndex = initIndex,
@@ -13970,8 +13991,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 
 				local defaultText = resolve(cfg.Default, nil, "") :: string
 				local textField = MangoTextField.new({
-					Position = UDim2.new(0, 0, 0, 20),
-					Size = UDim2.new(1, 0, 0, 36),
+					Position = UDim2.new(0, 4, 0, 20),
+					Size = UDim2.new(1, -8, 0, 36),
 					Placeholder = cfg.Placeholder,
 					InitialText = defaultText,
 					Masked = cfg.Masked,
@@ -14046,7 +14067,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local stepper = MangoStepper.new({
-					Position = UDim2.new(1, -120, 0.5, 0),
+					Position = UDim2.new(1, -124, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					InitialValue = defaultVal,
 					Min = range[1],
@@ -14091,8 +14112,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local progressBar = MangoProgressBar.new({
-					Position = UDim2.new(0, 0, 0, 20),
-					Size = UDim2.new(1, 0, 0, 20),
+					Position = UDim2.new(0, 4, 0, 20),
+					Size = UDim2.new(1, -8, 0, 20),
 					InitialValue = defaultVal,
 					ShadowEnabled = false,
 					Theme = theme,
@@ -14133,7 +14154,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				local preview = Instance.new("Frame")
 				preview.Name = "ColorPreview"
 				preview.Size = UDim2.new(0, 24, 0, 24)
-				preview.Position = UDim2.new(1, 0, 0.5, 0)
+				preview.Position = UDim2.new(1, -4, 0.5, 0)
 				preview.AnchorPoint = Vector2.new(1, 0.5)
 				preview.BackgroundColor3 = defaultColor
 				preview.BorderSizePixel = 0
@@ -14228,7 +14249,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				nameLabel.Parent = row
 
 				local keybind = MangoKeybind.new({
-					Position = UDim2.new(1, -80, 0.5, 0),
+					Position = UDim2.new(1, -84, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					DefaultKey = defaultKey,
 					ShadowEnabled = false,

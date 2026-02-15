@@ -46,6 +46,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	-- State
 	local currentValue: number = math.clamp(initialValue, minVal, maxVal)
 	local isDragging = false
+	local isDestroyed = false
 	local connections: {RBXScriptConnection} = {}
 	local activeTweens: {Tween} = {}
 
@@ -392,7 +393,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Track drag globally via UserInputService.InputChanged
 	local inputChangedConn = UserInputService.InputChanged:Connect(function(input: InputObject)
-		if not isDragging then
+		if isDestroyed or not isDragging then
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.MouseMovement
@@ -449,6 +450,9 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 			return currentValue
 		end,
 		Destroy = function(self: Types.MangoSlider)
+			if isDestroyed then return end
+			isDestroyed = true
+			isDragging = false
 			for _, conn in connections do
 				conn:Disconnect()
 			end
