@@ -116,7 +116,7 @@ BillboardGui (attached to character Head or BasePart, MaxDistance=50)
 ### Instance Hierarchy (MangoNotification)
 
 ```
-NotificationContainer (Frame, 380px wide, centered top, starts offscreen Y=-80)
+NotificationContainer (Frame, 400px wide, centered top, starts offscreen Y=-80)
   +-- MangoGlassFrame (CornerRadius=20, 4 shadow layers, ShadowOffsetY=4)
         +-- GlassSurface
               +-- UIPadding (14px all sides)
@@ -160,7 +160,7 @@ Container (full-width, anchored bottom, 54px tall)
         +-- UIListLayout Horizontal equal spacing
         +-- TabN (Frame)
               +-- IconLabel (TextLabel, 24px) if icon provided
-              +-- TabLabel (TextLabel, 10px, GothamMedium)
+              +-- TabLabel (TextLabel, 11px, GothamMedium)
               +-- SelectedDot (Frame, 4x4 circle, visible when selected)
               +-- HitArea (TextButton, ZIndex=100)
 ```
@@ -217,7 +217,7 @@ Container (200x20 default)
 ```
 ScreenGui (DisplayOrder=150)
   +-- Overlay (full screen, black, DialogOverlayTransparency)
-  +-- DialogContainer (centered, 270px wide)
+  +-- DialogContainer (centered, 300px wide)
         +-- MangoGlassFrame (CornerRadius=16, 4 shadow layers)
               +-- GlassSurface
                     +-- UIPadding
@@ -259,7 +259,7 @@ Container (Frame, transparent outer wrapper, pill shape)
                           |           +-- UICorner (10px)
                           |           +-- UIStroke (SpecularStroke, 1px, Border mode)
                           |                 +-- UIGradient (SpecularGradient, 3-keypoint fresnel)
-                          +-- IconLabel (TextLabel, GothamBold 18px, emoji or text, white, text stroke)
+                          +-- IconLabel (TextLabel, GothamBold 16px, emoji or text, white, text stroke, TextStrokeTransparency=0.80, label truncated to first 2 chars with TextScaled + TextTruncate)
                           +-- ActiveDot (Frame, 6x6 circle below icon, accent-colored, scales 0→1)
                           +-- HitArea (TextButton, ZIndex=100, transparent, for click/hover)
 ```
@@ -276,8 +276,8 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
                     |     +-- TitleLabel (TextLabel, GothamBold 17px, left-aligned)
                     |     +-- CloseButton (Frame, 24x24 circle, 75% transparent)
                     |     |     +-- UICorner (999)
-                    |     |     +-- UIStroke (0.5px gray, 50% transparent, Border mode)
-                    |     |     +-- CloseLabel (TextLabel, "X", GothamBold 12px)
+                    |     |     +-- UIStroke (0.75px gray, 50% transparent, Border mode)
+                    |     |     +-- CloseLabel (TextLabel, "X", GothamBold 13px)
                     |     |     +-- CloseHitArea (TextButton, ZIndex=100, transparent, 8px expanded)
                     |     +-- DragHitArea (TextButton, excludes close button, for drag input)
                     +-- TabSelectorFrame (Frame, size=0 when carousel active, hidden)
@@ -285,7 +285,7 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
                           +-- Tab_N (ScrollingFrame, per-tab content, AutomaticCanvasSize=Y)
                                 +-- UIScale (scale animation target for tab switch)
                                 +-- UIListLayout (Vertical, 10px gap)
-                                +-- UIPadding (4px top/bottom)
+                                +-- UIPadding (6px top/bottom)
                                 +-- Row_Element (Frame per element)
   +-- CarouselDock (MangoCarousel, floating left of window, 12px gap, AnchorPoint=1,1)
   |     +-- Follows window on drag via updateDockPosition()
@@ -464,7 +464,7 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 
 `MangoWindow.new()` returns:
 - `Flags: {[string]: any}` — Current flag values dictionary.
-- `Tab(name, icon?)` — Create new tab, returns `MangoWindowTab` builder object.
+- `Tab(name, icon?)` — Create new tab, returns `MangoWindowTab` builder object. Auto-generates icon from first letter of tab name when no icon provided for carousel dock.
 - `Notify(config)` — Push notification to in-window stack.
 - `Dialog(config)` — Show modal dialog.
 - `Show()`, `Hide()`, `IsVisible()` — Window visibility control with animation.

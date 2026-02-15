@@ -104,7 +104,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	checkmarkLabel.BackgroundTransparency = 1
 	checkmarkLabel.BorderSizePixel = 0
 	checkmarkLabel.Font = Enum.Font.SourceSansBold
-	checkmarkLabel.TextSize = 14
+	checkmarkLabel.TextSize = 16
 	checkmarkLabel.Text = "\226\156\147" -- checkmark ✓
 	checkmarkLabel.TextColor3 = checkColor
 	checkmarkLabel.TextTransparency = if isChecked then 0 else 1

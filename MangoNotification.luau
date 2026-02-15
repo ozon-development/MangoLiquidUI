@@ -41,7 +41,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local bodyFont = Enum.Font.Gotham
 	local titleSize = 15
 	local bodySize = 13
-	local contentWidth = 380 - 28 -- 14px padding on each side
+	local contentWidth = 400 - 28 -- 14px padding on each side
 	local hasIcon = icon ~= nil and icon ~= ""
 
 	-- Auto-set icon from type if no explicit icon
@@ -116,7 +116,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	-- NotificationContainer (starts offscreen above)
 	local notifContainer = Instance.new("Frame")
 	notifContainer.Name = MangoProtection.randomName("Notification")
-	notifContainer.Size = UDim2.new(0, 380, 0, totalHeight)
+	notifContainer.Size = UDim2.new(0, 400, 0, totalHeight)
 	notifContainer.AnchorPoint = Vector2.new(0.5, 0)
 	notifContainer.Position = UDim2.new(0.5, 0, 0, -80)
 	notifContainer.BackgroundTransparency = 1

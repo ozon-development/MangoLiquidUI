@@ -4175,7 +4175,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	checkmarkLabel.BackgroundTransparency = 1
 	checkmarkLabel.BorderSizePixel = 0
 	checkmarkLabel.Font = Enum.Font.SourceSansBold
-	checkmarkLabel.TextSize = 14
+	checkmarkLabel.TextSize = 16
 	checkmarkLabel.Text = "\226\156\147" -- checkmark ✓
 	checkmarkLabel.TextColor3 = checkColor
 	checkmarkLabel.TextTransparency = if isChecked then 0 else 1
@@ -5614,7 +5614,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 		size = config.Size
 	else
 		local textBounds = TextService:GetTextSize(text, textSize, font, Vector2.new(1000, 1000))
-		size = UDim2.new(0, textBounds.X + 28, 0, textBounds.Y + 20)
+		size = UDim2.new(0, textBounds.X + 24, 0, textBounds.Y + 16)
 	end
 
 	-- Create MangoGlassFrame with pill shape (CornerRadius = 999)
@@ -5841,7 +5841,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local bodyFont = Enum.Font.Gotham
 	local titleSize = 15
 	local bodySize = 13
-	local contentWidth = 380 - 28 -- 14px padding on each side
+	local contentWidth = 400 - 28 -- 14px padding on each side
 	local hasIcon = icon ~= nil and icon ~= ""
 
 	-- Auto-set icon from type if no explicit icon
@@ -5916,7 +5916,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	-- NotificationContainer (starts offscreen above)
 	local notifContainer = Instance.new("Frame")
 	notifContainer.Name = MangoProtection.randomName("Notification")
-	notifContainer.Size = UDim2.new(0, 380, 0, totalHeight)
+	notifContainer.Size = UDim2.new(0, 400, 0, totalHeight)
 	notifContainer.AnchorPoint = Vector2.new(0.5, 0)
 	notifContainer.Position = UDim2.new(0.5, 0, 0, -80)
 	notifContainer.BackgroundTransparency = 1
@@ -7618,7 +7618,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	dialogScale.Parent = dialogContainer
 
 	-- Measure text to compute dialog height
-	local contentWidth = 270 - 32 -- 16px padding each side
+	local contentWidth = 300 - 32 -- 16px padding each side
 	local titleFont = Enum.Font.GothamBold
 	local titleSize = 17
 	local messageFont = Enum.Font.Gotham
@@ -7640,7 +7640,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	local buttonsHeight = 1 + (buttonCount * 44) + math.max(0, buttonCount - 1) -- 1px separator + buttons + inter-button separators
 	local totalDialogHeight = dialogContentHeight + buttonsHeight
 
-	dialogContainer.Size = UDim2.new(0, 270, 0, totalDialogHeight)
+	dialogContainer.Size = UDim2.new(0, 300, 0, totalDialogHeight)
 
 	-- Glass frame inside dialog
 	local glassFrame = MangoGlassFrame.new({
@@ -9604,7 +9604,7 @@ function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 		textLabel.BackgroundTransparency = 1
 		textLabel.BorderSizePixel = 0
 		textLabel.Font = Enum.Font.GothamMedium
-		textLabel.TextSize = 10
+		textLabel.TextSize = 11
 		textLabel.Text = tab.Label
 		textLabel.TextColor3 = if isSelected then selectedColor else secondaryText
 		textLabel.TextXAlignment = Enum.TextXAlignment.Center
@@ -12659,10 +12659,18 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconLabel.BackgroundTransparency = 1
 		iconLabel.BorderSizePixel = 0
 		iconLabel.Font = Enum.Font.GothamBold
-		iconLabel.TextSize = 18
-		iconLabel.Text = tabConfig.Icon or tabConfig.Label or ""
+		iconLabel.TextSize = 16
+		-- Truncate label to first 2 chars when used as icon fallback (prevents text overflow in small icon)
+		local iconText = tabConfig.Icon
+		if not iconText or iconText == "" then
+			local lbl = tabConfig.Label or ""
+			iconText = string.sub(lbl, 1, 2)
+		end
+		iconLabel.Text = iconText
+		iconLabel.TextScaled = true
+		iconLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		iconLabel.TextStrokeTransparency = 0.85
+		iconLabel.TextStrokeTransparency = 0.80
 		iconLabel.TextXAlignment = Enum.TextXAlignment.Center
 		iconLabel.TextYAlignment = Enum.TextYAlignment.Center
 		iconLabel.ZIndex = 5
@@ -13025,7 +13033,7 @@ local function createWindowElement(config: {
 				label.Size = UDim2.new(1, 0, 1, 0)
 				label.BackgroundTransparency = 1
 				label.Font = Enum.Font.GothamMedium
-				label.TextSize = 11
+				label.TextSize = 12
 				label.Text = reason
 				label.TextColor3 = Color3.fromRGB(200, 200, 200)
 				label.ZIndex = 201
@@ -13051,7 +13059,7 @@ end
 function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	local theme = config.Theme or Themes.Light
 	local windowName = config.Name or "MangoUI"
-	local windowSize = resolve(config.Size, nil, UDim2.new(0, 400, 0, 500)) :: UDim2
+	local windowSize = resolve(config.Size, nil, UDim2.new(0, 500, 0, 600)) :: UDim2
 	local windowPos = resolve(config.Position, nil, UDim2.new(0.5, 0, 0.5, 0)) :: UDim2
 	local toggleKeyName = config.ToggleKey
 	local showButtonText = config.ShowButton or windowName
@@ -13206,7 +13214,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	closeCorner.Parent = closeFrame
 
 	local closeStroke = Instance.new("UIStroke")
-	closeStroke.Thickness = 0.5
+	closeStroke.Thickness = 0.75
 	closeStroke.Color = Color3.fromRGB(200, 200, 205)
 	closeStroke.Transparency = 0.5
 	closeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -13216,7 +13224,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	closeLabel.Size = UDim2.new(1, 0, 1, 0)
 	closeLabel.BackgroundTransparency = 1
 	closeLabel.Font = Enum.Font.GothamBold
-	closeLabel.TextSize = 12
+	closeLabel.TextSize = 13
 	closeLabel.Text = "X"
 	closeLabel.TextColor3 = secondaryText
 	closeLabel.ZIndex = 15
@@ -13621,8 +13629,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		-- Build carousel tab configs from tabData
 		local carouselTabs: {Types.MangoCarouselTabConfig} = {}
 		for _, t in tabData do
+			-- Auto-generate icon from first letter of name when no icon provided
+			local tabIcon = t.icon
+			if not tabIcon or tabIcon == "" then
+				tabIcon = string.sub(t.name, 1, 1):upper()
+			end
 			table.insert(carouselTabs, {
-				Icon = t.icon,
+				Icon = tabIcon,
 				Label = t.name,
 			})
 		end
@@ -13685,8 +13698,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		tabLayout.Parent = tabFrame
 
 		local tabPadding = Instance.new("UIPadding")
-		tabPadding.PaddingTop = UDim.new(0, 4)
-		tabPadding.PaddingBottom = UDim.new(0, 4)
+		tabPadding.PaddingTop = UDim.new(0, 6)
+		tabPadding.PaddingBottom = UDim.new(0, 6)
 		tabPadding.Parent = tabFrame
 
 		local elements: {Types.MangoWindowElement} = {}
@@ -13958,7 +13971,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Checkbox = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowCheckboxConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 32)
+				local row = createRow(tabFrame, 36)
 				row.LayoutOrder = nextOrder()
 
 				local defaultVal = resolve(cfg.Default, nil, false) :: boolean
@@ -14171,7 +14184,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Keybind = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowKeybindConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 38)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local defaultKey = resolve(cfg.Default, nil, "None") :: string
@@ -14295,7 +14308,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Section = function(self: Types.MangoWindowTab, title: string): Types.MangoWindowElement
-				local row = createRow(tabFrame, 30)
+				local row = createRow(tabFrame, 36)
 				row.LayoutOrder = nextOrder()
 
 				local sectionLabel = Instance.new("TextLabel")

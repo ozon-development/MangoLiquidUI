@@ -266,10 +266,18 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconLabel.BackgroundTransparency = 1
 		iconLabel.BorderSizePixel = 0
 		iconLabel.Font = Enum.Font.GothamBold
-		iconLabel.TextSize = 18
-		iconLabel.Text = tabConfig.Icon or tabConfig.Label or ""
+		iconLabel.TextSize = 16
+		-- Truncate label to first 2 chars when used as icon fallback (prevents text overflow in small icon)
+		local iconText = tabConfig.Icon
+		if not iconText or iconText == "" then
+			local lbl = tabConfig.Label or ""
+			iconText = string.sub(lbl, 1, 2)
+		end
+		iconLabel.Text = iconText
+		iconLabel.TextScaled = true
+		iconLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		iconLabel.TextStrokeTransparency = 0.85
+		iconLabel.TextStrokeTransparency = 0.80
 		iconLabel.TextXAlignment = Enum.TextXAlignment.Center
 		iconLabel.TextYAlignment = Enum.TextYAlignment.Center
 		iconLabel.ZIndex = 5

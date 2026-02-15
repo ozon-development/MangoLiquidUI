@@ -27,7 +27,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 		size = config.Size
 	else
 		local textBounds = TextService:GetTextSize(text, textSize, font, Vector2.new(1000, 1000))
-		size = UDim2.new(0, textBounds.X + 28, 0, textBounds.Y + 20)
+		size = UDim2.new(0, textBounds.X + 24, 0, textBounds.Y + 16)
 	end
 
 	-- Create MangoGlassFrame with pill shape (CornerRadius = 999)

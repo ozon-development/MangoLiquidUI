@@ -87,7 +87,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	dialogScale.Parent = dialogContainer
 
 	-- Measure text to compute dialog height
-	local contentWidth = 270 - 32 -- 16px padding each side
+	local contentWidth = 300 - 32 -- 16px padding each side
 	local titleFont = Enum.Font.GothamBold
 	local titleSize = 17
 	local messageFont = Enum.Font.Gotham
@@ -109,7 +109,7 @@ function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	local buttonsHeight = 1 + (buttonCount * 44) + math.max(0, buttonCount - 1) -- 1px separator + buttons + inter-button separators
 	local totalDialogHeight = dialogContentHeight + buttonsHeight
 
-	dialogContainer.Size = UDim2.new(0, 270, 0, totalDialogHeight)
+	dialogContainer.Size = UDim2.new(0, 300, 0, totalDialogHeight)
 
 	-- Glass frame inside dialog
 	local glassFrame = MangoGlassFrame.new({

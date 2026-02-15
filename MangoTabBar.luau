@@ -118,7 +118,7 @@ function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 		textLabel.BackgroundTransparency = 1
 		textLabel.BorderSizePixel = 0
 		textLabel.Font = Enum.Font.GothamMedium
-		textLabel.TextSize = 10
+		textLabel.TextSize = 11
 		textLabel.Text = tab.Label
 		textLabel.TextColor3 = if isSelected then selectedColor else secondaryText
 		textLabel.TextXAlignment = Enum.TextXAlignment.Center
