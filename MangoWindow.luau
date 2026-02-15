@@ -746,6 +746,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		local tabPadding = Instance.new("UIPadding")
 		tabPadding.PaddingTop = UDim.new(0, 6)
 		tabPadding.PaddingBottom = UDim.new(0, 6)
+		tabPadding.PaddingLeft = UDim.new(0, 6)
+		tabPadding.PaddingRight = UDim.new(0, 6)
 		tabPadding.Parent = tabFrame
 
 		local elements: {Types.MangoWindowElement} = {}
@@ -768,8 +770,9 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				row.LayoutOrder = nextOrder()
 
 				local btn = MangoButton.new({
-					Position = UDim2.new(0, 4, 0, 0),
-					Size = UDim2.new(1, -8, 0, 36),
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Size = UDim2.new(1, -12, 0, 36),
 					Text = cfg.Name,
 					Theme = theme,
 					ShadowEnabled = false,

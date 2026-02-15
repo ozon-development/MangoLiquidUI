@@ -6226,16 +6226,19 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			-- Start with glass surface fully transparent for fade-in
 			glassFrame.GlassSurface.BackgroundTransparency = 1
 
-			-- Spring tween to visible position
-			cancelAllTweens()
+			-- Spring tween to visible position — use positionTweens so that a
+			-- subsequent SetPosition() (from NotificationStack) cancels this and
+			-- takes over cleanly, avoiding two tweens fighting over Position.
+			cancelPositionTweens()
 			local springInfo = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 			local slideTween = TweenService:Create(notifContainer, springInfo, {
 				Position = UDim2.new(0.5, 0, 0, 16),
 			})
-			trackTween(slideTween)
+			table.insert(positionTweens, slideTween)
 			slideTween:Play()
 
 			-- Fade in glass surface
+			cancelAllTweens()
 			local fadeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 			local fadeTween = TweenService:Create(glassFrame.GlassSurface, fadeInfo, {
 				BackgroundTransparency = targetBgTransparency,
@@ -8579,8 +8582,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	end
 
 	-- Trigger button via MangoGlassFrame (LightweightMode)
+	-- Use (1,0,1,0) so trigger fills the container — avoids double-scaling when
+	-- config.Size uses Scale (e.g. inside MangoWindow rows).
 	local triggerGlass = MangoGlassFrame.new({
-		Size = size,
+		Size = UDim2.new(1, 0, 1, 0),
 		Position = UDim2.new(0, 0, 0, 0),
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = dropdownBgTransparency,
@@ -8862,7 +8867,13 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		end
 		isOpen = false
 		cancelAllTweens()
+		cancelItemHoverTweens()
 		destroyClickBlocker()
+
+		-- Reset all item hover highlights
+		for _, frame in itemFrames do
+			frame.BackgroundTransparency = 1
+		end
 
 		-- Stop tracking trigger position
 		if positionTrackConn then
@@ -8882,7 +8893,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		fadeTween:Play()
 
 		scaleTween.Completed:Once(function()
-			if isDestroyed then return end
+			-- Guard against stale handler from rapid open/close/open
+			if isDestroyed or isOpen then return end
 			panelGlass.Container.Visible = false
 			-- Restore panel parent to container
 			panelGlass.Container.Parent = container
@@ -13760,6 +13772,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		local tabPadding = Instance.new("UIPadding")
 		tabPadding.PaddingTop = UDim.new(0, 6)
 		tabPadding.PaddingBottom = UDim.new(0, 6)
+		tabPadding.PaddingLeft = UDim.new(0, 6)
+		tabPadding.PaddingRight = UDim.new(0, 6)
 		tabPadding.Parent = tabFrame
 
 		local elements: {Types.MangoWindowElement} = {}
@@ -13782,8 +13796,9 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				row.LayoutOrder = nextOrder()
 
 				local btn = MangoButton.new({
-					Position = UDim2.new(0, 4, 0, 0),
-					Size = UDim2.new(1, -8, 0, 36),
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Size = UDim2.new(1, -12, 0, 36),
 					Text = cfg.Name,
 					Theme = theme,
 					ShadowEnabled = false,

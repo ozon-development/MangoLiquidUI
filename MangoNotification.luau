@@ -414,16 +414,19 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			-- Start with glass surface fully transparent for fade-in
 			glassFrame.GlassSurface.BackgroundTransparency = 1
 
-			-- Spring tween to visible position
-			cancelAllTweens()
+			-- Spring tween to visible position — use positionTweens so that a
+			-- subsequent SetPosition() (from NotificationStack) cancels this and
+			-- takes over cleanly, avoiding two tweens fighting over Position.
+			cancelPositionTweens()
 			local springInfo = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 			local slideTween = TweenService:Create(notifContainer, springInfo, {
 				Position = UDim2.new(0.5, 0, 0, 16),
 			})
-			trackTween(slideTween)
+			table.insert(positionTweens, slideTween)
 			slideTween:Play()
 
 			-- Fade in glass surface
+			cancelAllTweens()
 			local fadeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 			local fadeTween = TweenService:Create(glassFrame.GlassSurface, fadeInfo, {
 				BackgroundTransparency = targetBgTransparency,

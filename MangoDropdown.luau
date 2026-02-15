@@ -142,8 +142,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	end
 
 	-- Trigger button via MangoGlassFrame (LightweightMode)
+	-- Use (1,0,1,0) so trigger fills the container — avoids double-scaling when
+	-- config.Size uses Scale (e.g. inside MangoWindow rows).
 	local triggerGlass = MangoGlassFrame.new({
-		Size = size,
+		Size = UDim2.new(1, 0, 1, 0),
 		Position = UDim2.new(0, 0, 0, 0),
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = dropdownBgTransparency,
@@ -425,7 +427,13 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		end
 		isOpen = false
 		cancelAllTweens()
+		cancelItemHoverTweens()
 		destroyClickBlocker()
+
+		-- Reset all item hover highlights
+		for _, frame in itemFrames do
+			frame.BackgroundTransparency = 1
+		end
 
 		-- Stop tracking trigger position
 		if positionTrackConn then
@@ -445,7 +453,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		fadeTween:Play()
 
 		scaleTween.Completed:Once(function()
-			if isDestroyed then return end
+			-- Guard against stale handler from rapid open/close/open
+			if isDestroyed or isOpen then return end
 			panelGlass.Container.Visible = false
 			-- Restore panel parent to container
 			panelGlass.Container.Parent = container
