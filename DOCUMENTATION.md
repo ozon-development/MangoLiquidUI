@@ -304,7 +304,7 @@ All components have both a full constructor (`ui.MangoButton.new(config)`) and a
 
 ### MangoWindow
 
-A Rayfield-style `Window -> Tab -> Element` wrapper that auto-handles layout, theming, dragging, and animations. This is the recommended way to build UI with MangoLiquidUI.
+A Rayfield-style `Window -> Tab -> Element` wrapper that auto-handles layout, theming, dragging, and animations. This is the recommended way to build UI with MangoLiquidUI. Close button renders as `"X"` (GothamBold 12) with 8px edge padding. Content area has 8px UIPadding for child shadow breathing room. All animation tweens and `task.delay` threads are tracked for safe cleanup on destroy.
 
 **Constructor:** `ui.window(config)` or `ui.MangoWindow.new(config)`
 
@@ -557,7 +557,7 @@ Tab:ColorPicker({
 
 ### MangoGlassFrame
 
-The foundational glass material component. All glass-based components compose this internally.
+The foundational glass material component. All glass-based components compose this internally. Automatically registers with `MangoProtection.registerInstance()` after parenting for seamless anti-detection coverage.
 
 **Constructor:** `ui.glass(config)` or `ui.MangoGlassFrame.new(config)`
 
@@ -962,7 +962,7 @@ local slider = ui.sldr({
 
 ### MangoCheckbox
 
-Animated checkbox with UIScale fill animation and optional label.
+Animated checkbox with UIScale fill animation and optional label. Checkmark uses `SourceSansBold` font for reliable ✓ rendering across all Roblox platforms (Gotham does not reliably render Unicode symbols).
 
 **Constructor:** `ui.chk(config)` or `ui.MangoCheckbox.new(config)`
 
@@ -1257,7 +1257,7 @@ print(keybind:GetKey()) -- "LeftControl"
 
 ### MangoTextField
 
-Rounded rectangle text input with animated focus border. Supports password masking.
+Rounded rectangle text input with animated focus border. Supports password masking. Clear button renders as `"X"` (GothamBold 10) for reliable cross-platform display.
 
 **Constructor:** `ui.txt(config)` or `ui.MangoTextField.new(config)`
 
@@ -1315,7 +1315,7 @@ local passwordField = ui.txt({
 
 ### MangoSearchBar
 
-Pill-shaped glass search bar with search icon, TextBox, and clear button.
+Pill-shaped glass search bar with search icon, TextBox, and clear button (`"X"` GothamBold 10 for reliable cross-platform display).
 
 **Constructor:** `ui.srch(config)` or `ui.MangoSearchBar.new(config)`
 
@@ -1363,7 +1363,7 @@ local search = ui.srch({
 
 ### MangoDropdown
 
-Apple-style dropdown menu with glass trigger and panel. Supports single-select and multi-select modes.
+Apple-style dropdown menu with glass trigger and panel. Supports single-select and multi-select modes. Chevron uses `"v"` (GothamMedium 10) and item checkmarks use `SourceSansBold` for reliable cross-platform rendering.
 
 **Constructor:** `ui.drp(config)` or `ui.MangoDropdown.new(config)`
 
@@ -1534,7 +1534,7 @@ local ctx = ui.ctx({
 
 ### MangoCarousel
 
-Apple Watch-style vertical carousel with paraboloid focus scaling, infinite loop wrapping, and smooth scrolling.
+Apple Watch-style vertical carousel with paraboloid focus scaling, infinite loop wrapping, and smooth scrolling. Scroll lifecycle is destroy-safe (tween `Completed` callbacks guarded by `isDestroyed`, `cancelAllTweens()` called before `scrollGen` increment to prevent fast-scroll race conditions).
 
 **Constructor:** `ui.carousel(config)` or `ui.csel(config)` or `ui.MangoCarousel.new(config)`
 
@@ -1836,7 +1836,7 @@ stack:Push({Title = "Error!", Body = "Something went wrong.", Type = "error"})
 
 ### MangoToast
 
-Bottom-center toast notification. Simpler than MangoNotification — single-line pill that slides up.
+Bottom-center toast notification. Simpler than MangoNotification — single-line pill that slides up. Dismiss lifecycle is re-entrancy safe (`isDestroyed` set before `OnDismissed` callback).
 
 **Constructor:** `ui.toast(config)` or `ui.MangoToast.new(config)`
 
@@ -2523,7 +2523,7 @@ ui.protect({ Enabled = true })
 | `getParent()` | Returns safest parent container |
 | `protectGui(gui)` | Apply `syn.protect_gui()` + register in protected set |
 | `createScreenGui(config)` | Create ScreenGui with hidden parenting, random name, protection |
-| `registerInstance(instance)` | Add instance + descendants to protected registry |
+| `registerInstance(instance)` | Add instance + descendants to protected registry (nil-safe) |
 | `randomName(prefix?)` | Generate GUID-based random name |
 | `randomBindingName(prefix?)` | Generate random RenderStep binding name |
 | `safeService(name)` | Get `cloneref()`'d service reference |
@@ -2677,6 +2677,7 @@ See `Types.luau` for the complete `ThemePreset` type definition. Key property gr
 | **NumberSequence not tweeneable** | UIGradient.Transparency can't be animated | `transitionTheme()` destroy+rebuild pattern |
 | **InputBegan child blocking** | Only topmost element receives input | TextButton hit areas at ZIndex=100 |
 | **Transparent Frame input** | `BackgroundTransparency=1` Frames don't receive input | Always use TextButton hit areas |
+| **Gotham font Unicode gaps** | Gotham doesn't render ✕, ▼, ▾ and other Unicode symbols reliably | Use ASCII (`"X"`, `"v"`) or `SourceSansBold` for ✓ |
 
 ---
 
