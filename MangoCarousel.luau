@@ -166,17 +166,17 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		-- IconShadow (accent-tinted drop shadow)
 		local iconShadow = Instance.new("Frame")
 		iconShadow.Name = "IconShadow"
-		iconShadow.Size = UDim2.new(0, ICON_SIZE + 4, 0, ICON_SIZE + 4)
+		iconShadow.Size = UDim2.new(0, ICON_SIZE + 6, 0, ICON_SIZE + 6)
 		iconShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 		iconShadow.Position = UDim2.new(0.5, 0, 0.5, 2)
 		iconShadow.BackgroundColor3 = accent
-		iconShadow.BackgroundTransparency = 0.78
+		iconShadow.BackgroundTransparency = 0.84
 		iconShadow.BorderSizePixel = 0
 		iconShadow.ZIndex = 0
 		iconShadow.Parent = iconFrame
 
 		local shadowCorner = Instance.new("UICorner")
-		shadowCorner.CornerRadius = UDim.new(0, 12)
+		shadowCorner.CornerRadius = UDim.new(0, 14)
 		shadowCorner.Parent = iconShadow
 
 		-- IconBg (squircle, gradient fill)
@@ -186,22 +186,22 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconBg.AnchorPoint = Vector2.new(0.5, 0.5)
 		iconBg.Position = UDim2.new(0.5, 0, 0.5, 0)
 		iconBg.BackgroundColor3 = accent
-		iconBg.BackgroundTransparency = 0.20
+		iconBg.BackgroundTransparency = 0.40
 		iconBg.BorderSizePixel = 0
 		iconBg.ZIndex = 1
 		iconBg.Parent = iconFrame
 
 		local bgCorner = Instance.new("UICorner")
-		bgCorner.CornerRadius = UDim.new(0, 10)
+		bgCorner.CornerRadius = UDim.new(0, 12)
 		bgCorner.Parent = iconBg
 
 		-- Gradient fill (lighten top, darken bottom)
 		local bgGradient = Instance.new("UIGradient")
 		bgGradient.Name = "IconBgGradient"
-		bgGradient.Rotation = 90
+		bgGradient.Rotation = 135
 		bgGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, lightenColor(accent, 0.10)),
-			ColorSequenceKeypoint.new(1, darkenColor(accent, 0.10)),
+			ColorSequenceKeypoint.new(0, lightenColor(accent, 0.15)),
+			ColorSequenceKeypoint.new(1, darkenColor(accent, 0.08)),
 		})
 		bgGradient.Parent = iconBg
 
@@ -211,13 +211,13 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconHighlight.Size = UDim2.new(1, 0, 0.35, 0)
 		iconHighlight.Position = UDim2.new(0, 0, 0, 0)
 		iconHighlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		iconHighlight.BackgroundTransparency = 0.70
+		iconHighlight.BackgroundTransparency = 0.78
 		iconHighlight.BorderSizePixel = 0
 		iconHighlight.ZIndex = 2
 		iconHighlight.Parent = iconBg
 
 		local highlightCorner = Instance.new("UICorner")
-		highlightCorner.CornerRadius = UDim.new(0, 10)
+		highlightCorner.CornerRadius = UDim.new(0, 12)
 		highlightCorner.Parent = iconHighlight
 
 		local highlightGradient = Instance.new("UIGradient")
@@ -229,6 +229,36 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		})
 		highlightGradient.Parent = iconHighlight
 
+		-- Inner edge stroke (glass-like inner shadow via Border mode inside iconBg)
+		local innerEdgeFrame = Instance.new("Frame")
+		innerEdgeFrame.Name = "InnerEdgeFrame"
+		innerEdgeFrame.Size = UDim2.new(1, 0, 1, 0)
+		innerEdgeFrame.BackgroundTransparency = 1
+		innerEdgeFrame.BorderSizePixel = 0
+		innerEdgeFrame.ZIndex = 2
+		innerEdgeFrame.Parent = iconBg
+
+		local innerEdgeCorner = Instance.new("UICorner")
+		innerEdgeCorner.CornerRadius = UDim.new(0, 12)
+		innerEdgeCorner.Parent = innerEdgeFrame
+
+		local innerEdgeStroke = Instance.new("UIStroke")
+		innerEdgeStroke.Name = "InnerEdgeStroke"
+		innerEdgeStroke.Color = Color3.fromRGB(255, 255, 255)
+		innerEdgeStroke.Thickness = 1
+		innerEdgeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		innerEdgeStroke.Parent = innerEdgeFrame
+
+		local innerEdgeGradient = Instance.new("UIGradient")
+		innerEdgeGradient.Name = "InnerEdgeGradient"
+		innerEdgeGradient.Rotation = 90
+		innerEdgeGradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.55),
+			NumberSequenceKeypoint.new(0.5, 0.82),
+			NumberSequenceKeypoint.new(1, 0.95),
+		})
+		innerEdgeGradient.Parent = innerEdgeStroke
+
 		-- Specular stroke on icon (fresnel rim)
 		local specFrame = Instance.new("Frame")
 		specFrame.Name = "SpecularFrame"
@@ -239,7 +269,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		specFrame.Parent = iconBg
 
 		local specCorner = Instance.new("UICorner")
-		specCorner.CornerRadius = UDim.new(0, 10)
+		specCorner.CornerRadius = UDim.new(0, 12)
 		specCorner.Parent = specFrame
 
 		local specStroke = Instance.new("UIStroke")

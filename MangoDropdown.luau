@@ -40,6 +40,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
 	local clickBlocker: TextButton? = nil
+	local positionTrackConn: RBXScriptConnection? = nil
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -426,6 +427,12 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		cancelAllTweens()
 		destroyClickBlocker()
 
+		-- Stop tracking trigger position
+		if positionTrackConn then
+			positionTrackConn:Disconnect()
+			positionTrackConn = nil
+		end
+
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 0.95 })
 		trackTween(scaleTween)
@@ -463,6 +470,17 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			panelGlass.Container.Parent = screenGui
 			panelGlass.Container.Position = UDim2.new(0, triggerAbsPos.X, 0, triggerAbsPos.Y + triggerAbsSize.Y + 4)
 			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelGlass.Container.Size.Y.Offset)
+
+			-- Track trigger position changes so panel follows window drag/scroll
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+			end
+			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				if not isOpen or isDestroyed then return end
+				local newPos = triggerGlass.Container.AbsolutePosition
+				local newSize = triggerGlass.Container.AbsoluteSize
+				panelGlass.Container.Position = UDim2.new(0, newPos.X, 0, newPos.Y + newSize.Y + 4)
+			end)
 		end
 
 		panelGlass.Container.Visible = true
@@ -552,6 +570,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			cancelItemHoverTweens()
 			clearItemConnections()
 			destroyClickBlocker()
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+				positionTrackConn = nil
+			end
 			for _, conn in connections do
 				conn:Disconnect()
 			end

@@ -6072,6 +6072,59 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		bodyLabel.Parent = textContainer
 	end
 
+	-- Forward-declared dismiss function (shared by action buttons, tap-to-dismiss, and self.Dismiss)
+	local doDismiss: (() -> ())? = nil
+	local doDestroy: (() -> ())? = nil
+
+	local function performDismiss()
+		if isDismissing or isDestroyed or not isShowing then
+			return
+		end
+		isDismissing = true
+
+		-- Cancel auto-dismiss thread
+		if dismissThread then
+			task.cancel(dismissThread)
+			dismissThread = nil
+		end
+
+		cancelAllTweens()
+		cancelPositionTweens()
+		local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		local slideTween = TweenService:Create(notifContainer, tweenOut, {
+			Position = UDim2.new(0.5, 0, 0, -80),
+		})
+		trackTween(slideTween)
+		slideTween:Play()
+		slideTween.Completed:Connect(function()
+			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
+				if config.OnDismissed then
+					config.OnDismissed()
+				end
+				-- Clean up
+				if dismissThread then
+					task.cancel(dismissThread)
+					dismissThread = nil
+				end
+				cancelAllTweens()
+				cancelPositionTweens()
+				for _, conn in connections do
+					conn:Disconnect()
+				end
+				table.clear(connections)
+				glassFrame:Destroy()
+				notifContainer:Destroy()
+				if screenGui then
+					screenGui:Destroy()
+				end
+			end
+		end)
+	end
+
+	doDismiss = performDismiss
+
 	-- Action buttons
 	if actions and #actions > 0 then
 		local actionsRow = Instance.new("Frame")
@@ -6113,37 +6166,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 				if action.Callback then
 					action.Callback()
 				end
-				if not isDismissing and not isDestroyed and isShowing then
-					isDismissing = true
-					if dismissThread then
-						task.cancel(dismissThread)
-						dismissThread = nil
-					end
-					cancelAllTweens()
-					local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-					local slideTween = TweenService:Create(notifContainer, tweenOut, {
-						Position = UDim2.new(0.5, 0, 0, -80),
-					})
-					trackTween(slideTween)
-					slideTween:Play()
-					slideTween.Completed:Connect(function()
-						if not isDestroyed then
-							if config.OnDismissed then
-								config.OnDismissed()
-							end
-							isDestroyed = true
-							for _, conn in connections do
-								conn:Disconnect()
-							end
-							table.clear(connections)
-							glassFrame:Destroy()
-							notifContainer:Destroy()
-							if screenGui then
-								screenGui:Destroy()
-							end
-						end
-					end)
-				end
+				performDismiss()
 			end)
 			table.insert(connections, btnConn)
 		end
@@ -6164,40 +6187,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local tapConn = dismissHitArea.InputBegan:Connect(function(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
-			if isShowing and not isDismissing then
-				-- Forward reference to dismiss — handled via self
-				isDismissing = true
-				-- Cancel auto-dismiss thread to prevent leaked task.delay
-				if dismissThread then
-					task.cancel(dismissThread)
-					dismissThread = nil
-				end
-				cancelAllTweens()
-				local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-				local slideTween = TweenService:Create(notifContainer, tweenOut, {
-					Position = UDim2.new(0.5, 0, 0, -80),
-				})
-				trackTween(slideTween)
-				slideTween:Play()
-				slideTween.Completed:Connect(function()
-					if not isDestroyed then
-						if config.OnDismissed then
-							config.OnDismissed()
-						end
-						-- Auto-destroy after dismiss
-						isDestroyed = true
-						for _, conn in connections do
-							conn:Disconnect()
-						end
-						table.clear(connections)
-						glassFrame:Destroy()
-						notifContainer:Destroy()
-						if screenGui then
-							screenGui:Destroy()
-						end
-					end
-				end)
-			end
+			performDismiss()
 		end
 	end)
 	table.insert(connections, tapConn)
@@ -6235,39 +6225,13 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			if duration > 0 then
 				dismissThread = task.delay(duration, function()
 					if not isDismissing and not isDestroyed and isShowing then
-						self:Dismiss()
+						performDismiss()
 					end
 				end)
 			end
 		end,
 		Dismiss = function(self: Types.MangoNotification)
-			if isDismissing or isDestroyed or not isShowing then
-				return
-			end
-			isDismissing = true
-
-			-- Cancel auto-dismiss thread
-			if dismissThread then
-				task.cancel(dismissThread)
-				dismissThread = nil
-			end
-
-			cancelAllTweens()
-			local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-			local slideTween = TweenService:Create(notifContainer, tweenOut, {
-				Position = UDim2.new(0.5, 0, 0, -80),
-			})
-			trackTween(slideTween)
-			slideTween:Play()
-			slideTween.Completed:Connect(function()
-				if not isDestroyed then
-					if config.OnDismissed then
-						config.OnDismissed()
-					end
-					-- Auto-destroy after dismiss
-					self:Destroy()
-				end
-			end)
+			performDismiss()
 		end,
 		SetPosition = function(self: Types.MangoNotification, position: UDim2)
 			if isDestroyed then
@@ -8488,6 +8452,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
 	local clickBlocker: TextButton? = nil
+	local positionTrackConn: RBXScriptConnection? = nil
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -8874,6 +8839,12 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		cancelAllTweens()
 		destroyClickBlocker()
 
+		-- Stop tracking trigger position
+		if positionTrackConn then
+			positionTrackConn:Disconnect()
+			positionTrackConn = nil
+		end
+
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 0.95 })
 		trackTween(scaleTween)
@@ -8911,6 +8882,17 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			panelGlass.Container.Parent = screenGui
 			panelGlass.Container.Position = UDim2.new(0, triggerAbsPos.X, 0, triggerAbsPos.Y + triggerAbsSize.Y + 4)
 			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelGlass.Container.Size.Y.Offset)
+
+			-- Track trigger position changes so panel follows window drag/scroll
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+			end
+			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				if not isOpen or isDestroyed then return end
+				local newPos = triggerGlass.Container.AbsolutePosition
+				local newSize = triggerGlass.Container.AbsoluteSize
+				panelGlass.Container.Position = UDim2.new(0, newPos.X, 0, newPos.Y + newSize.Y + 4)
+			end)
 		end
 
 		panelGlass.Container.Visible = true
@@ -9000,6 +8982,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			cancelItemHoverTweens()
 			clearItemConnections()
 			destroyClickBlocker()
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+				positionTrackConn = nil
+			end
 			for _, conn in connections do
 				conn:Disconnect()
 			end
@@ -10066,6 +10052,8 @@ function module.new(config: Types.MangoNotificationStackConfig): Types.MangoNoti
 				Body = notifConfig.Body,
 				Icon = notifConfig.Icon,
 				Duration = notifConfig.Duration,
+				Type = notifConfig.Type,
+				Actions = notifConfig.Actions,
 				Theme = notifConfig.Theme or theme,
 				Parent = parentInstance,
 				OnDismissed = nil, -- set below
@@ -12559,17 +12547,17 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		-- IconShadow (accent-tinted drop shadow)
 		local iconShadow = Instance.new("Frame")
 		iconShadow.Name = "IconShadow"
-		iconShadow.Size = UDim2.new(0, ICON_SIZE + 4, 0, ICON_SIZE + 4)
+		iconShadow.Size = UDim2.new(0, ICON_SIZE + 6, 0, ICON_SIZE + 6)
 		iconShadow.AnchorPoint = Vector2.new(0.5, 0.5)
 		iconShadow.Position = UDim2.new(0.5, 0, 0.5, 2)
 		iconShadow.BackgroundColor3 = accent
-		iconShadow.BackgroundTransparency = 0.78
+		iconShadow.BackgroundTransparency = 0.84
 		iconShadow.BorderSizePixel = 0
 		iconShadow.ZIndex = 0
 		iconShadow.Parent = iconFrame
 
 		local shadowCorner = Instance.new("UICorner")
-		shadowCorner.CornerRadius = UDim.new(0, 12)
+		shadowCorner.CornerRadius = UDim.new(0, 14)
 		shadowCorner.Parent = iconShadow
 
 		-- IconBg (squircle, gradient fill)
@@ -12579,22 +12567,22 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconBg.AnchorPoint = Vector2.new(0.5, 0.5)
 		iconBg.Position = UDim2.new(0.5, 0, 0.5, 0)
 		iconBg.BackgroundColor3 = accent
-		iconBg.BackgroundTransparency = 0.20
+		iconBg.BackgroundTransparency = 0.40
 		iconBg.BorderSizePixel = 0
 		iconBg.ZIndex = 1
 		iconBg.Parent = iconFrame
 
 		local bgCorner = Instance.new("UICorner")
-		bgCorner.CornerRadius = UDim.new(0, 10)
+		bgCorner.CornerRadius = UDim.new(0, 12)
 		bgCorner.Parent = iconBg
 
 		-- Gradient fill (lighten top, darken bottom)
 		local bgGradient = Instance.new("UIGradient")
 		bgGradient.Name = "IconBgGradient"
-		bgGradient.Rotation = 90
+		bgGradient.Rotation = 135
 		bgGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, lightenColor(accent, 0.10)),
-			ColorSequenceKeypoint.new(1, darkenColor(accent, 0.10)),
+			ColorSequenceKeypoint.new(0, lightenColor(accent, 0.15)),
+			ColorSequenceKeypoint.new(1, darkenColor(accent, 0.08)),
 		})
 		bgGradient.Parent = iconBg
 
@@ -12604,13 +12592,13 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		iconHighlight.Size = UDim2.new(1, 0, 0.35, 0)
 		iconHighlight.Position = UDim2.new(0, 0, 0, 0)
 		iconHighlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		iconHighlight.BackgroundTransparency = 0.70
+		iconHighlight.BackgroundTransparency = 0.78
 		iconHighlight.BorderSizePixel = 0
 		iconHighlight.ZIndex = 2
 		iconHighlight.Parent = iconBg
 
 		local highlightCorner = Instance.new("UICorner")
-		highlightCorner.CornerRadius = UDim.new(0, 10)
+		highlightCorner.CornerRadius = UDim.new(0, 12)
 		highlightCorner.Parent = iconHighlight
 
 		local highlightGradient = Instance.new("UIGradient")
@@ -12622,6 +12610,36 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		})
 		highlightGradient.Parent = iconHighlight
 
+		-- Inner edge stroke (glass-like inner shadow via Border mode inside iconBg)
+		local innerEdgeFrame = Instance.new("Frame")
+		innerEdgeFrame.Name = "InnerEdgeFrame"
+		innerEdgeFrame.Size = UDim2.new(1, 0, 1, 0)
+		innerEdgeFrame.BackgroundTransparency = 1
+		innerEdgeFrame.BorderSizePixel = 0
+		innerEdgeFrame.ZIndex = 2
+		innerEdgeFrame.Parent = iconBg
+
+		local innerEdgeCorner = Instance.new("UICorner")
+		innerEdgeCorner.CornerRadius = UDim.new(0, 12)
+		innerEdgeCorner.Parent = innerEdgeFrame
+
+		local innerEdgeStroke = Instance.new("UIStroke")
+		innerEdgeStroke.Name = "InnerEdgeStroke"
+		innerEdgeStroke.Color = Color3.fromRGB(255, 255, 255)
+		innerEdgeStroke.Thickness = 1
+		innerEdgeStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		innerEdgeStroke.Parent = innerEdgeFrame
+
+		local innerEdgeGradient = Instance.new("UIGradient")
+		innerEdgeGradient.Name = "InnerEdgeGradient"
+		innerEdgeGradient.Rotation = 90
+		innerEdgeGradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.55),
+			NumberSequenceKeypoint.new(0.5, 0.82),
+			NumberSequenceKeypoint.new(1, 0.95),
+		})
+		innerEdgeGradient.Parent = innerEdgeStroke
+
 		-- Specular stroke on icon (fresnel rim)
 		local specFrame = Instance.new("Frame")
 		specFrame.Name = "SpecularFrame"
@@ -12632,7 +12650,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		specFrame.Parent = iconBg
 
 		local specCorner = Instance.new("UICorner")
-		specCorner.CornerRadius = UDim.new(0, 10)
+		specCorner.CornerRadius = UDim.new(0, 12)
 		specCorner.Parent = specFrame
 
 		local specStroke = Instance.new("UIStroke")
@@ -13763,7 +13781,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 
 				local defaultVal = resolve(cfg.Default, nil, false) :: boolean
 				local toggle = MangoToggle.new({
-					Position = UDim2.new(1, -51, 0.5, 0),
+					Position = UDim2.new(1, -55, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					Theme = theme,
 					ShadowEnabled = false,
@@ -13810,8 +13828,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				valueLabel.Parent = row
 
 				local slider = MangoSlider.new({
-					Position = UDim2.new(0, 0, 0, 22),
-					Size = UDim2.new(1, 0, 0, 32),
+					Position = UDim2.new(0, 8, 0, 22),
+					Size = UDim2.new(1, -16, 0, 32),
 					Theme = theme,
 					ShadowEnabled = false,
 					InitialValue = defaultVal,

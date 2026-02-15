@@ -90,6 +90,8 @@ function module.new(config: Types.MangoNotificationStackConfig): Types.MangoNoti
 				Body = notifConfig.Body,
 				Icon = notifConfig.Icon,
 				Duration = notifConfig.Duration,
+				Type = notifConfig.Type,
+				Actions = notifConfig.Actions,
 				Theme = notifConfig.Theme or theme,
 				Parent = parentInstance,
 				OnDismissed = nil, -- set below

@@ -795,7 +795,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 
 				local defaultVal = resolve(cfg.Default, nil, false) :: boolean
 				local toggle = MangoToggle.new({
-					Position = UDim2.new(1, -51, 0.5, 0),
+					Position = UDim2.new(1, -55, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					Theme = theme,
 					ShadowEnabled = false,
@@ -842,8 +842,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				valueLabel.Parent = row
 
 				local slider = MangoSlider.new({
-					Position = UDim2.new(0, 0, 0, 22),
-					Size = UDim2.new(1, 0, 0, 32),
+					Position = UDim2.new(0, 8, 0, 22),
+					Size = UDim2.new(1, -16, 0, 32),
 					Theme = theme,
 					ShadowEnabled = false,
 					InitialValue = defaultVal,

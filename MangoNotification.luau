@@ -272,6 +272,59 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		bodyLabel.Parent = textContainer
 	end
 
+	-- Forward-declared dismiss function (shared by action buttons, tap-to-dismiss, and self.Dismiss)
+	local doDismiss: (() -> ())? = nil
+	local doDestroy: (() -> ())? = nil
+
+	local function performDismiss()
+		if isDismissing or isDestroyed or not isShowing then
+			return
+		end
+		isDismissing = true
+
+		-- Cancel auto-dismiss thread
+		if dismissThread then
+			task.cancel(dismissThread)
+			dismissThread = nil
+		end
+
+		cancelAllTweens()
+		cancelPositionTweens()
+		local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		local slideTween = TweenService:Create(notifContainer, tweenOut, {
+			Position = UDim2.new(0.5, 0, 0, -80),
+		})
+		trackTween(slideTween)
+		slideTween:Play()
+		slideTween.Completed:Connect(function()
+			if not isDestroyed then
+				-- Set isDestroyed BEFORE callback to prevent re-entrancy
+				isDestroyed = true
+				if config.OnDismissed then
+					config.OnDismissed()
+				end
+				-- Clean up
+				if dismissThread then
+					task.cancel(dismissThread)
+					dismissThread = nil
+				end
+				cancelAllTweens()
+				cancelPositionTweens()
+				for _, conn in connections do
+					conn:Disconnect()
+				end
+				table.clear(connections)
+				glassFrame:Destroy()
+				notifContainer:Destroy()
+				if screenGui then
+					screenGui:Destroy()
+				end
+			end
+		end)
+	end
+
+	doDismiss = performDismiss
+
 	-- Action buttons
 	if actions and #actions > 0 then
 		local actionsRow = Instance.new("Frame")
@@ -313,37 +366,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 				if action.Callback then
 					action.Callback()
 				end
-				if not isDismissing and not isDestroyed and isShowing then
-					isDismissing = true
-					if dismissThread then
-						task.cancel(dismissThread)
-						dismissThread = nil
-					end
-					cancelAllTweens()
-					local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-					local slideTween = TweenService:Create(notifContainer, tweenOut, {
-						Position = UDim2.new(0.5, 0, 0, -80),
-					})
-					trackTween(slideTween)
-					slideTween:Play()
-					slideTween.Completed:Connect(function()
-						if not isDestroyed then
-							if config.OnDismissed then
-								config.OnDismissed()
-							end
-							isDestroyed = true
-							for _, conn in connections do
-								conn:Disconnect()
-							end
-							table.clear(connections)
-							glassFrame:Destroy()
-							notifContainer:Destroy()
-							if screenGui then
-								screenGui:Destroy()
-							end
-						end
-					end)
-				end
+				performDismiss()
 			end)
 			table.insert(connections, btnConn)
 		end
@@ -364,40 +387,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	local tapConn = dismissHitArea.InputBegan:Connect(function(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
-			if isShowing and not isDismissing then
-				-- Forward reference to dismiss — handled via self
-				isDismissing = true
-				-- Cancel auto-dismiss thread to prevent leaked task.delay
-				if dismissThread then
-					task.cancel(dismissThread)
-					dismissThread = nil
-				end
-				cancelAllTweens()
-				local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-				local slideTween = TweenService:Create(notifContainer, tweenOut, {
-					Position = UDim2.new(0.5, 0, 0, -80),
-				})
-				trackTween(slideTween)
-				slideTween:Play()
-				slideTween.Completed:Connect(function()
-					if not isDestroyed then
-						if config.OnDismissed then
-							config.OnDismissed()
-						end
-						-- Auto-destroy after dismiss
-						isDestroyed = true
-						for _, conn in connections do
-							conn:Disconnect()
-						end
-						table.clear(connections)
-						glassFrame:Destroy()
-						notifContainer:Destroy()
-						if screenGui then
-							screenGui:Destroy()
-						end
-					end
-				end)
-			end
+			performDismiss()
 		end
 	end)
 	table.insert(connections, tapConn)
@@ -435,39 +425,13 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			if duration > 0 then
 				dismissThread = task.delay(duration, function()
 					if not isDismissing and not isDestroyed and isShowing then
-						self:Dismiss()
+						performDismiss()
 					end
 				end)
 			end
 		end,
 		Dismiss = function(self: Types.MangoNotification)
-			if isDismissing or isDestroyed or not isShowing then
-				return
-			end
-			isDismissing = true
-
-			-- Cancel auto-dismiss thread
-			if dismissThread then
-				task.cancel(dismissThread)
-				dismissThread = nil
-			end
-
-			cancelAllTweens()
-			local tweenOut = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-			local slideTween = TweenService:Create(notifContainer, tweenOut, {
-				Position = UDim2.new(0.5, 0, 0, -80),
-			})
-			trackTween(slideTween)
-			slideTween:Play()
-			slideTween.Completed:Connect(function()
-				if not isDestroyed then
-					if config.OnDismissed then
-						config.OnDismissed()
-					end
-					-- Auto-destroy after dismiss
-					self:Destroy()
-				end
-			end)
+			performDismiss()
 		end,
 		SetPosition = function(self: Types.MangoNotification, position: UDim2)
 			if isDestroyed then
