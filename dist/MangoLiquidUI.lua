@@ -13772,8 +13772,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		local tabPadding = Instance.new("UIPadding")
 		tabPadding.PaddingTop = UDim.new(0, 6)
 		tabPadding.PaddingBottom = UDim.new(0, 6)
-		tabPadding.PaddingLeft = UDim.new(0, 6)
-		tabPadding.PaddingRight = UDim.new(0, 6)
+		tabPadding.PaddingLeft = UDim.new(0, 8)
+		tabPadding.PaddingRight = UDim.new(0, 8)
 		tabPadding.Parent = tabFrame
 
 		local elements: {Types.MangoWindowElement} = {}
@@ -13885,8 +13885,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				valueLabel.Parent = row
 
 				local slider = MangoSlider.new({
-					Position = UDim2.new(0, 8, 0, 22),
-					Size = UDim2.new(1, -16, 0, 32),
+					Position = UDim2.new(0, 12, 0, 22),
+					Size = UDim2.new(1, -24, 0, 32),
 					Theme = theme,
 					ShadowEnabled = false,
 					InitialValue = defaultVal,
