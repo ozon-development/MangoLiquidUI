@@ -472,8 +472,14 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	end
 
 	-- === Tab switching ===
+	local tabSwitchTween: Tween? = nil
 	local function switchToTab(index: number)
 		if index == currentTabIndex then return end
+		-- Cancel previous tab switch tween
+		if tabSwitchTween then
+			tabSwitchTween:Cancel()
+			tabSwitchTween = nil
+		end
 		-- Hide current
 		if tabData[currentTabIndex] then
 			tabData[currentTabIndex].frame.Visible = false
@@ -492,11 +498,11 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end
 			newTab.frame.Visible = true
 			if tabScale then
-				local tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+				tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					Scale = 1,
 				})
-				trackTween(tabSwitchTween)
-				tabSwitchTween:Play()
+				trackTween(tabSwitchTween :: Tween)
+				(tabSwitchTween :: Tween):Play()
 			end
 		end
 	end
@@ -976,7 +982,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Input = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowInputConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 56)
+				local row = createRow(tabFrame, 60)
 				row.LayoutOrder = nextOrder()
 
 				local nameLabel = Instance.new("TextLabel")
@@ -1424,8 +1430,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			return createTab(name, icon)
 		end,
 		Notify = function(self: Types.MangoWindow, cfg: Types.MangoNotificationConfig)
-			local notif = notifStack:Push(cfg)
-			notif:Show()
+			notifStack:Push(cfg)
 		end,
 		Dialog = function(self: Types.MangoWindow, cfg: Types.MangoDialogConfig)
 			local dialog = MangoDialog.new({
@@ -1497,6 +1502,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			if closeHoverTween then
 				closeHoverTween:Cancel()
 				closeHoverTween = nil
+			end
+			if tabSwitchTween then
+				tabSwitchTween:Cancel()
+				tabSwitchTween = nil
 			end
 
 			cancelAllTweens()

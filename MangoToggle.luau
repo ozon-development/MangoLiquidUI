@@ -330,6 +330,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Input Handling
 	-- ============================================================
 	inputConnection = hitArea.InputBegan:Connect(function(input: InputObject)
+		if isDestroyed then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			isOn = not isOn
@@ -354,6 +355,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	local self: Types.MangoToggle = {
 		Container = container,
 		SetState = function(self: Types.MangoToggle, state: boolean)
+			if isDestroyed then return end
 			isOn = state
 			animateToState(isOn)
 		end,

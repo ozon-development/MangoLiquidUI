@@ -406,6 +406,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- End drag on UserInputService.InputEnded
 	local inputEndedConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+		if isDestroyed then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			if isDragging then

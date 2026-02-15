@@ -112,10 +112,12 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	end
 
 	local connections: {RBXScriptConnection} = {}
+	local isDestroyed = false
 	local isHovering = false
 
 	-- Hover animation: subtle scale-up + specular gradient shift on mouse enter
 	local hoverEnterConn = hitArea.MouseEnter:Connect(function()
+		if isDestroyed then return end
 		isHovering = true
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -131,6 +133,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, hoverEnterConn)
 
 	local hoverLeaveConn = hitArea.MouseLeave:Connect(function()
+		if isDestroyed then return end
 		isHovering = false
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -146,6 +149,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, hoverLeaveConn)
 
 	local pressConn = hitArea.MouseButton1Down:Connect(function()
+		if isDestroyed then return end
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local tween = TweenService:Create(uiScale, tweenInfo, { Scale = pressScale })
@@ -161,6 +165,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, pressConn)
 
 	local releaseConn = hitArea.MouseButton1Up:Connect(function()
+		if isDestroyed then return end
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		-- Restore to hover scale if still hovering, otherwise back to 1.0
@@ -197,6 +202,8 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 			textLabel.Text = newText
 		end,
 		Destroy = function(self: Types.MangoButton)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelAllTweens()
 			for _, conn in connections do
 				conn:Disconnect()

@@ -578,11 +578,16 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			closeDropdown()
 		end,
 		Destroy = function(self: Types.MangoDropdown)
+			if isDestroyed then return end
+			-- Close panel first to clean up ScreenGui-level elements
+			if isOpen then
+				isOpen = false
+				destroyClickBlocker()
+			end
 			isDestroyed = true
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
-			destroyClickBlocker()
 			if positionTrackConn then
 				positionTrackConn:Disconnect()
 				positionTrackConn = nil

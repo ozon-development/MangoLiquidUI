@@ -3555,6 +3555,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	-- Input Handling
 	-- ============================================================
 	inputConnection = hitArea.InputBegan:Connect(function(input: InputObject)
+		if isDestroyed then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			isOn = not isOn
@@ -3579,6 +3580,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	local self: Types.MangoToggle = {
 		Container = container,
 		SetState = function(self: Types.MangoToggle, state: boolean)
+			if isDestroyed then return end
 			isOn = state
 			animateToState(isOn)
 		end,
@@ -4013,6 +4015,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- End drag on UserInputService.InputEnded
 	local inputEndedConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+		if isDestroyed then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 			or input.UserInputType == Enum.UserInputType.Touch then
 			if isDragging then
@@ -4252,6 +4255,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 
 	-- Click handler
 	local clickConn = hitArea.MouseButton1Click:Connect(function()
+		if isDestroyed then return end
 		isChecked = not isChecked
 		MangoHaptics.light()
 		animateToState(isChecked)
@@ -5708,10 +5712,12 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	end
 
 	local connections: {RBXScriptConnection} = {}
+	local isDestroyed = false
 	local isHovering = false
 
 	-- Hover animation: subtle scale-up + specular gradient shift on mouse enter
 	local hoverEnterConn = hitArea.MouseEnter:Connect(function()
+		if isDestroyed then return end
 		isHovering = true
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -5727,6 +5733,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, hoverEnterConn)
 
 	local hoverLeaveConn = hitArea.MouseLeave:Connect(function()
+		if isDestroyed then return end
 		isHovering = false
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
@@ -5742,6 +5749,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, hoverLeaveConn)
 
 	local pressConn = hitArea.MouseButton1Down:Connect(function()
+		if isDestroyed then return end
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local tween = TweenService:Create(uiScale, tweenInfo, { Scale = pressScale })
@@ -5757,6 +5765,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	table.insert(connections, pressConn)
 
 	local releaseConn = hitArea.MouseButton1Up:Connect(function()
+		if isDestroyed then return end
 		cancelAllTweens()
 		local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		-- Restore to hover scale if still hovering, otherwise back to 1.0
@@ -5793,6 +5802,8 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 			textLabel.Text = newText
 		end,
 		Destroy = function(self: Types.MangoButton)
+			if isDestroyed then return end
+			isDestroyed = true
 			cancelAllTweens()
 			for _, conn in connections do
 				conn:Disconnect()
@@ -9018,11 +9029,16 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			closeDropdown()
 		end,
 		Destroy = function(self: Types.MangoDropdown)
+			if isDestroyed then return end
+			-- Close panel first to clean up ScreenGui-level elements
+			if isOpen then
+				isOpen = false
+				destroyClickBlocker()
+			end
 			isDestroyed = true
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
-			destroyClickBlocker()
 			if positionTrackConn then
 				positionTrackConn:Disconnect()
 				positionTrackConn = nil
@@ -13498,8 +13514,14 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	end
 
 	-- === Tab switching ===
+	local tabSwitchTween: Tween? = nil
 	local function switchToTab(index: number)
 		if index == currentTabIndex then return end
+		-- Cancel previous tab switch tween
+		if tabSwitchTween then
+			tabSwitchTween:Cancel()
+			tabSwitchTween = nil
+		end
 		-- Hide current
 		if tabData[currentTabIndex] then
 			tabData[currentTabIndex].frame.Visible = false
@@ -13518,11 +13540,11 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end
 			newTab.frame.Visible = true
 			if tabScale then
-				local tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+				tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					Scale = 1,
 				})
-				trackTween(tabSwitchTween)
-				tabSwitchTween:Play()
+				trackTween(tabSwitchTween :: Tween)
+				(tabSwitchTween :: Tween):Play()
 			end
 		end
 	end
@@ -14002,7 +14024,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Input = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowInputConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 56)
+				local row = createRow(tabFrame, 60)
 				row.LayoutOrder = nextOrder()
 
 				local nameLabel = Instance.new("TextLabel")
@@ -14450,8 +14472,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			return createTab(name, icon)
 		end,
 		Notify = function(self: Types.MangoWindow, cfg: Types.MangoNotificationConfig)
-			local notif = notifStack:Push(cfg)
-			notif:Show()
+			notifStack:Push(cfg)
 		end,
 		Dialog = function(self: Types.MangoWindow, cfg: Types.MangoDialogConfig)
 			local dialog = MangoDialog.new({
@@ -14523,6 +14544,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			if closeHoverTween then
 				closeHoverTween:Cancel()
 				closeHoverTween = nil
+			end
+			if tabSwitchTween then
+				tabSwitchTween:Cancel()
+				tabSwitchTween = nil
 			end
 
 			cancelAllTweens()

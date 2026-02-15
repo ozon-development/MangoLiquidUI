@@ -173,6 +173,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 
 	-- Click handler
 	local clickConn = hitArea.MouseButton1Click:Connect(function()
+		if isDestroyed then return end
 		isChecked = not isChecked
 		MangoHaptics.light()
 		animateToState(isChecked)
