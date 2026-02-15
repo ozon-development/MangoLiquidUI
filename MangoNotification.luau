@@ -444,7 +444,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			performDismiss()
 		end,
 		SetPosition = function(self: Types.MangoNotification, position: UDim2)
-			if isDestroyed then
+			if isDestroyed or isDismissing then
 				return
 			end
 			cancelPositionTweens()

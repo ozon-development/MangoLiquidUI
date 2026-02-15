@@ -77,6 +77,10 @@ function module.new(config: Types.MangoNotificationStackConfig): Types.MangoNoti
 			if #activeNotifications >= maxVisible then
 				local oldest = activeNotifications[1]
 				if oldest then
+					-- Remove from array immediately so new notifications don't
+					-- stack behind a dismissing notification, and so rapid pushes
+					-- don't try to re-dismiss an already-dismissing notification
+					table.remove(activeNotifications, 1)
 					oldest:Dismiss()
 				end
 			end
