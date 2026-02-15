@@ -109,7 +109,6 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	local isVisible = true
 	local isDestroyed = false
 	local isDragging = false
-	local dragOffset = Vector2.zero
 	local activeTweens: {Tween} = {}
 	local connections: {RBXScriptConnection} = {}
 	local tabData: {{name: string, icon: string?, frame: ScrollingFrame, elements: {Types.MangoWindowElement}}} = {}
@@ -367,20 +366,26 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		carouselDock.Container.Position = UDim2.new(0, absPos.X - DOCK_GAP, 0, absPos.Y + absSize.Y)
 	end
 
-	-- === Drag system (uses input.Position screen coords consistently, supports mouse + touch) ===
+	-- === Drag system (delta-based: avoids coordinate system mismatches from GUI inset) ===
+	local dragStartPos: UDim2 = UDim2.new()
+	local dragStartMouse = Vector2.new(0, 0)
+
 	local dragStartConn = dragHitArea.InputBegan:Connect(function(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			isDragging = true
-			local containerPos = windowContainer.AbsolutePosition
-			dragOffset = Vector2.new(input.Position.X - containerPos.X, input.Position.Y - containerPos.Y)
+			dragStartPos = windowContainer.Position
+			dragStartMouse = Vector2.new(input.Position.X, input.Position.Y)
 		end
 	end)
 	table.insert(connections, dragStartConn)
 
 	local dragMoveConn = UserInputService.InputChanged:Connect(function(input: InputObject)
 		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local mousePos = Vector2.new(input.Position.X, input.Position.Y)
-			windowContainer.Position = UDim2.new(0, mousePos.X - dragOffset.X + windowContainer.AbsoluteSize.X * 0.5, 0, mousePos.Y - dragOffset.Y + windowContainer.AbsoluteSize.Y * 0.5)
+			local delta = Vector2.new(input.Position.X - dragStartMouse.X, input.Position.Y - dragStartMouse.Y)
+			windowContainer.Position = UDim2.new(
+				dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X,
+				dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y
+			)
 			updateDockPosition()
 		end
 	end)
