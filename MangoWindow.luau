@@ -755,8 +755,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				row.LayoutOrder = nextOrder()
 
 				local btn = MangoButton.new({
-					Position = UDim2.new(0, 0, 0, 0),
-					Size = UDim2.new(1, 0, 0, 36),
+					Position = UDim2.new(0, 4, 0, 0),
+					Size = UDim2.new(1, -8, 0, 36),
 					Text = cfg.Name,
 					Theme = theme,
 					ShadowEnabled = false,
