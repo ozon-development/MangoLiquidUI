@@ -133,6 +133,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		ShadowLayerCount = 4,
 		ShadowOffsetY = 4,
 		ShadowSpread = 12,
+		LightweightMode = true,
 		Parent = notifContainer,
 	})
 
@@ -156,13 +157,22 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 		stripeCorner.Parent = accentStripe
 	end
 
-	-- UIPadding on GlassSurface
+	-- ContentFrame (isolates UIListLayout from glass frame internals like InnerEdgeFrame)
+	local contentFrame = Instance.new("Frame")
+	contentFrame.Name = "ContentFrame"
+	contentFrame.Size = UDim2.new(1, 0, 1, 0)
+	contentFrame.BackgroundTransparency = 1
+	contentFrame.BorderSizePixel = 0
+	contentFrame.ZIndex = 10
+	contentFrame.Parent = glassFrame.GlassSurface
+
+	-- UIPadding on ContentFrame
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, 14)
 	padding.PaddingBottom = UDim.new(0, 14)
 	padding.PaddingLeft = UDim.new(0, 14)
 	padding.PaddingRight = UDim.new(0, 14)
-	padding.Parent = glassFrame.GlassSurface
+	padding.Parent = contentFrame
 
 	-- UIListLayout (Horizontal, 12px gap)
 	local hLayout = Instance.new("UIListLayout")
@@ -170,7 +180,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	hLayout.Padding = UDim.new(0, 12)
 	hLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 	hLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	hLayout.Parent = glassFrame.GlassSurface
+	hLayout.Parent = contentFrame
 
 	-- Icon (optional — supports both image IDs and text emoji from type icons)
 	if hasIcon and icon then
@@ -184,7 +194,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			iconFrame.BorderSizePixel = 0
 			iconFrame.LayoutOrder = 1
 			iconFrame.ZIndex = 10
-			iconFrame.Parent = glassFrame.GlassSurface
+			iconFrame.Parent = contentFrame
 
 			local iconCorner = Instance.new("UICorner")
 			iconCorner.CornerRadius = UDim.new(0, 8)
@@ -199,7 +209,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 			iconContainer.BorderSizePixel = 0
 			iconContainer.LayoutOrder = 1
 			iconContainer.ZIndex = 10
-			iconContainer.Parent = glassFrame.GlassSurface
+			iconContainer.Parent = contentFrame
 
 			local iconContainerCorner = Instance.new("UICorner")
 			iconContainerCorner.CornerRadius = UDim.new(0, 8)
@@ -227,7 +237,7 @@ function module.new(config: Types.MangoNotificationConfig): Types.MangoNotificat
 	textContainer.BorderSizePixel = 0
 	textContainer.LayoutOrder = 2
 	textContainer.ZIndex = 10
-	textContainer.Parent = glassFrame.GlassSurface
+	textContainer.Parent = contentFrame
 
 	-- Vertical layout inside TextContainer
 	local vLayout = Instance.new("UIListLayout")
