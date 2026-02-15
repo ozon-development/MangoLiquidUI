@@ -116,7 +116,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 	})
 
 	-- ClipFrame (clips the scrolling track, inside GlassSurface)
-	local edgePad = 8
+	local edgePad = 14
 	local clipFrame = Instance.new("Frame")
 	clipFrame.Name = "ClipFrame"
 	clipFrame.Size = UDim2.new(1, 0, 1, -edgePad * 2)

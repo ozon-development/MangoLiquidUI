@@ -305,7 +305,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	contentArea.ClipsDescendants = true
 	contentArea.Parent = windowContent
 
-	-- Note: contentArea padding removed — windowContent's 14px padding provides adequate spacing
+	local contentPadding = Instance.new("UIPadding")
+	contentPadding.PaddingTop = UDim.new(0, 8)
+	contentPadding.PaddingBottom = UDim.new(0, 8)
+	contentPadding.Parent = contentArea
 
 	-- Reopener pill (hidden initially)
 	local reopenerGlass = MangoGlassFrame.new({

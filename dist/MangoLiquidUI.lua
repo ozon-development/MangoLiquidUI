@@ -12509,7 +12509,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 	})
 
 	-- ClipFrame (clips the scrolling track, inside GlassSurface)
-	local edgePad = 8
+	local edgePad = 14
 	local clipFrame = Instance.new("Frame")
 	clipFrame.Name = "ClipFrame"
 	clipFrame.Size = UDim2.new(1, 0, 1, -edgePad * 2)
@@ -13265,7 +13265,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	contentArea.ClipsDescendants = true
 	contentArea.Parent = windowContent
 
-	-- Note: contentArea padding removed — windowContent's 14px padding provides adequate spacing
+	local contentPadding = Instance.new("UIPadding")
+	contentPadding.PaddingTop = UDim.new(0, 8)
+	contentPadding.PaddingBottom = UDim.new(0, 8)
+	contentPadding.Parent = contentArea
 
 	-- Reopener pill (hidden initially)
 	local reopenerGlass = MangoGlassFrame.new({

@@ -3649,8 +3649,8 @@ local function buildUI()
 	-- ContentRegion: top area for tab content
 	local contentRegion = Instance.new("Frame")
 	contentRegion.Name = "ContentRegion"
-	contentRegion.Size = UDim2.new(1, 0, 1, -60)
-	contentRegion.Position = UDim2.new(0, 0, 0, 0)
+	contentRegion.Size = UDim2.new(1, 0, 1, -76)
+	contentRegion.Position = UDim2.new(0, 0, 0, 8)
 	contentRegion.BackgroundTransparency = 1
 	contentRegion.BorderSizePixel = 0
 	contentRegion.ClipsDescendants = true
@@ -3905,7 +3905,9 @@ local function buildUI()
 	-- Clipping container inside dock glass
 	local carouselContainer = Instance.new("Frame")
 	carouselContainer.Name = "CarouselContainer"
-	carouselContainer.Size = UDim2.new(1, 0, 1, 0)
+	carouselContainer.Size = UDim2.new(1, 0, 1, -12)
+	carouselContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+	carouselContainer.AnchorPoint = Vector2.new(0.5, 0.5)
 	carouselContainer.BackgroundTransparency = 1
 	carouselContainer.BorderSizePixel = 0
 	carouselContainer.ClipsDescendants = true
