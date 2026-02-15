@@ -12978,6 +12978,7 @@ local MangoColorPicker = _require("MangoColorPicker")
 local MangoKeybind = _require("MangoKeybind")
 local MangoSaveManager = _require("MangoSaveManager")
 local MangoIntro = _require("MangoIntro")
+local MangoCarousel = _require("MangoCarousel")
 local MangoProtection = _require("MangoProtection")
 local resolve = Themes.resolve
 
@@ -13080,6 +13081,8 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	local saveManager: Types.MangoSaveManager? = nil
 	local innerDestroyables: {any} = {}
 	local pendingDelays: {thread} = {}
+	local carouselDock: Types.MangoCarousel? = nil
+	local DOCK_GAP = 12
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -13316,6 +13319,14 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	})
 	table.insert(innerDestroyables, notifStack)
 
+	-- === Carousel dock position ===
+	local function updateDockPosition()
+		if not carouselDock then return end
+		local absPos = windowContainer.AbsolutePosition
+		local absSize = windowContainer.AbsoluteSize
+		carouselDock.Container.Position = UDim2.new(0, absPos.X - DOCK_GAP, 0, absPos.Y + absSize.Y)
+	end
+
 	-- === Drag system ===
 	local dragStartConn = dragHitArea.MouseButton1Down:Connect(function()
 		isDragging = true
@@ -13329,6 +13340,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local mousePos = Vector2.new(input.Position.X, input.Position.Y)
 			windowContainer.Position = UDim2.new(0, mousePos.X - dragOffset.X + windowContainer.AbsoluteSize.X * 0.5, 0, mousePos.Y - dragOffset.Y + windowContainer.AbsoluteSize.Y * 0.5)
+			updateDockPosition()
 		end
 	end)
 	table.insert(connections, dragMoveConn)
@@ -13419,6 +13431,10 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			tabData[currentTabIndex].frame.Visible = false
 		end
 		currentTabIndex = index
+		-- Sync carousel dock
+		if carouselDock and carouselDock:GetIndex() ~= index then
+			carouselDock:SetIndex(index)
+		end
 		-- Show new with spring animation
 		local newTab = tabData[index]
 		if newTab then
@@ -13478,12 +13494,34 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end
 		end)
 		table.insert(pendingDelays, delayThread2)
+
+		-- Show carousel dock with entrance animation
+		if carouselDock then
+			carouselDock.Container.Visible = true
+			local delayThread3 = task.delay(0.1, function()
+				if isDestroyed or not carouselDock then return end
+				updateDockPosition()
+				local pos = carouselDock.Container.Position
+				carouselDock.Container.Position = UDim2.new(pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset + 30)
+				local dockTween = TweenService:Create(carouselDock.Container, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+					Position = pos,
+				})
+				trackTween(dockTween)
+				dockTween:Play()
+			end)
+			table.insert(pendingDelays, delayThread3)
+		end
 	end
 
 	local function hideWindow()
 		if not isVisible then return end
 		isVisible = false
 		cancelAllTweens()
+
+		-- Hide carousel dock
+		if carouselDock then
+			carouselDock.Container.Visible = false
+		end
 
 		-- Shadows fade first
 		for _, shadow in glassFrame.ShadowLayers do
@@ -13562,11 +13600,15 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		return row
 	end
 
-	-- Update segmented control when tabs change
+	-- Update tab navigation when tabs change (carousel dock for multi-tab)
 	local function rebuildTabSelector()
 		if segmentedControl then
 			segmentedControl:Destroy()
 			segmentedControl = nil
+		end
+		if carouselDock then
+			carouselDock:Destroy()
+			carouselDock = nil
 		end
 
 		if #tabData <= 1 then
@@ -13576,35 +13618,41 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			return
 		end
 
-		local segNames: {string} = {}
+		-- Build carousel tab configs from tabData
+		local carouselTabs: {Types.MangoCarouselTabConfig} = {}
 		for _, t in tabData do
-			local display = t.name
-			if t.icon then
-				display = t.icon .. " " .. display
-			end
-			table.insert(segNames, display)
+			table.insert(carouselTabs, {
+				Icon = t.icon,
+				Label = t.name,
+			})
 		end
 
-		local segWidth = math.min(90, math.floor((windowSize.X.Offset - 28) / #tabData))
-
-		segmentedControl = MangoSegmentedControl.new({
-			Position = UDim2.new(0.5, 0, 0, 0),
-			AnchorPoint = Vector2.new(0.5, 0),
-			Segments = segNames,
-			InitialIndex = currentTabIndex,
-			SegmentWidth = segWidth,
-			Height = 32,
+		carouselDock = MangoCarousel.new({
+			Tabs = carouselTabs,
 			Theme = theme,
+			InitialIndex = currentTabIndex,
 			OnChanged = function(index: number)
 				switchToTab(index)
 			end,
-			Parent = tabSelectorFrame,
+			Parent = screenGui,
 		})
-		table.insert(innerDestroyables, segmentedControl)
+		carouselDock.Container.AnchorPoint = Vector2.new(1, 1)
+		carouselDock.Container.ZIndex = 5
+		carouselDock.Container.Visible = false
 
-		tabSelectorFrame.Size = UDim2.new(1, 0, 0, 36)
-		contentArea.Size = UDim2.new(1, 0, 1, -76)
-		contentArea.Position = UDim2.new(0, 0, 0, 76)
+		-- No segmented control inside window — carousel handles tab switching
+		tabSelectorFrame.Size = UDim2.new(1, 0, 0, 0)
+		contentArea.Size = UDim2.new(1, 0, 1, -36)
+		contentArea.Position = UDim2.new(0, 0, 0, 36)
+
+		-- Position carousel next to window and show
+		task.defer(function()
+			if isDestroyed or not carouselDock then return end
+			updateDockPosition()
+			if isVisible then
+				carouselDock.Container.Visible = true
+			end
+		end)
 	end
 
 	-- === Window return table ===
@@ -14401,6 +14449,11 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				end
 			end
 			table.clear(innerDestroyables)
+
+			if carouselDock then
+				carouselDock:Destroy()
+				carouselDock = nil
+			end
 
 			notifStack:Destroy()
 			glassFrame:Destroy()

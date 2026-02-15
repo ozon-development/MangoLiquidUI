@@ -32,7 +32,7 @@ Container (Frame, transparent, NO ClipsDescendants, NO UICorner)
   |                 +-- UIGradient (Name="InnerEdgeGradient", Rotation=90, 3-keypoint)
   +-- SpecularFrame (Frame, ZIndex=2, OUTSIDE clip boundary)
         +-- UICorner
-        +-- UIStroke (Name="SpecularStroke", 1.5px, directional)
+        +-- UIStroke (Name="SpecularStroke", 1.5px via theme / 1px hardcoded fallback, directional)
               +-- UIGradient (Name="SpecularGradient", Rotation=90, 3-keypoint fresnel)
 ```
 
@@ -193,7 +193,7 @@ Container (280x40 default, rounded rectangle NOT pill)
 ```
 Container (horizontal UIListLayout, 8px gap)
   +-- CheckboxFrame (24×24, CornerRadius=6)
-  |     +-- UIStroke (1px border, color animates)
+  |     +-- UIStroke (1.5px border, color animates)
   |     +-- CheckFill (UIScale 0→1 on toggle, 0.2s Back Out)
   |     +-- CheckmarkLabel ("✓", SourceSansBold, white, ZIndex=10)
   |     +-- HitArea (TextButton, ZIndex=100)
@@ -280,14 +280,17 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
                     |     |     +-- CloseLabel (TextLabel, "X", GothamBold 12px)
                     |     |     +-- CloseHitArea (TextButton, ZIndex=100, transparent, 8px expanded)
                     |     +-- DragHitArea (TextButton, excludes close button, for drag input)
-                    +-- TabSelectorFrame (Frame, variable height, hidden if single tab)
-                    |     +-- MangoSegmentedControl (appears when tabs > 1, 32px tall)
+                    +-- TabSelectorFrame (Frame, size=0 when carousel active, hidden)
                     +-- ContentArea (Frame, scrollable, ClipsDescendants=true, UIPadding 8px top/bottom)
                           +-- Tab_N (ScrollingFrame, per-tab content, AutomaticCanvasSize=Y)
                                 +-- UIScale (scale animation target for tab switch)
                                 +-- UIListLayout (Vertical, 10px gap)
                                 +-- UIPadding (4px top/bottom)
                                 +-- Row_Element (Frame per element)
+  +-- CarouselDock (MangoCarousel, floating left of window, 12px gap, AnchorPoint=1,1)
+  |     +-- Follows window on drag via updateDockPosition()
+  |     +-- Show: slides up 30px (0.4s Back Out, 0.1s delay), Hide: immediate
+  |     +-- Only created when tabs > 1, destroyed when tabs <= 1
   +-- ReopenerGlass (MangoGlassFrame, 70% transparency, pill shape, hidden initially)
         +-- ReopenerLabel (TextLabel, "ShowButton v", GothamMedium 13px)
         +-- ReopenerHitArea (TextButton, transparent, for reopen click)
@@ -320,7 +323,7 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 - **MangoIntro.luau** — Auto-play intro animation module. Extracted from demo's `playIntroAnimation()`. Uses `MangoGlassFrame.new()`, 4-layer 3D glass text with staggered scale bounce, spotlight rotation, shimmer sweep, 2.5s total timeline. Acquires PlayerGui dynamically. `isDestroyed` guards on all `task.delay` callbacks. Sound ref stored for cleanup on `skip()`. Exports `module.play(config?)` and `module.skip()`.
 - **MangoProtection.luau** — Anti-detection security module. Provides 5 layers of defense: (1) Hidden parenting via `gethui()` → CoreGui → PlayerGui fallback chain, (2) Metamethod hooking (`__namecall`/`__index`) that filters protected instances from `GetChildren()`, `GetDescendants()`, `FindFirstChild()` calls by game scripts while allowing executor code full access via `checkcaller()`, (3) Instance identity obfuscation with GUID-based randomized names for all containers, ScreenGuis, RenderStep bindings, and refraction Parts, (4) Connection protection via `newcclosure()` wrapping, (5) Property spoofing returning `nil` parent for protected instances to non-executor callers. All executor-specific globals (`gethui`, `cloneref`, `hookmetamethod`, `newcclosure`, `checkcaller`, `getnamecallmethod`, `syn.protect_gui`) accessed via `pcall` for `--!strict` safety. Uses weak-keyed `protectedInstances` registry with automatic `DescendantAdded` listener. `registerInstance()` has a nil guard for safety. Gracefully falls back to standard Roblox Studio behavior when no executor features are available. Provides centralized `createScreenGui()` helper that replaces duplicated ScreenGui creation across 8+ modules. All protection is automatic and transparent — no API changes to existing modules.
 - **MangoCarousel.luau** — Apple Watch-style vertical carousel dock. Paraboloid focus scaling (0.5x→1.0x) with accent-colored icons, animated active dots, mouse wheel / touch swipe navigation. ClipFrame uses 14px edge padding to prevent shadow and dot clipping. Hover (1.04x Back Out), press (0.92x Quad Out), scroll (variable duration based on wrap distance). Composes MangoGlassFrame for dock background.
-- **MangoWindow.luau** — Feature-rich configuration UI window. Multi-tab support via MangoSegmentedControl, 12+ element types (sliders, toggles, dropdowns, color pickers, keybinds, etc.), automatic config saving/loading via MangoSaveManager, flag dependency visibility system. ContentArea has UIPadding (8px top/bottom) inside ClipsDescendants=true for shadow breathing room. Show/hide animations (UIScale 0.95→1, Back Out). Draggable title bar, close button, reopener pill. Composes MangoGlassFrame, MangoNotificationStack, MangoDialog.
+- **MangoWindow.luau** — Feature-rich configuration UI window. Multi-tab support via floating MangoCarousel dock (replaces in-window MangoSegmentedControl), 12+ element types (sliders, toggles, dropdowns, color pickers, keybinds, etc.), automatic config saving/loading via MangoSaveManager, flag dependency visibility system. Carousel dock is a sibling of windowContainer at the ScreenGui level, positioned to the left of the window with a 12px gap, follows window on drag, shows/hides with window animations. ContentArea has UIPadding (8px top/bottom) inside ClipsDescendants=true for shadow breathing room. Show/hide animations (UIScale 0.95→1, Back Out). Draggable title bar, close button, reopener pill. Composes MangoGlassFrame, MangoCarousel, MangoNotificationStack, MangoDialog.
 - **init.luau** — Re-exports all modules, Themes, type aliases, the `transitionTheme()` utility function, short-name constructor aliases (`bttn`, `sldr`, `tgl`, etc.), theme shortcuts (`Light`, `Dark`, `Mango`, `Mint`), `gui()` ScreenGui helper, `intro` module shortcut, and auto-plays `MangoIntro.play()` via `task.spawn` on require. Protection API: `protect()`, `isProtected()`, `protectionLevel()`. `gui()` helper uses `MangoProtection.createScreenGui()` for automatic hidden parenting.
 - **MangoLiquidUI_Demo.client.luau** — Self-contained LocalScript demo. Single centered glass panel (680x500, resizable, draggable) with 4-tab content (Home, Showcase, Effects, Settings) navigated by Apple Watch-style MangoCarousel dock. Intro animation with 4-layer 3D glass text. All 4 themes, environment lighting, refraction, parallax. Uses LightweightMode for everything except the main panel (2 CanvasGroups total). Single RefractionProxy. Buttons use single custom drop shadows instead of multi-layer system.
 
@@ -509,7 +512,7 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 
 `MangoNotificationConfig`: `Title? (default "Notification"), Body?, Icon?, Duration? (default 5, 0=no auto-dismiss), Theme?, OnDismissed?, Parent?`
 
-`MangoNotificationStackConfig`: `MaxVisible? (default 3), StackGap? (default 8), Theme?, Parent?`
+`MangoNotificationStackConfig`: `MaxVisible? (default 3), StackGap? (default 8, theme override 14), Theme?, Parent?`
 
 `MangoSegmentedControlConfig`: `Position? (default 0,0), AnchorPoint?, Segments? (default {"Tab 1", "Tab 2"}), InitialIndex?, SegmentWidth? (default 90), Height? (default 36), Theme?, OnChanged?, Parent?`
 
