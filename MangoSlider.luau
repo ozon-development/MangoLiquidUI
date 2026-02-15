@@ -74,6 +74,9 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- TrackShadow1 (outer, subtle shadow — fixed transparency)
 	local trackShadow1 = Instance.new("Frame")
 	trackShadow1.Name = "TrackShadow1"
@@ -84,6 +87,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	trackShadow1.BackgroundTransparency = 0.86
 	trackShadow1.BorderSizePixel = 0
 	trackShadow1.ZIndex = 0
+	trackShadow1.Visible = shadowEnabled
 	trackShadow1.Parent = container
 
 	local trackShadow1Corner = Instance.new("UICorner")
@@ -100,6 +104,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	trackShadow2.BackgroundTransparency = 0.82
 	trackShadow2.BorderSizePixel = 0
 	trackShadow2.ZIndex = 0
+	trackShadow2.Visible = shadowEnabled
 	trackShadow2.Parent = container
 
 	local trackShadow2Corner = Instance.new("UICorner")
@@ -162,14 +167,16 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	})
 	fillHighlightGradient.Parent = fillHighlight
 
-	-- TrackSpecularFrame (transparent, specular rim on track)
+	-- TrackSpecularFrame (outside trackSurface to avoid ClipsDescendants clipping the Border-mode stroke)
 	local trackSpecularFrame = Instance.new("Frame")
 	trackSpecularFrame.Name = "TrackSpecularFrame"
-	trackSpecularFrame.Size = UDim2.new(1, 0, 1, 0)
+	trackSpecularFrame.Size = UDim2.new(1, 0, 0, 6)
+	trackSpecularFrame.Position = UDim2.new(0, 0, 0.5, 0)
+	trackSpecularFrame.AnchorPoint = Vector2.new(0, 0.5)
 	trackSpecularFrame.BackgroundTransparency = 1
 	trackSpecularFrame.BorderSizePixel = 0
 	trackSpecularFrame.ZIndex = 2
-	trackSpecularFrame.Parent = trackSurface
+	trackSpecularFrame.Parent = container
 
 	local trackSpecularCorner = Instance.new("UICorner")
 	trackSpecularCorner.CornerRadius = UDim.new(0, 999)

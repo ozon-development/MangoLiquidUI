@@ -166,6 +166,13 @@ function module.new(config: Types.MangoBottomSheetConfig): Types.MangoBottomShee
 	contentFrame.ZIndex = 10
 	contentFrame.Parent = glassFrame.GlassSurface
 
+	local contentPadding = Instance.new("UIPadding")
+	contentPadding.PaddingTop = UDim.new(0, 8)
+	contentPadding.PaddingBottom = UDim.new(0, 8)
+	contentPadding.PaddingLeft = UDim.new(0, 8)
+	contentPadding.PaddingRight = UDim.new(0, 8)
+	contentPadding.Parent = contentFrame
+
 	-- Helper: compute Y position for a snap fraction
 	-- snapFraction is the fraction of viewport height visible from bottom
 	-- Position is relative to bottom of screen (AnchorPoint=0.5,1)

@@ -242,6 +242,7 @@ export type MangoToggleConfig = {
 	Position: UDim2,
 	AnchorPoint: Vector2?,
 	Scale: number?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	InitialState: boolean?,
 	OnToggled: ((state: boolean) -> ())?,
@@ -252,6 +253,7 @@ export type MangoSliderConfig = {
 	Position: UDim2,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	InitialValue: number?,
 	Min: number?,
@@ -268,6 +270,7 @@ export type MangoButtonConfig = {
 	Text: string,
 	TextSize: number?,
 	BackgroundTransparency: number?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	OnActivated: (() -> ())?,
 	Parent: GuiObject?,
@@ -433,6 +436,7 @@ export type MangoDropdownConfig = {
 	InitialIndex: number?,
 	MultiSelect: boolean?,
 	InitialItems: {string}?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	OnChanged: ((index: number) -> ())?,
 	OnMultiChanged: (({string}) -> ())?,
@@ -494,6 +498,7 @@ export type MangoTextFieldConfig = {
 	Placeholder: string?,
 	InitialText: string?,
 	Masked: boolean?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	OnTextChanged: ((text: string) -> ())?,
 	OnFocusLost: ((text: string, enterPressed: boolean) -> ())?,
@@ -532,6 +537,7 @@ export type MangoProgressBarConfig = {
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialValue: number?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	Parent: GuiObject?,
 }
@@ -679,6 +685,7 @@ export type MangoStepperConfig = {
 	Min: number?,
 	Max: number?,
 	Step: number?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	OnChanged: ((value: number) -> ())?,
 	Parent: GuiObject?,
@@ -883,6 +890,7 @@ export type MangoKeybindConfig = {
 	AnchorPoint: Vector2?,
 	Label: string?,
 	DefaultKey: string?,
+	ShadowEnabled: boolean?,
 	Theme: ThemePreset?,
 	OnKeyChanged: ((keyName: string) -> ())?,
 	Parent: GuiObject?,
@@ -3278,6 +3286,9 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- ============================================================
 	-- TrackShadow1 (outer, subtle)
 	-- ============================================================
@@ -3290,6 +3301,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	trackShadow1.BackgroundTransparency = 0.92
 	trackShadow1.BorderSizePixel = 0
 	trackShadow1.ZIndex = 0
+	trackShadow1.Visible = shadowEnabled
 	trackShadow1.Parent = container
 
 	local trackShadow1Corner = Instance.new("UICorner")
@@ -3308,6 +3320,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	trackShadow2.BackgroundTransparency = 0.84
 	trackShadow2.BorderSizePixel = 0
 	trackShadow2.ZIndex = 0
+	trackShadow2.Visible = shadowEnabled
 	trackShadow2.Parent = container
 
 	local trackShadow2Corner = Instance.new("UICorner")
@@ -3664,6 +3677,9 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- TrackShadow1 (outer, subtle shadow — fixed transparency)
 	local trackShadow1 = Instance.new("Frame")
 	trackShadow1.Name = "TrackShadow1"
@@ -3674,6 +3690,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	trackShadow1.BackgroundTransparency = 0.86
 	trackShadow1.BorderSizePixel = 0
 	trackShadow1.ZIndex = 0
+	trackShadow1.Visible = shadowEnabled
 	trackShadow1.Parent = container
 
 	local trackShadow1Corner = Instance.new("UICorner")
@@ -3690,6 +3707,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	trackShadow2.BackgroundTransparency = 0.82
 	trackShadow2.BorderSizePixel = 0
 	trackShadow2.ZIndex = 0
+	trackShadow2.Visible = shadowEnabled
 	trackShadow2.Parent = container
 
 	local trackShadow2Corner = Instance.new("UICorner")
@@ -3752,14 +3770,16 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 	})
 	fillHighlightGradient.Parent = fillHighlight
 
-	-- TrackSpecularFrame (transparent, specular rim on track)
+	-- TrackSpecularFrame (outside trackSurface to avoid ClipsDescendants clipping the Border-mode stroke)
 	local trackSpecularFrame = Instance.new("Frame")
 	trackSpecularFrame.Name = "TrackSpecularFrame"
-	trackSpecularFrame.Size = UDim2.new(1, 0, 1, 0)
+	trackSpecularFrame.Size = UDim2.new(1, 0, 0, 6)
+	trackSpecularFrame.Position = UDim2.new(0, 0, 0.5, 0)
+	trackSpecularFrame.AnchorPoint = Vector2.new(0, 0.5)
 	trackSpecularFrame.BackgroundTransparency = 1
 	trackSpecularFrame.BorderSizePixel = 0
 	trackSpecularFrame.ZIndex = 2
-	trackSpecularFrame.Parent = trackSurface
+	trackSpecularFrame.Parent = container
 
 	local trackSpecularCorner = Instance.new("UICorner")
 	trackSpecularCorner.CornerRadius = UDim.new(0, 999)
@@ -4326,6 +4346,9 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- Shadow layer 1 (outer)
 	local shadow1 = Instance.new("Frame")
 	shadow1.Name = "ShadowLayer1"
@@ -4336,6 +4359,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	shadow1.BackgroundTransparency = 0.88
 	shadow1.BorderSizePixel = 0
 	shadow1.ZIndex = 0
+	shadow1.Visible = shadowEnabled
 	shadow1.Parent = container
 
 	local shadow1Corner = Instance.new("UICorner")
@@ -4352,6 +4376,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	shadow2.BackgroundTransparency = 0.84
 	shadow2.BorderSizePixel = 0
 	shadow2.ZIndex = 0
+	shadow2.Visible = shadowEnabled
 	shadow2.Parent = container
 
 	local shadow2Corner = Instance.new("UICorner")
@@ -4411,14 +4436,16 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	})
 	fillHighlightGradient.Parent = fillHighlight
 
-	-- TrackSpecularFrame (specular rim on track)
+	-- TrackSpecularFrame (outside trackSurface to avoid ClipsDescendants clipping the Border-mode stroke)
 	local trackSpecularFrame = Instance.new("Frame")
 	trackSpecularFrame.Name = "TrackSpecularFrame"
-	trackSpecularFrame.Size = UDim2.new(1, 0, 1, 0)
+	trackSpecularFrame.Size = UDim2.new(1, 0, 0, 6)
+	trackSpecularFrame.Position = UDim2.new(0, 0, 0.5, 0)
+	trackSpecularFrame.AnchorPoint = Vector2.new(0, 0.5)
 	trackSpecularFrame.BackgroundTransparency = 1
 	trackSpecularFrame.BorderSizePixel = 0
 	trackSpecularFrame.ZIndex = 2
-	trackSpecularFrame.Parent = trackSurface
+	trackSpecularFrame.Parent = container
 
 	local trackSpecularCorner = Instance.new("UICorner")
 	trackSpecularCorner.CornerRadius = UDim.new(0, 999)
@@ -4559,16 +4586,24 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 		return tween
 	end
 
-	-- Container (pill shape, clips descendants)
+	-- OuterWrapper (no ClipsDescendants, holds size/position, receives OuterSpecularFrame)
 	local totalWidth = segmentWidth * segmentCount
+	local outerWrapper = Instance.new("Frame")
+	outerWrapper.Name = MangoProtection.randomName("SegControl")
+	outerWrapper.Size = UDim2.new(0, totalWidth, 0, height)
+	outerWrapper.Position = position
+	outerWrapper.AnchorPoint = anchorPoint
+	outerWrapper.BackgroundTransparency = 1
+	outerWrapper.BorderSizePixel = 0
+
+	-- Container (pill shape, clips descendants for sliding indicator)
 	local container = Instance.new("Frame")
-	container.Name = MangoProtection.randomName("SegControl")
-	container.Size = UDim2.new(0, totalWidth, 0, height)
-	container.Position = position
-	container.AnchorPoint = anchorPoint
+	container.Name = "InnerContainer"
+	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 	container.ClipsDescendants = true
+	container.Parent = outerWrapper
 
 	-- BackgroundGlass (glass tint background)
 	local backgroundGlass = Instance.new("Frame")
@@ -4660,7 +4695,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	outerSpecFrame.BackgroundTransparency = 1
 	outerSpecFrame.BorderSizePixel = 0
 	outerSpecFrame.ZIndex = 11
-	outerSpecFrame.Parent = container
+	outerSpecFrame.Parent = outerWrapper
 
 	local outerSpecCorner = Instance.new("UICorner")
 	outerSpecCorner.CornerRadius = UDim.new(0, 999)
@@ -4726,12 +4761,12 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 
 	-- Parent assignment
 	if config.Parent then
-		container.Parent = config.Parent
+		outerWrapper.Parent = config.Parent
 	end
 
 	-- Return table
 	local self: Types.MangoSegmentedControl = {
-		Container = container,
+		Container = outerWrapper,
 		SetIndex = function(self: Types.MangoSegmentedControl, index: number)
 			selectIndex(index)
 		end,
@@ -4744,7 +4779,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 				conn:Disconnect()
 			end
 			table.clear(connections)
-			container:Destroy()
+			outerWrapper:Destroy()
 		end,
 	}
 
@@ -5027,6 +5062,9 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- Shadow layer 1 (outer)
 	local shadow1 = Instance.new("Frame")
 	shadow1.Name = "ShadowLayer1"
@@ -5037,6 +5075,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	shadow1.BackgroundTransparency = 0.92
 	shadow1.BorderSizePixel = 0
 	shadow1.ZIndex = 0
+	shadow1.Visible = shadowEnabled
 	shadow1.Parent = container
 
 	local shadow1Corner = Instance.new("UICorner")
@@ -5053,6 +5092,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	shadow2.BackgroundTransparency = 0.88
 	shadow2.BorderSizePixel = 0
 	shadow2.ZIndex = 0
+	shadow2.Visible = shadowEnabled
 	shadow2.Parent = container
 
 	local shadow2Corner = Instance.new("UICorner")
@@ -5586,7 +5626,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = buttonTransparency,
 		Theme = config.Theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 5,
 		ShadowOffsetY = 1,
@@ -6447,7 +6487,7 @@ function module.new(config: Types.MangoStepperConfig): Types.MangoStepper
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = bgTransparency,
 		Theme = theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 4,
 		ShadowOffsetY = 1,
@@ -8555,7 +8595,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = dropdownBgTransparency,
 		Theme = theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 4,
 		ShadowOffsetY = 1,
@@ -10259,6 +10299,13 @@ function module.new(config: Types.MangoBottomSheetConfig): Types.MangoBottomShee
 	contentFrame.ClipsDescendants = true
 	contentFrame.ZIndex = 10
 	contentFrame.Parent = glassFrame.GlassSurface
+
+	local contentPadding = Instance.new("UIPadding")
+	contentPadding.PaddingTop = UDim.new(0, 8)
+	contentPadding.PaddingBottom = UDim.new(0, 8)
+	contentPadding.PaddingLeft = UDim.new(0, 8)
+	contentPadding.PaddingRight = UDim.new(0, 8)
+	contentPadding.Parent = contentFrame
 
 	-- Helper: compute Y position for a snap fraction
 	-- snapFraction is the fraction of viewport height visible from bottom
@@ -12130,7 +12177,7 @@ function module.new(config: Types.MangoKeybindConfig): Types.MangoKeybind
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = pillTransparency,
 		Theme = theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 4,
 		ShadowOffsetY = 1,
@@ -13218,12 +13265,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	contentArea.ClipsDescendants = true
 	contentArea.Parent = windowContent
 
-	local contentAreaPadding = Instance.new("UIPadding")
-	contentAreaPadding.PaddingTop = UDim.new(0, 8)
-	contentAreaPadding.PaddingBottom = UDim.new(0, 8)
-	contentAreaPadding.PaddingLeft = UDim.new(0, 8)
-	contentAreaPadding.PaddingRight = UDim.new(0, 8)
-	contentAreaPadding.Parent = contentArea
+	-- Note: contentArea padding removed — windowContent's 14px padding provides adequate spacing
 
 	-- Reopener pill (hidden initially)
 	local reopenerGlass = MangoGlassFrame.new({
@@ -13612,7 +13654,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		-- Tab methods
 		local tab: Types.MangoWindowTab = {
 			Button = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowButtonConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local btn = MangoButton.new({
@@ -13620,6 +13662,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Size = UDim2.new(1, 0, 0, 36),
 					Text = cfg.Name,
 					Theme = theme,
+					ShadowEnabled = false,
 					OnActivated = cfg.Callback,
 					Parent = row,
 				})
@@ -13640,7 +13683,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Toggle = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowToggleConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 36)
+				local row = createRow(tabFrame, 38)
 				row.LayoutOrder = nextOrder()
 
 				local nameLabel = Instance.new("TextLabel")
@@ -13659,6 +13702,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(1, -51, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					Theme = theme,
+					ShadowEnabled = false,
 					InitialState = defaultVal,
 					OnToggled = function(state: boolean)
 						if cfg.Flag then updateFlag(cfg.Flag, state) end
@@ -13681,7 +13725,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Slider = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowSliderConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 54)
+				local row = createRow(tabFrame, 56)
 				row.LayoutOrder = nextOrder()
 
 				local range = cfg.Range or {0, 100}
@@ -13705,6 +13749,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(0, 0, 0, 22),
 					Size = UDim2.new(1, 0, 0, 32),
 					Theme = theme,
+					ShadowEnabled = false,
 					InitialValue = defaultVal,
 					Min = minVal,
 					Max = maxVal,
@@ -13734,7 +13779,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Dropdown = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowDropdownConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local options = cfg.Options or {}
@@ -13768,6 +13813,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				local dropdown = MangoDropdown.new({
 					Position = UDim2.new(0.42, 0, 0, 2),
 					Size = UDim2.new(0.56, 0, 0, 36),
+					ShadowEnabled = false,
 					Items = options,
 					InitialIndex = initIndex,
 					MultiSelect = isMulti,
@@ -13838,6 +13884,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Placeholder = cfg.Placeholder,
 					InitialText = defaultText,
 					Masked = cfg.Masked,
+					ShadowEnabled = false,
 					Theme = theme,
 					OnFocusLost = function(text: string, _enterPressed: boolean)
 						if cfg.Flag then updateFlag(cfg.Flag, text) end
@@ -13890,7 +13937,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Stepper = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowStepperConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local range = cfg.Range or {0, 100}
@@ -13913,6 +13960,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					InitialValue = defaultVal,
 					Min = range[1],
 					Max = range[2],
+					ShadowEnabled = false,
 					Theme = theme,
 					OnChanged = function(value: number)
 						if cfg.Flag then updateFlag(cfg.Flag, value) end
@@ -13935,7 +13983,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Progress = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowProgressConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local defaultVal = resolve(cfg.Default, nil, 0) :: number
@@ -13955,6 +14003,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(0, 0, 0, 20),
 					Size = UDim2.new(1, 0, 0, 20),
 					InitialValue = defaultVal,
+					ShadowEnabled = false,
 					Theme = theme,
 					Parent = row,
 				})
@@ -14071,7 +14120,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Keybind = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowKeybindConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 36)
+				local row = createRow(tabFrame, 38)
 				row.LayoutOrder = nextOrder()
 
 				local defaultKey = resolve(cfg.Default, nil, "None") :: string
@@ -14091,6 +14140,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(1, -80, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					DefaultKey = defaultKey,
+					ShadowEnabled = false,
 					Theme = theme,
 					OnKeyChanged = function(keyName: string)
 						if cfg.Flag then updateFlag(cfg.Flag, keyName) end

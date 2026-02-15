@@ -147,7 +147,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = dropdownBgTransparency,
 		Theme = theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 4,
 		ShadowOffsetY = 1,

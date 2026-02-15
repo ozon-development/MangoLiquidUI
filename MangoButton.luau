@@ -39,7 +39,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = buttonTransparency,
 		Theme = config.Theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 5,
 		ShadowOffsetY = 1,

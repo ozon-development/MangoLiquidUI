@@ -29,7 +29,7 @@ function module.new(config: Types.MangoStepperConfig): Types.MangoStepper
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = bgTransparency,
 		Theme = theme,
-		ShadowEnabled = true,
+		ShadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean,
 		ShadowLayerCount = 2,
 		ShadowSpread = 4,
 		ShadowOffsetY = 1,

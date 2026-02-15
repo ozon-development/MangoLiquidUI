@@ -61,6 +61,9 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- ============================================================
 	-- TrackShadow1 (outer, subtle)
 	-- ============================================================
@@ -73,6 +76,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	trackShadow1.BackgroundTransparency = 0.92
 	trackShadow1.BorderSizePixel = 0
 	trackShadow1.ZIndex = 0
+	trackShadow1.Visible = shadowEnabled
 	trackShadow1.Parent = container
 
 	local trackShadow1Corner = Instance.new("UICorner")
@@ -91,6 +95,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	trackShadow2.BackgroundTransparency = 0.84
 	trackShadow2.BorderSizePixel = 0
 	trackShadow2.ZIndex = 0
+	trackShadow2.Visible = shadowEnabled
 	trackShadow2.Parent = container
 
 	local trackShadow2Corner = Instance.new("UICorner")

@@ -52,6 +52,9 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- Shadow layer 1 (outer)
 	local shadow1 = Instance.new("Frame")
 	shadow1.Name = "ShadowLayer1"
@@ -62,6 +65,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	shadow1.BackgroundTransparency = 0.92
 	shadow1.BorderSizePixel = 0
 	shadow1.ZIndex = 0
+	shadow1.Visible = shadowEnabled
 	shadow1.Parent = container
 
 	local shadow1Corner = Instance.new("UICorner")
@@ -78,6 +82,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 	shadow2.BackgroundTransparency = 0.88
 	shadow2.BorderSizePixel = 0
 	shadow2.ZIndex = 0
+	shadow2.Visible = shadowEnabled
 	shadow2.Parent = container
 
 	local shadow2Corner = Instance.new("UICorner")

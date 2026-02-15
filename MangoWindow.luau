@@ -305,12 +305,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 	contentArea.ClipsDescendants = true
 	contentArea.Parent = windowContent
 
-	local contentAreaPadding = Instance.new("UIPadding")
-	contentAreaPadding.PaddingTop = UDim.new(0, 8)
-	contentAreaPadding.PaddingBottom = UDim.new(0, 8)
-	contentAreaPadding.PaddingLeft = UDim.new(0, 8)
-	contentAreaPadding.PaddingRight = UDim.new(0, 8)
-	contentAreaPadding.Parent = contentArea
+	-- Note: contentArea padding removed — windowContent's 14px padding provides adequate spacing
 
 	-- Reopener pill (hidden initially)
 	local reopenerGlass = MangoGlassFrame.new({
@@ -699,7 +694,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		-- Tab methods
 		local tab: Types.MangoWindowTab = {
 			Button = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowButtonConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local btn = MangoButton.new({
@@ -707,6 +702,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Size = UDim2.new(1, 0, 0, 36),
 					Text = cfg.Name,
 					Theme = theme,
+					ShadowEnabled = false,
 					OnActivated = cfg.Callback,
 					Parent = row,
 				})
@@ -727,7 +723,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Toggle = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowToggleConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 36)
+				local row = createRow(tabFrame, 38)
 				row.LayoutOrder = nextOrder()
 
 				local nameLabel = Instance.new("TextLabel")
@@ -746,6 +742,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(1, -51, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					Theme = theme,
+					ShadowEnabled = false,
 					InitialState = defaultVal,
 					OnToggled = function(state: boolean)
 						if cfg.Flag then updateFlag(cfg.Flag, state) end
@@ -768,7 +765,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Slider = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowSliderConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 54)
+				local row = createRow(tabFrame, 56)
 				row.LayoutOrder = nextOrder()
 
 				local range = cfg.Range or {0, 100}
@@ -792,6 +789,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(0, 0, 0, 22),
 					Size = UDim2.new(1, 0, 0, 32),
 					Theme = theme,
+					ShadowEnabled = false,
 					InitialValue = defaultVal,
 					Min = minVal,
 					Max = maxVal,
@@ -821,7 +819,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Dropdown = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowDropdownConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local options = cfg.Options or {}
@@ -855,6 +853,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				local dropdown = MangoDropdown.new({
 					Position = UDim2.new(0.42, 0, 0, 2),
 					Size = UDim2.new(0.56, 0, 0, 36),
+					ShadowEnabled = false,
 					Items = options,
 					InitialIndex = initIndex,
 					MultiSelect = isMulti,
@@ -925,6 +924,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Placeholder = cfg.Placeholder,
 					InitialText = defaultText,
 					Masked = cfg.Masked,
+					ShadowEnabled = false,
 					Theme = theme,
 					OnFocusLost = function(text: string, _enterPressed: boolean)
 						if cfg.Flag then updateFlag(cfg.Flag, text) end
@@ -977,7 +977,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Stepper = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowStepperConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local range = cfg.Range or {0, 100}
@@ -1000,6 +1000,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					InitialValue = defaultVal,
 					Min = range[1],
 					Max = range[2],
+					ShadowEnabled = false,
 					Theme = theme,
 					OnChanged = function(value: number)
 						if cfg.Flag then updateFlag(cfg.Flag, value) end
@@ -1022,7 +1023,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Progress = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowProgressConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 40)
+				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
 
 				local defaultVal = resolve(cfg.Default, nil, 0) :: number
@@ -1042,6 +1043,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(0, 0, 0, 20),
 					Size = UDim2.new(1, 0, 0, 20),
 					InitialValue = defaultVal,
+					ShadowEnabled = false,
 					Theme = theme,
 					Parent = row,
 				})
@@ -1158,7 +1160,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			end,
 
 			Keybind = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowKeybindConfig): Types.MangoWindowElement
-				local row = createRow(tabFrame, 36)
+				local row = createRow(tabFrame, 38)
 				row.LayoutOrder = nextOrder()
 
 				local defaultKey = resolve(cfg.Default, nil, "None") :: string
@@ -1178,6 +1180,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 					Position = UDim2.new(1, -80, 0.5, 0),
 					AnchorPoint = Vector2.new(0, 0.5),
 					DefaultKey = defaultKey,
+					ShadowEnabled = false,
 					Theme = theme,
 					OnKeyChanged = function(keyName: string)
 						if cfg.Flag then updateFlag(cfg.Flag, keyName) end

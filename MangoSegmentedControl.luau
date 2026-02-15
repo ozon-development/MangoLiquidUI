@@ -50,16 +50,24 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 		return tween
 	end
 
-	-- Container (pill shape, clips descendants)
+	-- OuterWrapper (no ClipsDescendants, holds size/position, receives OuterSpecularFrame)
 	local totalWidth = segmentWidth * segmentCount
+	local outerWrapper = Instance.new("Frame")
+	outerWrapper.Name = MangoProtection.randomName("SegControl")
+	outerWrapper.Size = UDim2.new(0, totalWidth, 0, height)
+	outerWrapper.Position = position
+	outerWrapper.AnchorPoint = anchorPoint
+	outerWrapper.BackgroundTransparency = 1
+	outerWrapper.BorderSizePixel = 0
+
+	-- Container (pill shape, clips descendants for sliding indicator)
 	local container = Instance.new("Frame")
-	container.Name = MangoProtection.randomName("SegControl")
-	container.Size = UDim2.new(0, totalWidth, 0, height)
-	container.Position = position
-	container.AnchorPoint = anchorPoint
+	container.Name = "InnerContainer"
+	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 	container.ClipsDescendants = true
+	container.Parent = outerWrapper
 
 	-- BackgroundGlass (glass tint background)
 	local backgroundGlass = Instance.new("Frame")
@@ -151,7 +159,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	outerSpecFrame.BackgroundTransparency = 1
 	outerSpecFrame.BorderSizePixel = 0
 	outerSpecFrame.ZIndex = 11
-	outerSpecFrame.Parent = container
+	outerSpecFrame.Parent = outerWrapper
 
 	local outerSpecCorner = Instance.new("UICorner")
 	outerSpecCorner.CornerRadius = UDim.new(0, 999)
@@ -217,12 +225,12 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 
 	-- Parent assignment
 	if config.Parent then
-		container.Parent = config.Parent
+		outerWrapper.Parent = config.Parent
 	end
 
 	-- Return table
 	local self: Types.MangoSegmentedControl = {
-		Container = container,
+		Container = outerWrapper,
 		SetIndex = function(self: Types.MangoSegmentedControl, index: number)
 			selectIndex(index)
 		end,
@@ -235,7 +243,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 				conn:Disconnect()
 			end
 			table.clear(connections)
-			container:Destroy()
+			outerWrapper:Destroy()
 		end,
 	}
 

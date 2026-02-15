@@ -58,6 +58,9 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
 
+	-- Shadow visibility
+	local shadowEnabled = resolve(config.ShadowEnabled, nil, true) :: boolean
+
 	-- Shadow layer 1 (outer)
 	local shadow1 = Instance.new("Frame")
 	shadow1.Name = "ShadowLayer1"
@@ -68,6 +71,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	shadow1.BackgroundTransparency = 0.88
 	shadow1.BorderSizePixel = 0
 	shadow1.ZIndex = 0
+	shadow1.Visible = shadowEnabled
 	shadow1.Parent = container
 
 	local shadow1Corner = Instance.new("UICorner")
@@ -84,6 +88,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	shadow2.BackgroundTransparency = 0.84
 	shadow2.BorderSizePixel = 0
 	shadow2.ZIndex = 0
+	shadow2.Visible = shadowEnabled
 	shadow2.Parent = container
 
 	local shadow2Corner = Instance.new("UICorner")
@@ -143,14 +148,16 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 	})
 	fillHighlightGradient.Parent = fillHighlight
 
-	-- TrackSpecularFrame (specular rim on track)
+	-- TrackSpecularFrame (outside trackSurface to avoid ClipsDescendants clipping the Border-mode stroke)
 	local trackSpecularFrame = Instance.new("Frame")
 	trackSpecularFrame.Name = "TrackSpecularFrame"
-	trackSpecularFrame.Size = UDim2.new(1, 0, 1, 0)
+	trackSpecularFrame.Size = UDim2.new(1, 0, 0, 6)
+	trackSpecularFrame.Position = UDim2.new(0, 0, 0.5, 0)
+	trackSpecularFrame.AnchorPoint = Vector2.new(0, 0.5)
 	trackSpecularFrame.BackgroundTransparency = 1
 	trackSpecularFrame.BorderSizePixel = 0
 	trackSpecularFrame.ZIndex = 2
-	trackSpecularFrame.Parent = trackSurface
+	trackSpecularFrame.Parent = container
 
 	local trackSpecularCorner = Instance.new("UICorner")
 	trackSpecularCorner.CornerRadius = UDim.new(0, 999)
