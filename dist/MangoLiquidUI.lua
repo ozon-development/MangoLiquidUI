@@ -5660,9 +5660,12 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	textLabel.TextSize = textSize
 	textLabel.TextColor3 = textColor
 	textLabel.BackgroundTransparency = 1
-	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.Size = UDim2.new(1, -16, 1, 0)
+	textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 	textLabel.TextXAlignment = Enum.TextXAlignment.Center
 	textLabel.TextYAlignment = Enum.TextYAlignment.Center
+	textLabel.TextTruncate = Enum.TextTruncate.AtEnd
 	textLabel.BorderSizePixel = 0
 	textLabel.ZIndex = 10
 	textLabel.Parent = glassFrame.GlassSurface
@@ -13348,12 +13351,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		carouselDock.Container.Position = UDim2.new(0, absPos.X - DOCK_GAP, 0, absPos.Y + absSize.Y)
 	end
 
-	-- === Drag system ===
-	local dragStartConn = dragHitArea.MouseButton1Down:Connect(function()
-		isDragging = true
-		local mousePos = UserInputService:GetMouseLocation()
-		local containerPos = windowContainer.AbsolutePosition
-		dragOffset = Vector2.new(mousePos.X - containerPos.X, mousePos.Y - containerPos.Y)
+	-- === Drag system (uses input.Position screen coords consistently, supports mouse + touch) ===
+	local dragStartConn = dragHitArea.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = true
+			local containerPos = windowContainer.AbsolutePosition
+			dragOffset = Vector2.new(input.Position.X - containerPos.X, input.Position.Y - containerPos.Y)
+		end
 	end)
 	table.insert(connections, dragStartConn)
 

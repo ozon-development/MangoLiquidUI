@@ -367,12 +367,13 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		carouselDock.Container.Position = UDim2.new(0, absPos.X - DOCK_GAP, 0, absPos.Y + absSize.Y)
 	end
 
-	-- === Drag system ===
-	local dragStartConn = dragHitArea.MouseButton1Down:Connect(function()
-		isDragging = true
-		local mousePos = UserInputService:GetMouseLocation()
-		local containerPos = windowContainer.AbsolutePosition
-		dragOffset = Vector2.new(mousePos.X - containerPos.X, mousePos.Y - containerPos.Y)
+	-- === Drag system (uses input.Position screen coords consistently, supports mouse + touch) ===
+	local dragStartConn = dragHitArea.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			isDragging = true
+			local containerPos = windowContainer.AbsolutePosition
+			dragOffset = Vector2.new(input.Position.X - containerPos.X, input.Position.Y - containerPos.Y)
+		end
 	end)
 	table.insert(connections, dragStartConn)
 

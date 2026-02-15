@@ -73,9 +73,12 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	textLabel.TextSize = textSize
 	textLabel.TextColor3 = textColor
 	textLabel.BackgroundTransparency = 1
-	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.Size = UDim2.new(1, -16, 1, 0)
+	textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 	textLabel.TextXAlignment = Enum.TextXAlignment.Center
 	textLabel.TextYAlignment = Enum.TextYAlignment.Center
+	textLabel.TextTruncate = Enum.TextTruncate.AtEnd
 	textLabel.BorderSizePixel = 0
 	textLabel.ZIndex = 10
 	textLabel.Parent = glassFrame.GlassSurface
