@@ -115,6 +115,17 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		Parent = container,
 	})
 
+	-- DockHitArea (full-size transparent button for scroll/touch capture across entire dock)
+	local dockHitArea = Instance.new("TextButton")
+	dockHitArea.Name = "DockHitArea"
+	dockHitArea.Size = UDim2.new(1, 0, 1, 0)
+	dockHitArea.BackgroundTransparency = 1
+	dockHitArea.Text = ""
+	dockHitArea.BorderSizePixel = 0
+	dockHitArea.ZIndex = 1
+	dockHitArea.AutoButtonColor = false
+	dockHitArea.Parent = dockGlass.GlassSurface
+
 	-- ClipFrame (clips the scrolling track, inside GlassSurface)
 	local edgePad = 14
 	local clipFrame = Instance.new("Frame")
@@ -489,19 +500,12 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 	end
 
 	-- ============================================================
-	-- Mouse Wheel Input
+	-- Mouse Wheel Input (on dock hit area for full bounding box coverage)
 	-- ============================================================
 
-	local scrollConn = UserInputService.InputChanged:Connect(function(input: InputObject)
+	local scrollConn = dockHitArea.InputChanged:Connect(function(input: InputObject)
 		if isDestroyed then return end
 		if input.UserInputType ~= Enum.UserInputType.MouseWheel then return end
-
-		-- Check if mouse is over dock bounds
-		local mousePos = UserInputService:GetMouseLocation()
-		local absPos = container.AbsolutePosition
-		local absSize = container.AbsoluteSize
-		if mousePos.X < absPos.X or mousePos.X > absPos.X + absSize.X then return end
-		if mousePos.Y < absPos.Y or mousePos.Y > absPos.Y + absSize.Y then return end
 
 		-- Scroll direction: negative Z = scroll down = next tab
 		local direction = if input.Position.Z < 0 then 1 else -1
@@ -510,28 +514,19 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 	table.insert(connections, scrollConn)
 
 	-- ============================================================
-	-- Touch Swipe Support
+	-- Touch Swipe Support (on dock hit area for full bounding box coverage)
 	-- ============================================================
 
 	local touchStartY: number? = nil
 
-	local touchBeganConn = UserInputService.InputBegan:Connect(function(input: InputObject)
+	local touchBeganConn = dockHitArea.InputBegan:Connect(function(input: InputObject)
 		if isDestroyed then return end
 		if input.UserInputType ~= Enum.UserInputType.Touch then return end
-
-		-- Check if touch is over dock bounds
-		local absPos = container.AbsolutePosition
-		local absSize = container.AbsoluteSize
-		local touchX = input.Position.X
-		local touchY = input.Position.Y
-		if touchX < absPos.X or touchX > absPos.X + absSize.X then return end
-		if touchY < absPos.Y or touchY > absPos.Y + absSize.Y then return end
-
-		touchStartY = touchY
+		touchStartY = input.Position.Y
 	end)
 	table.insert(connections, touchBeganConn)
 
-	local touchEndedConn = UserInputService.InputEnded:Connect(function(input: InputObject)
+	local touchEndedConn = dockHitArea.InputEnded:Connect(function(input: InputObject)
 		if isDestroyed then return end
 		if input.UserInputType ~= Enum.UserInputType.Touch then return end
 		if touchStartY == nil then return end
