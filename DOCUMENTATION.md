@@ -161,6 +161,27 @@ local btn = ui.bttn({
 ui.intro.skip()
 ```
 
+### Minimal Config (Sensible Defaults)
+
+All components now have sensible defaults for every config field. You can create a working component with just a `Parent`:
+
+```lua
+local ui = require(game.ReplicatedStorage.MangoLiquidUI)
+local screen = ui.gui("MyUI")
+
+-- These all render visible components at (0,0) with default text/values:
+ui.bttn({ Parent = screen })              -- "Button" at origin
+ui.tgl({ Parent = screen })               -- Toggle at origin
+ui.sldr({ Parent = screen })              -- Slider at origin
+ui.chk({ Parent = screen })               -- Checkbox at origin
+ui.prog({ Parent = screen })              -- Progress bar at origin
+ui.seg({ Parent = screen })               -- Segmented control with "Tab 1", "Tab 2"
+ui.drp({ Parent = screen })               -- Dropdown with "Option 1"
+ui.glass({ Parent = screen })             -- 200x100 glass panel at origin
+ui.dlg({ Theme = ui.Dark }):Show()        -- Dialog titled "Dialog"
+ui.notif({ Parent = screen }):Show()      -- Notification titled "Notification"
+```
+
 ### High-Level Window API (Recommended)
 
 ```lua
@@ -565,8 +586,8 @@ The foundational glass material component. All glass-based components compose th
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Size` | `UDim2` | *required* | Frame size |
-| `Position` | `UDim2` | *required* | Frame position |
+| `Size` | `UDim2?` | `(0, 200, 0, 100)` | Frame size |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Frame position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `CornerRadius` | `UDim?` | `UDim.new(0, 16)` | Corner rounding |
 | `BackgroundColor3` | `Color3?` | theme / white | Glass surface color |
@@ -830,10 +851,10 @@ Apple-style glass pill button with hover scale, press animation, opacity pulse, 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Button position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Button position |
 | `Size` | `UDim2?` | auto from text | Button size (auto-sizes if omitted) |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
-| `Text` | `string` | *required* | Button label |
+| `Text` | `string?` | `"Button"` | Button label |
 | `TextSize` | `number?` | `16` | Font size |
 | `BackgroundTransparency` | `number?` | theme / `0.65` | Glass opacity |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
@@ -877,7 +898,7 @@ Apple-style toggle switch with spring-animated knob and color-transitioning trac
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Toggle position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Toggle position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Scale` | `number?` | `1` | Size multiplier |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
@@ -920,7 +941,7 @@ Apple-style slider with 6px glass track, colored fill, and a 28px thumb that gro
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Slider position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Slider position |
 | `Size` | `UDim2?` | `(0, 200, 0, 36)` | Slider size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
@@ -970,7 +991,7 @@ Animated checkbox with UIScale fill animation and optional label. Checkmark uses
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Checkbox position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Checkbox position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Label` | `string?` | `nil` | Optional text label |
 | `InitialState` | `boolean?` | `false` | Starting checked state |
@@ -1014,7 +1035,7 @@ Numeric +/- stepper input with glass pill shape and long-press repeat.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Stepper position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Stepper position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `InitialValue` | `number?` | `0` | Starting value |
 | `Min` | `number?` | `0` | Minimum value |
@@ -1062,7 +1083,7 @@ Glass capsule progress bar matching the slider track visual style.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Bar position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Bar position |
 | `Size` | `UDim2?` | `(0, 200, 0, 20)` | Bar size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `InitialValue` | `number?` | `0` | Starting value (0-1) |
@@ -1105,9 +1126,9 @@ Apple-style segmented control with sliding selected indicator.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Control position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Control position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
-| `Segments` | `{string}` | *required* | Segment labels |
+| `Segments` | `{string}?` | `{"Tab 1", "Tab 2"}` | Segment labels |
 | `InitialIndex` | `number?` | `1` | Initially selected segment |
 | `SegmentWidth` | `number?` | `90` | Width per segment in px |
 | `Height` | `number?` | `36` | Control height in px |
@@ -1152,7 +1173,7 @@ HSV color picker with glass-styled panel, saturation-brightness box, hue bar, an
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Picker position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Picker position |
 | `Size` | `UDim2?` | `(0, 260, 0, 200)` | Panel size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `InitialColor` | `Color3?` | `Color3.fromRGB(255, 0, 0)` | Starting color |
@@ -1207,7 +1228,7 @@ Keybind capture input with a glass pill button. Click to listen, press any key t
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Keybind position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Keybind position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Label` | `string?` | `nil` | Optional text label |
 | `DefaultKey` | `string?` | `"None"` | Initial bound key name |
@@ -1265,7 +1286,7 @@ Rounded rectangle text input with animated focus border. Supports password maski
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Field position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Field position |
 | `Size` | `UDim2?` | `(0, 280, 0, 40)` | Field size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Placeholder` | `string?` | `nil` | Placeholder text |
@@ -1323,7 +1344,7 @@ Pill-shaped glass search bar with search icon, TextBox, and clear button (`"X"` 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Bar position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Bar position |
 | `Size` | `UDim2?` | auto | Bar size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `Placeholder` | `string?` | `nil` | Placeholder text |
@@ -1371,10 +1392,10 @@ Apple-style dropdown menu with glass trigger and panel. Supports single-select a
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Dropdown position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Dropdown position |
 | `Size` | `UDim2?` | `(0, 200, 0, 36)` | Trigger button size |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
-| `Items` | `{string}` | *required* | List of options |
+| `Items` | `{string}?` | `{"Option 1"}` | List of options |
 | `InitialIndex` | `number?` | `1` | Initially selected item (single-select) |
 | `InitialItems` | `{string}?` | `nil` | Initially selected items (multi-select) |
 | `MultiSelect` | `boolean?` | `false` | Enable multi-select mode |
@@ -1447,7 +1468,7 @@ Bottom tab bar with dot indicator and icon/label support.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Tabs` | `{{Icon: string?, Label: string}}` | *required* | Tab definitions |
+| `Tabs` | `{{Icon: string?, Label: string}}?` | `{{Label = "Tab"}}` | Tab definitions |
 | `InitialIndex` | `number?` | `1` | Initially selected tab |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
 | `OnChanged` | `((index: number) -> ())?` | `nil` | Tab change callback |
@@ -1492,8 +1513,8 @@ Right-click glass context menu. Triggers on MouseButton2 (right-click) and touch
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Target` | `GuiObject` | *required* | Element that triggers the menu |
-| `Items` | `{MangoContextMenuItemConfig}` | *required* | Menu items |
+| `Target` | `GuiObject?` | `nil` | Element that triggers the menu |
+| `Items` | `{MangoContextMenuItemConfig}?` | `{{Text = "Item"}}` | Menu items |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
 | `Parent` | `GuiObject?` | `nil` | Parent instance |
 
@@ -1613,7 +1634,7 @@ Centered modal dialog with Apple-style button layouts.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Title` | `string` | *required* | Dialog title |
+| `Title` | `string?` | `"Dialog"` | Dialog title |
 | `Message` | `string?` | `nil` | Body message |
 | `Buttons` | `{MangoDialogButtonConfig}?` | `[{Text="OK"}]` | Action buttons |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
@@ -1667,7 +1688,7 @@ Bottom action sheet with separate cancel button.
 |-------|------|---------|-------------|
 | `Title` | `string?` | `nil` | Sheet title |
 | `Message` | `string?` | `nil` | Description text |
-| `Actions` | `{MangoActionSheetActionConfig}` | *required* | Action buttons |
+| `Actions` | `{MangoActionSheetActionConfig}?` | `{{Text = "OK"}}` | Action buttons |
 | `CancelText` | `string?` | `"Cancel"` | Cancel button text |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
 | `OnDismissed` | `(() -> ())?` | `nil` | Dismiss callback |
@@ -1717,7 +1738,7 @@ Glass notification banner that slides in from the top. Supports notification typ
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Title` | `string` | *required* | Notification title |
+| `Title` | `string?` | `"Notification"` | Notification title |
 | `Body` | `string?` | `nil` | Body text |
 | `Icon` | `string?` | `nil` | Icon image asset ID |
 | `Duration` | `number?` | `5` | Auto-dismiss seconds (0 = no auto-dismiss) |
@@ -1844,7 +1865,7 @@ Bottom-center toast notification. Simpler than MangoNotification — single-line
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Text` | `string` | *required* | Toast message |
+| `Text` | `string?` | `"Toast"` | Toast message |
 | `Icon` | `string?` | `nil` | Optional icon text |
 | `Duration` | `number?` | `3` | Auto-dismiss seconds (0 = no auto-dismiss) |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
@@ -1912,8 +1933,8 @@ Glass popover tooltip that appears on hover with auto-positioning.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Target` | `GuiObject` | *required* | Element to attach tooltip to |
-| `Text` | `string` | *required* | Tooltip text |
+| `Target` | `GuiObject?` | `nil` | Element to attach tooltip to |
+| `Text` | `string?` | `"Tooltip"` | Tooltip text |
 | `TextSize` | `number?` | `13` | Font size |
 | `MaxWidth` | `number?` | `200` | Maximum tooltip width |
 | `Delay` | `number?` | `0.5` | Seconds before showing |
@@ -2011,7 +2032,7 @@ Overhead glass name tag using BillboardGui. Simplified hierarchy for performance
 |-------|------|---------|-------------|
 | `TargetPart` | `BasePart?` | `nil` | Part to attach to |
 | `TargetCharacter` | `Model?` | `nil` | Character (auto-finds Head) |
-| `Text` | `string` | *required* | Label text |
+| `Text` | `string?` | `"Label"` | Label text |
 | `TextSize` | `number?` | `14` | Font size |
 | `Theme` | `ThemePreset?` | Light | Theme preset |
 | `MaxDistance` | `number?` | `50` | Max visible distance in studs |
@@ -2052,9 +2073,9 @@ Small glass pill badge for counts, tags, or status indicators.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Position` | `UDim2` | *required* | Badge position |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Badge position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
-| `Text` | `string` | *required* | Badge text |
+| `Text` | `string?` | `"Badge"` | Badge text |
 | `TextSize` | `number?` | `12` | Font size |
 | `TextColor` | `Color3?` | theme / white | Text color |
 | `BackgroundColor` | `Color3?` | theme / accent | Badge background |
@@ -2094,8 +2115,8 @@ Shimmer loading placeholder. A simple rounded frame with a continuous shimmer an
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `Size` | `UDim2` | *required* | Skeleton size |
-| `Position` | `UDim2` | *required* | Skeleton position |
+| `Size` | `UDim2?` | `(0, 100, 0, 20)` | Skeleton size |
+| `Position` | `UDim2?` | `(0, 0, 0, 0)` | Skeleton position |
 | `AnchorPoint` | `Vector2?` | `(0, 0)` | Anchor point |
 | `CornerRadius` | `UDim?` | `UDim.new(0, 8)` | Corner rounding |
 | `Theme` | `ThemePreset?` | Light | Theme preset |

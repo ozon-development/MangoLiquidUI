@@ -178,8 +178,8 @@ export type ThemePreset = {
 }
 
 export type MangoGlassConfig = {
-	Size: UDim2,
-	Position: UDim2,
+	Size: UDim2?,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	CornerRadius: UDim?,
 	BackgroundColor3: Color3?,
@@ -239,7 +239,7 @@ export type LiquidFusionConfig = {
 }
 
 export type MangoToggleConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Scale: number?,
 	ShadowEnabled: boolean?,
@@ -250,7 +250,7 @@ export type MangoToggleConfig = {
 }
 
 export type MangoSliderConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	ShadowEnabled: boolean?,
@@ -264,10 +264,10 @@ export type MangoSliderConfig = {
 }
 
 export type MangoButtonConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	BackgroundTransparency: number?,
 	ShadowEnabled: boolean?,
@@ -279,7 +279,7 @@ export type MangoButtonConfig = {
 export type MangoBillboardLabelConfig = {
 	TargetPart: BasePart?,
 	TargetCharacter: Model?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	Theme: ThemePreset?,
 	MaxDistance: number?,
@@ -354,7 +354,7 @@ export type MangoBillboardLabel = {
 }
 
 export type MangoNotificationConfig = {
-	Title: string,
+	Title: string?,
 	Body: string?,
 	Icon: string?,
 	Duration: number?,
@@ -409,9 +409,9 @@ export type MangoNotificationStack = {
 
 -- Segmented Control
 export type MangoSegmentedControlConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
-	Segments: {string},
+	Segments: {string}?,
 	InitialIndex: number?,
 	SegmentWidth: number?,
 	Height: number?,
@@ -429,10 +429,10 @@ export type MangoSegmentedControl = {
 
 -- Dropdown
 export type MangoDropdownConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
-	Items: {string},
+	Items: {string}?,
 	InitialIndex: number?,
 	MultiSelect: boolean?,
 	InitialItems: {string}?,
@@ -456,7 +456,7 @@ export type MangoDropdown = {
 
 -- Tab Bar
 export type MangoTabBarConfig = {
-	Tabs: {{Icon: string?, Label: string}},
+	Tabs: {{Icon: string?, Label: string}}?,
 	InitialIndex: number?,
 	Theme: ThemePreset?,
 	OnChanged: ((index: number) -> ())?,
@@ -472,7 +472,7 @@ export type MangoTabBar = {
 
 -- Search Bar
 export type MangoSearchBarConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
@@ -492,7 +492,7 @@ export type MangoSearchBar = {
 
 -- Text Field
 export type MangoTextFieldConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
@@ -515,7 +515,7 @@ export type MangoTextField = {
 
 -- Checkbox
 export type MangoCheckboxConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Label: string?,
 	InitialState: boolean?,
@@ -533,7 +533,7 @@ export type MangoCheckbox = {
 
 -- Progress Bar
 export type MangoProgressBarConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialValue: number?,
@@ -557,7 +557,7 @@ export type MangoDialogButtonConfig = {
 }
 
 export type MangoDialogConfig = {
-	Title: string,
+	Title: string?,
 	Message: string?,
 	Buttons: {MangoDialogButtonConfig}?,
 	Theme: ThemePreset?,
@@ -581,7 +581,7 @@ export type MangoActionSheetActionConfig = {
 export type MangoActionSheetConfig = {
 	Title: string?,
 	Message: string?,
-	Actions: {MangoActionSheetActionConfig},
+	Actions: {MangoActionSheetActionConfig}?,
 	CancelText: string?,
 	Theme: ThemePreset?,
 	OnDismissed: (() -> ())?,
@@ -645,9 +645,9 @@ export type MangoLayout = {
 
 -- Badge
 export type MangoBadgeConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	TextColor: Color3?,
 	BackgroundColor: Color3?,
@@ -664,8 +664,8 @@ export type MangoBadge = {
 
 -- Skeleton
 export type MangoSkeletonConfig = {
-	Size: UDim2,
-	Position: UDim2,
+	Size: UDim2?,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	CornerRadius: UDim?,
 	Theme: ThemePreset?,
@@ -679,7 +679,7 @@ export type MangoSkeleton = {
 
 -- Stepper
 export type MangoStepperConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialValue: number?,
 	Min: number?,
@@ -700,8 +700,8 @@ export type MangoStepper = {
 
 -- Tooltip
 export type MangoTooltipConfig = {
-	Target: GuiObject,
-	Text: string,
+	Target: GuiObject?,
+	Text: string?,
 	TextSize: number?,
 	MaxWidth: number?,
 	Delay: number?,
@@ -720,7 +720,7 @@ export type MangoTooltip = {
 
 -- Toast
 export type MangoToastConfig = {
-	Text: string,
+	Text: string?,
 	Icon: string?,
 	Duration: number?,
 	Theme: ThemePreset?,
@@ -762,8 +762,8 @@ export type MangoContextMenuItemConfig = {
 }
 
 export type MangoContextMenuConfig = {
-	Target: GuiObject,
-	Items: {MangoContextMenuItemConfig},
+	Target: GuiObject?,
+	Items: {MangoContextMenuItemConfig}?,
 	Theme: ThemePreset?,
 	Parent: GuiObject?,
 }
@@ -868,7 +868,7 @@ export type MangoFocusManager = {
 
 -- Color Picker
 export type MangoColorPickerConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialColor: Color3?,
@@ -886,7 +886,7 @@ export type MangoColorPicker = {
 
 -- Keybind
 export type MangoKeybindConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Label: string?,
 	DefaultKey: string?,
@@ -2625,8 +2625,8 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 	local theme = config.Theme
 
 	-- Resolve all config values with nil-safe helper
-	local size = config.Size
-	local position = config.Position
+	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 100)) :: UDim2
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local cornerRadius = resolve(config.CornerRadius, nil, UDim.new(0, 16)) :: UDim
 	local backgroundColor = resolve(config.BackgroundColor3, theme and theme.BackgroundColor3, Color3.fromRGB(255, 255, 255)) :: Color3
@@ -3281,7 +3281,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Toggle")
 	container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
-	container.Position = config.Position
+	container.Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
@@ -3629,7 +3629,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Resolve all config values with nil-safe helper
 	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local minVal = resolve(config.Min, nil, 0) :: number
 	local maxVal = resolve(config.Max, nil, 1) :: number
@@ -4084,7 +4084,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	local theme = config.Theme
 
 	-- Resolve config values
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialState = resolve(config.InitialState, nil, false) :: boolean
 	local labelText = config.Label
@@ -4301,7 +4301,7 @@ function module.new(config: Types.MangoProgressBarConfig): Types.MangoProgressBa
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 20)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialValue = resolve(config.InitialValue, nil, 0) :: number
 
@@ -4546,7 +4546,7 @@ local module = {}
 
 function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegmentedControl
 	local theme = config.Theme
-	local segments = config.Segments
+	local segments = resolve(config.Segments, nil, {"Tab 1", "Tab 2"}) :: {string}
 	local segmentCount = #segments
 
 	-- Resolve config values
@@ -4554,7 +4554,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	local height = resolve(config.Height, nil, 36) :: number
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 
 	-- Theme values
 	local bgTransparency = resolve(nil, theme and theme.SegmentedBackgroundTransparency, 0.88) :: number
@@ -4807,7 +4807,7 @@ function module.new(config: Types.MangoSearchBarConfig): Types.MangoSearchBar
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 280, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local placeholder = resolve(config.Placeholder, nil, "Search") :: string
 
@@ -5023,7 +5023,7 @@ function module.new(config: Types.MangoTextFieldConfig): Types.MangoTextField
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 280, 0, 40)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local placeholder = resolve(config.Placeholder, nil, "") :: string
 	local initialText = resolve(config.InitialText, nil, "") :: string
@@ -5603,7 +5603,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	-- Resolve config values with nil-safe helper
 	local textSize = resolve(config.TextSize, nil, 16) :: number
 	local font = Enum.Font.GothamBold
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Button") :: string
 
 	-- Button-specific opacity: more opaque than panels for readability
 	local buttonTransparency = resolve(config.BackgroundTransparency, theme and theme.ButtonBackgroundTransparency, 0.65) :: number
@@ -5621,7 +5621,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	-- Button-specific shadow: tighter spread + offset to avoid boxy look on small pills
 	local glassFrame = MangoGlassFrame.new({
 		Size = size,
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = buttonTransparency,
@@ -5812,7 +5812,7 @@ local module = {}
 
 function module.new(config: Types.MangoNotificationConfig): Types.MangoNotification
 	local theme = config.Theme
-	local title = config.Title
+	local title = resolve(config.Title, nil, "Notification") :: string
 	local body = config.Body
 	local icon = config.Icon
 	local duration = resolve(config.Duration, nil, 5) :: number
@@ -6334,7 +6334,7 @@ function module.new(config: Types.MangoBadgeConfig): Types.MangoBadge
 
 	local textSize = resolve(config.TextSize, nil, 12) :: number
 	local font = Enum.Font.GothamBold
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Badge") :: string
 	local textColor = resolve(config.TextColor, theme and theme.BadgeTextColor, Color3.fromRGB(255, 255, 255)) :: Color3
 	local bgColor = resolve(config.BackgroundColor, theme and theme.BadgeBackgroundColor, Color3.fromRGB(0, 122, 255)) :: Color3
 	local bgTransparency = resolve(config.BackgroundTransparency, theme and theme.BadgeBackgroundTransparency, 0.15) :: number
@@ -6347,7 +6347,7 @@ function module.new(config: Types.MangoBadgeConfig): Types.MangoBadge
 	-- Create MangoGlassFrame with pill shape, lightweight for small element
 	local glassFrame = MangoGlassFrame.new({
 		Size = UDim2.new(0, badgeWidth, 0, badgeHeight),
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundColor3 = bgColor,
@@ -6418,8 +6418,8 @@ function module.new(config: Types.MangoSkeletonConfig): Types.MangoSkeleton
 
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Skeleton")
-	container.Size = config.Size
-	container.Position = config.Position
+	container.Size = resolve(config.Size, nil, UDim2.new(0, 100, 0, 20)) :: UDim2
+	container.Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	container.BackgroundColor3 = bgColor
 	container.BackgroundTransparency = bgTransparency
@@ -6482,7 +6482,7 @@ function module.new(config: Types.MangoStepperConfig): Types.MangoStepper
 	-- Create MangoGlassFrame (pill, LightweightMode)
 	local glassFrame = MangoGlassFrame.new({
 		Size = UDim2.new(0, 120, 0, 36),
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = bgTransparency,
@@ -6747,7 +6747,7 @@ end
 function module.new(config: Types.MangoTooltipConfig): Types.MangoTooltip
 	local theme = config.Theme
 	local target = config.Target
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Tooltip") :: string
 	local textSize = resolve(config.TextSize, nil, 13) :: number
 	local maxWidth = resolve(config.MaxWidth, nil, 200) :: number
 	local delayTime = resolve(config.Delay, nil, 0.5) :: number
@@ -7099,7 +7099,7 @@ local module = {}
 
 function module.new(config: Types.MangoToastConfig): Types.MangoToast
 	local theme = config.Theme
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Toast") :: string
 	local icon = config.Icon
 	local duration = resolve(config.Duration, nil, 3) :: number
 
@@ -7543,7 +7543,7 @@ local module = {}
 
 function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	local theme = config.Theme
-	local title = config.Title
+	local title = resolve(config.Title, nil, "Dialog") :: string
 	local message = config.Message
 	local buttons = config.Buttons
 
@@ -7978,7 +7978,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	local theme = config.Theme
 	local title = config.Title
 	local message = config.Message
-	local actions = config.Actions
+	local actions = resolve(config.Actions, nil, {{Text = "OK"}}) :: {Types.MangoActionSheetActionConfig}
 	local cancelText = resolve(config.CancelText, nil, "Cancel") :: string
 
 	-- Theme-driven values
@@ -8459,12 +8459,12 @@ local module = {}
 
 function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local theme = config.Theme
-	local items = table.clone(config.Items)
+	local items = table.clone(resolve(config.Items, nil, {"Option 1"}) :: {string})
 	local itemCount = #items
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 
@@ -9032,7 +9032,7 @@ local module = {}
 
 function module.new(config: Types.MangoContextMenuConfig): Types.MangoContextMenu
 	local theme = config.Theme
-	local items = table.clone(config.Items)
+	local items = table.clone(resolve(config.Items, nil, {{Text = "Item"}}) :: {Types.MangoContextMenuItemConfig})
 	local target = config.Target
 
 	-- Theme values (reuse dropdown theme fields)
@@ -9497,7 +9497,7 @@ local module = {}
 
 function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 	local theme = config.Theme
-	local tabs = config.Tabs
+	local tabs = resolve(config.Tabs, nil, {{Label = "Tab"}}) :: {{Icon: string?, Label: string}}
 	local tabCount = #tabs
 
 	-- Resolve config values
@@ -9744,7 +9744,7 @@ function module.new(config: Types.MangoBillboardLabelConfig): Types.MangoBillboa
 
 	-- Resolve config values with nil-safe helper
 	local theme = config.Theme
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Label") :: string
 	local textSize = resolve(config.TextSize, nil, 14) :: number
 	local maxDistance = resolve(config.MaxDistance, nil, 50) :: number
 	local studsOffset = resolve(config.StudsOffset, nil, Vector3.new(0, 2.2, 0)) :: Vector3
@@ -11658,7 +11658,7 @@ function module.new(config: Types.MangoColorPickerConfig): Types.MangoColorPicke
 
 	-- Resolve all config values with nil-safe helper
 	local size = resolve(config.Size, nil, UDim2.new(0, 260, 0, 200)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialColor = resolve(config.InitialColor, nil, Color3.fromRGB(255, 0, 0)) :: Color3
 	local cursorColor = resolve(nil, theme and theme.ColorPickerCursorColor, Color3.fromRGB(255, 255, 255)) :: Color3
@@ -12107,7 +12107,7 @@ function module.new(config: Types.MangoKeybindConfig): Types.MangoKeybind
 	local theme = config.Theme
 
 	-- Resolve config values
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local labelText = config.Label
 	local defaultKey = resolve(config.DefaultKey, nil, "None") :: string

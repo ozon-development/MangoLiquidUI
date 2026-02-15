@@ -11,12 +11,12 @@ local module = {}
 
 function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local theme = config.Theme
-	local items = table.clone(config.Items)
+	local items = table.clone(resolve(config.Items, nil, {"Option 1"}) :: {string})
 	local itemCount = #items
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 

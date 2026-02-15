@@ -12,7 +12,7 @@ local module = {}
 
 function module.new(config: Types.MangoToastConfig): Types.MangoToast
 	local theme = config.Theme
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Toast") :: string
 	local icon = config.Icon
 	local duration = resolve(config.Duration, nil, 3) :: number
 

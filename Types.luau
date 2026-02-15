@@ -164,8 +164,8 @@ export type ThemePreset = {
 }
 
 export type MangoGlassConfig = {
-	Size: UDim2,
-	Position: UDim2,
+	Size: UDim2?,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	CornerRadius: UDim?,
 	BackgroundColor3: Color3?,
@@ -225,7 +225,7 @@ export type LiquidFusionConfig = {
 }
 
 export type MangoToggleConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Scale: number?,
 	ShadowEnabled: boolean?,
@@ -236,7 +236,7 @@ export type MangoToggleConfig = {
 }
 
 export type MangoSliderConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	ShadowEnabled: boolean?,
@@ -250,10 +250,10 @@ export type MangoSliderConfig = {
 }
 
 export type MangoButtonConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	BackgroundTransparency: number?,
 	ShadowEnabled: boolean?,
@@ -265,7 +265,7 @@ export type MangoButtonConfig = {
 export type MangoBillboardLabelConfig = {
 	TargetPart: BasePart?,
 	TargetCharacter: Model?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	Theme: ThemePreset?,
 	MaxDistance: number?,
@@ -340,7 +340,7 @@ export type MangoBillboardLabel = {
 }
 
 export type MangoNotificationConfig = {
-	Title: string,
+	Title: string?,
 	Body: string?,
 	Icon: string?,
 	Duration: number?,
@@ -395,9 +395,9 @@ export type MangoNotificationStack = {
 
 -- Segmented Control
 export type MangoSegmentedControlConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
-	Segments: {string},
+	Segments: {string}?,
 	InitialIndex: number?,
 	SegmentWidth: number?,
 	Height: number?,
@@ -415,10 +415,10 @@ export type MangoSegmentedControl = {
 
 -- Dropdown
 export type MangoDropdownConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
-	Items: {string},
+	Items: {string}?,
 	InitialIndex: number?,
 	MultiSelect: boolean?,
 	InitialItems: {string}?,
@@ -442,7 +442,7 @@ export type MangoDropdown = {
 
 -- Tab Bar
 export type MangoTabBarConfig = {
-	Tabs: {{Icon: string?, Label: string}},
+	Tabs: {{Icon: string?, Label: string}}?,
 	InitialIndex: number?,
 	Theme: ThemePreset?,
 	OnChanged: ((index: number) -> ())?,
@@ -458,7 +458,7 @@ export type MangoTabBar = {
 
 -- Search Bar
 export type MangoSearchBarConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
@@ -478,7 +478,7 @@ export type MangoSearchBar = {
 
 -- Text Field
 export type MangoTextFieldConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	Placeholder: string?,
@@ -501,7 +501,7 @@ export type MangoTextField = {
 
 -- Checkbox
 export type MangoCheckboxConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Label: string?,
 	InitialState: boolean?,
@@ -519,7 +519,7 @@ export type MangoCheckbox = {
 
 -- Progress Bar
 export type MangoProgressBarConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialValue: number?,
@@ -543,7 +543,7 @@ export type MangoDialogButtonConfig = {
 }
 
 export type MangoDialogConfig = {
-	Title: string,
+	Title: string?,
 	Message: string?,
 	Buttons: {MangoDialogButtonConfig}?,
 	Theme: ThemePreset?,
@@ -567,7 +567,7 @@ export type MangoActionSheetActionConfig = {
 export type MangoActionSheetConfig = {
 	Title: string?,
 	Message: string?,
-	Actions: {MangoActionSheetActionConfig},
+	Actions: {MangoActionSheetActionConfig}?,
 	CancelText: string?,
 	Theme: ThemePreset?,
 	OnDismissed: (() -> ())?,
@@ -631,9 +631,9 @@ export type MangoLayout = {
 
 -- Badge
 export type MangoBadgeConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
-	Text: string,
+	Text: string?,
 	TextSize: number?,
 	TextColor: Color3?,
 	BackgroundColor: Color3?,
@@ -650,8 +650,8 @@ export type MangoBadge = {
 
 -- Skeleton
 export type MangoSkeletonConfig = {
-	Size: UDim2,
-	Position: UDim2,
+	Size: UDim2?,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	CornerRadius: UDim?,
 	Theme: ThemePreset?,
@@ -665,7 +665,7 @@ export type MangoSkeleton = {
 
 -- Stepper
 export type MangoStepperConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialValue: number?,
 	Min: number?,
@@ -686,8 +686,8 @@ export type MangoStepper = {
 
 -- Tooltip
 export type MangoTooltipConfig = {
-	Target: GuiObject,
-	Text: string,
+	Target: GuiObject?,
+	Text: string?,
 	TextSize: number?,
 	MaxWidth: number?,
 	Delay: number?,
@@ -706,7 +706,7 @@ export type MangoTooltip = {
 
 -- Toast
 export type MangoToastConfig = {
-	Text: string,
+	Text: string?,
 	Icon: string?,
 	Duration: number?,
 	Theme: ThemePreset?,
@@ -748,8 +748,8 @@ export type MangoContextMenuItemConfig = {
 }
 
 export type MangoContextMenuConfig = {
-	Target: GuiObject,
-	Items: {MangoContextMenuItemConfig},
+	Target: GuiObject?,
+	Items: {MangoContextMenuItemConfig}?,
 	Theme: ThemePreset?,
 	Parent: GuiObject?,
 }
@@ -854,7 +854,7 @@ export type MangoFocusManager = {
 
 -- Color Picker
 export type MangoColorPickerConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	Size: UDim2?,
 	AnchorPoint: Vector2?,
 	InitialColor: Color3?,
@@ -872,7 +872,7 @@ export type MangoColorPicker = {
 
 -- Keybind
 export type MangoKeybindConfig = {
-	Position: UDim2,
+	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Label: string?,
 	DefaultKey: string?,

@@ -10,7 +10,7 @@ local module = {}
 
 function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegmentedControl
 	local theme = config.Theme
-	local segments = config.Segments
+	local segments = resolve(config.Segments, nil, {"Tab 1", "Tab 2"}) :: {string}
 	local segmentCount = #segments
 
 	-- Resolve config values
@@ -18,7 +18,7 @@ function module.new(config: Types.MangoSegmentedControlConfig): Types.MangoSegme
 	local height = resolve(config.Height, nil, 36) :: number
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 
 	-- Theme values
 	local bgTransparency = resolve(nil, theme and theme.SegmentedBackgroundTransparency, 0.88) :: number

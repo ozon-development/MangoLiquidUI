@@ -13,7 +13,7 @@ function module.new(config: Types.MangoCheckboxConfig): Types.MangoCheckbox
 	local theme = config.Theme
 
 	-- Resolve config values
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialState = resolve(config.InitialState, nil, false) :: boolean
 	local labelText = config.Label

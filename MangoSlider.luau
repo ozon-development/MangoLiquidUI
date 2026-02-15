@@ -26,7 +26,7 @@ function module.new(config: Types.MangoSliderConfig): Types.MangoSlider
 
 	-- Resolve all config values with nil-safe helper
 	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local minVal = resolve(config.Min, nil, 0) :: number
 	local maxVal = resolve(config.Max, nil, 1) :: number

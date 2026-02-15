@@ -24,7 +24,7 @@ function module.new(config: Types.MangoStepperConfig): Types.MangoStepper
 	-- Create MangoGlassFrame (pill, LightweightMode)
 	local glassFrame = MangoGlassFrame.new({
 		Size = UDim2.new(0, 120, 0, 36),
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = bgTransparency,

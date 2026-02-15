@@ -17,7 +17,7 @@ function module.new(config: Types.MangoBillboardLabelConfig): Types.MangoBillboa
 
 	-- Resolve config values with nil-safe helper
 	local theme = config.Theme
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Label") :: string
 	local textSize = resolve(config.TextSize, nil, 14) :: number
 	local maxDistance = resolve(config.MaxDistance, nil, 50) :: number
 	local studsOffset = resolve(config.StudsOffset, nil, Vector3.new(0, 2.2, 0)) :: Vector3

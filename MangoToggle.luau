@@ -56,7 +56,7 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Toggle")
 	container.Size = UDim2.new(0, containerWidth, 0, containerHeight)
-	container.Position = config.Position
+	container.Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0

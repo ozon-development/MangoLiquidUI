@@ -12,7 +12,7 @@ local module = {}
 
 function module.new(config: Types.MangoContextMenuConfig): Types.MangoContextMenu
 	local theme = config.Theme
-	local items = table.clone(config.Items)
+	local items = table.clone(resolve(config.Items, nil, {{Text = "Item"}}) :: {Types.MangoContextMenuItemConfig})
 	local target = config.Target
 
 	-- Theme values (reuse dropdown theme fields)

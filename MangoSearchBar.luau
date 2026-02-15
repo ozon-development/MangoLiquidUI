@@ -14,7 +14,7 @@ function module.new(config: Types.MangoSearchBarConfig): Types.MangoSearchBar
 
 	-- Resolve config values
 	local size = resolve(config.Size, nil, UDim2.new(0, 280, 0, 36)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local placeholder = resolve(config.Placeholder, nil, "Search") :: string
 

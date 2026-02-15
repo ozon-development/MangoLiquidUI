@@ -15,7 +15,7 @@ function module.new(config: Types.MangoColorPickerConfig): Types.MangoColorPicke
 
 	-- Resolve all config values with nil-safe helper
 	local size = resolve(config.Size, nil, UDim2.new(0, 260, 0, 200)) :: UDim2
-	local position = config.Position
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialColor = resolve(config.InitialColor, nil, Color3.fromRGB(255, 0, 0)) :: Color3
 	local cursorColor = resolve(nil, theme and theme.ColorPickerCursorColor, Color3.fromRGB(255, 255, 255)) :: Color3

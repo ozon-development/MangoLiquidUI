@@ -11,7 +11,7 @@ local module = {}
 
 function module.new(config: Types.MangoTabBarConfig): Types.MangoTabBar
 	local theme = config.Theme
-	local tabs = config.Tabs
+	local tabs = resolve(config.Tabs, nil, {{Label = "Tab"}}) :: {{Icon: string?, Label: string}}
 	local tabCount = #tabs
 
 	-- Resolve config values

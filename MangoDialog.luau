@@ -12,7 +12,7 @@ local module = {}
 
 function module.new(config: Types.MangoDialogConfig): Types.MangoDialog
 	local theme = config.Theme
-	local title = config.Title
+	local title = resolve(config.Title, nil, "Dialog") :: string
 	local message = config.Message
 	local buttons = config.Buttons
 

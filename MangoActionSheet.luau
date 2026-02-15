@@ -14,7 +14,7 @@ function module.new(config: Types.MangoActionSheetConfig): Types.MangoActionShee
 	local theme = config.Theme
 	local title = config.Title
 	local message = config.Message
-	local actions = config.Actions
+	local actions = resolve(config.Actions, nil, {{Text = "OK"}}) :: {Types.MangoActionSheetActionConfig}
 	local cancelText = resolve(config.CancelText, nil, "Cancel") :: string
 
 	-- Theme-driven values

@@ -14,8 +14,8 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 	local theme = config.Theme
 
 	-- Resolve all config values with nil-safe helper
-	local size = config.Size
-	local position = config.Position
+	local size = resolve(config.Size, nil, UDim2.new(0, 200, 0, 100)) :: UDim2
+	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local cornerRadius = resolve(config.CornerRadius, nil, UDim.new(0, 16)) :: UDim
 	local backgroundColor = resolve(config.BackgroundColor3, theme and theme.BackgroundColor3, Color3.fromRGB(255, 255, 255)) :: Color3

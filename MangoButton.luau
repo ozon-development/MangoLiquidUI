@@ -16,7 +16,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	-- Resolve config values with nil-safe helper
 	local textSize = resolve(config.TextSize, nil, 16) :: number
 	local font = Enum.Font.GothamBold
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Button") :: string
 
 	-- Button-specific opacity: more opaque than panels for readability
 	local buttonTransparency = resolve(config.BackgroundTransparency, theme and theme.ButtonBackgroundTransparency, 0.65) :: number
@@ -34,7 +34,7 @@ function module.new(config: Types.MangoButtonConfig): Types.MangoButton
 	-- Button-specific shadow: tighter spread + offset to avoid boxy look on small pills
 	local glassFrame = MangoGlassFrame.new({
 		Size = size,
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = buttonTransparency,

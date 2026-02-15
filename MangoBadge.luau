@@ -14,7 +14,7 @@ function module.new(config: Types.MangoBadgeConfig): Types.MangoBadge
 
 	local textSize = resolve(config.TextSize, nil, 12) :: number
 	local font = Enum.Font.GothamBold
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Badge") :: string
 	local textColor = resolve(config.TextColor, theme and theme.BadgeTextColor, Color3.fromRGB(255, 255, 255)) :: Color3
 	local bgColor = resolve(config.BackgroundColor, theme and theme.BadgeBackgroundColor, Color3.fromRGB(0, 122, 255)) :: Color3
 	local bgTransparency = resolve(config.BackgroundTransparency, theme and theme.BadgeBackgroundTransparency, 0.15) :: number
@@ -27,7 +27,7 @@ function module.new(config: Types.MangoBadgeConfig): Types.MangoBadge
 	-- Create MangoGlassFrame with pill shape, lightweight for small element
 	local glassFrame = MangoGlassFrame.new({
 		Size = UDim2.new(0, badgeWidth, 0, badgeHeight),
-		Position = config.Position,
+		Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2,
 		AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2,
 		CornerRadius = UDim.new(0, 999),
 		BackgroundColor3 = bgColor,

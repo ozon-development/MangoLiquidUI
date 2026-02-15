@@ -16,8 +16,8 @@ function module.new(config: Types.MangoSkeletonConfig): Types.MangoSkeleton
 
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Skeleton")
-	container.Size = config.Size
-	container.Position = config.Position
+	container.Size = resolve(config.Size, nil, UDim2.new(0, 100, 0, 20)) :: UDim2
+	container.Position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	container.AnchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	container.BackgroundColor3 = bgColor
 	container.BackgroundTransparency = bgTransparency

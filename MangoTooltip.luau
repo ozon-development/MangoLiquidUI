@@ -24,7 +24,7 @@ end
 function module.new(config: Types.MangoTooltipConfig): Types.MangoTooltip
 	local theme = config.Theme
 	local target = config.Target
-	local text = config.Text
+	local text = resolve(config.Text, nil, "Tooltip") :: string
 	local textSize = resolve(config.TextSize, nil, 13) :: number
 	local maxWidth = resolve(config.MaxWidth, nil, 200) :: number
 	local delayTime = resolve(config.Delay, nil, 0.5) :: number
