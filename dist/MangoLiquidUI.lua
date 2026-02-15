@@ -8911,6 +8911,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			-- Track trigger position changes so panel follows window drag/scroll
 			if positionTrackConn then
 				positionTrackConn:Disconnect()
+				positionTrackConn = nil
 			end
 			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 				if not isOpen or isDestroyed then return end
@@ -12840,7 +12841,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		isTweening = true
 		scrollTween:Play()
 
-		scrollTween.Completed:Connect(function()
+		scrollTween.Completed:Once(function()
 			if isDestroyed then return end
 			if gen == scrollGen then
 				isTweening = false
@@ -13409,6 +13410,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.50,
 		})
+		trackTween(closeHoverTween)
 		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeHoverConn)
@@ -13418,6 +13420,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.75,
 		})
+		trackTween(closeHoverTween)
 		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeLeaveConn)

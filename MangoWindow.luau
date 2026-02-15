@@ -400,6 +400,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.50,
 		})
+		trackTween(closeHoverTween)
 		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeHoverConn)
@@ -409,6 +410,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 		closeHoverTween = TweenService:Create(closeFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = 0.75,
 		})
+		trackTween(closeHoverTween)
 		closeHoverTween:Play()
 	end)
 	table.insert(connections, closeLeaveConn)

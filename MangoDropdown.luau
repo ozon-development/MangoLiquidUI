@@ -474,6 +474,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			-- Track trigger position changes so panel follows window drag/scroll
 			if positionTrackConn then
 				positionTrackConn:Disconnect()
+				positionTrackConn = nil
 			end
 			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 				if not isOpen or isDestroyed then return end

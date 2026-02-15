@@ -431,7 +431,7 @@ function module.new(config: Types.MangoCarouselConfig): Types.MangoCarousel
 		isTweening = true
 		scrollTween:Play()
 
-		scrollTween.Completed:Connect(function()
+		scrollTween.Completed:Once(function()
 			if isDestroyed then return end
 			if gen == scrollGen then
 				isTweening = false
