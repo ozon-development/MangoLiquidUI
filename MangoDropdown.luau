@@ -20,6 +20,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 	local triggerHeightOffset = if size.Y.Offset > 0 then size.Y.Offset else 36
+	local PANEL_GAP = 6
 
 	-- Theme values
 	local primaryText = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
@@ -40,8 +41,13 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local itemHoverTweens: {Tween} = {}
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
-	local clickBlocker: TextButton? = nil
 	local positionTrackConn: RBXScriptConnection? = nil
+
+	-- Overlay ScreenGui for the panel (created lazily on first open).
+	-- Dedicated ScreenGui at DisplayOrder=200 avoids ZIndex conflicts with
+	-- the parent window and escapes all ClipsDescendants ancestors.
+	local overlayGui: ScreenGui? = nil
+	local clickBlocker: TextButton? = nil
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -95,7 +101,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	-- Forward declaration for closeDropdown (used by click-blocker before definition)
 	local closeDropdown: () -> ()
 
-	-- Container (transparent wrapper, holds trigger + panel)
+	-- Container (transparent wrapper, holds trigger + panel when closed)
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Dropdown")
 	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
@@ -105,45 +111,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	container.BorderSizePixel = 0
 	container.ClipsDescendants = false
 
-	local function findScreenGui(): ScreenGui?
-		local current: Instance? = container
-		while current do
-			if current:IsA("ScreenGui") then
-				return current :: ScreenGui
-			end
-			current = current.Parent
-		end
-		return nil
-	end
-
-	local function createClickBlocker()
-		local screenGui = findScreenGui()
-		if not screenGui then return end
-
-		local blocker = Instance.new("TextButton")
-		blocker.Name = MangoProtection.randomName("Blocker")
-		blocker.Size = UDim2.new(1, 0, 1, 0)
-		blocker.BackgroundTransparency = 1
-		blocker.Text = ""
-		blocker.ZIndex = 49
-		blocker.AutoButtonColor = false
-		blocker.Parent = screenGui
-		clickBlocker = blocker
-
-		blocker.MouseButton1Click:Connect(function()
-			closeDropdown()
-		end)
-	end
-
-	local function destroyClickBlocker()
-		if clickBlocker then
-			clickBlocker:Destroy()
-			clickBlocker = nil
-		end
-	end
-
 	-- Trigger button via MangoGlassFrame (LightweightMode)
-	-- Fixed height so container can expand when panel opens without stretching trigger
 	local triggerGlass = MangoGlassFrame.new({
 		Size = UDim2.new(1, 0, 0, triggerHeightOffset),
 		Position = UDim2.new(0, 0, 0, 0),
@@ -199,7 +167,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	triggerHitArea.AutoButtonColor = false
 	triggerHitArea.Parent = triggerGlass.GlassSurface
 
-	-- Dropdown panel (below trigger)
+	-- Dropdown panel (starts as child of container, reparented to overlay on open)
 	local maxVisibleItems = 5
 	local itemHeight = 36
 	local panelItemCount = math.min(itemCount, maxVisibleItems)
@@ -207,7 +175,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 	local panelGlass = MangoGlassFrame.new({
 		Size = UDim2.new(1, 0, 0, panelHeight),
-		Position = UDim2.new(0, 0, 0, triggerHeightOffset + 6),
+		Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP),
 		CornerRadius = UDim.new(0, 12),
 		BackgroundTransparency = dropdownBgTransparency - 0.05,
 		Theme = theme,
@@ -219,12 +187,6 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		Parent = container,
 	})
 	panelGlass.Container.Visible = false
-	panelGlass.Container.ZIndex = 50
-
-	-- UIScale for subtle open animation
-	local panelUIScale = Instance.new("UIScale")
-	panelUIScale.Scale = 1
-	panelUIScale.Parent = panelGlass.Container
 
 	-- ScrollingFrame inside panel GlassSurface
 	local scrollFrame = Instance.new("ScrollingFrame")
@@ -420,10 +382,29 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		panelGlass.Container.Size = UDim2.new(1, 0, 0, newPanelHeight)
 	end
 
-	-- Open/Close
-	-- Panel reparents to ScreenGui on open to escape clipping parents
-	-- (ScrollingFrame, ClipsDescendants contentArea). Positioned via AbsolutePosition.
-	local PANEL_GAP = 6
+	-- === Open / Close ===
+	-- Panel reparents to a dedicated overlay ScreenGui (DisplayOrder=200)
+	-- to escape all clipping parents. Positioned via trigger AbsolutePosition.
+	-- Close is instant (standard dropdown behavior) to avoid animation race conditions.
+
+	local function destroyOverlay()
+		if clickBlocker then
+			clickBlocker:Destroy()
+			clickBlocker = nil
+		end
+		if overlayGui then
+			overlayGui:Destroy()
+			overlayGui = nil
+		end
+	end
+
+	local function restorePanel()
+		-- Move panel back into container so buildItems/SetItems work correctly
+		panelGlass.Container.Visible = false
+		panelGlass.Container.Parent = container
+		panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP)
+		panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
+	end
 
 	closeDropdown = function()
 		if not isOpen then
@@ -432,7 +413,6 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		isOpen = false
 		cancelAllTweens()
 		cancelItemHoverTweens()
-		destroyClickBlocker()
 
 		-- Reset all item hover highlights
 		for _, frame in itemFrames do
@@ -445,21 +425,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			positionTrackConn = nil
 		end
 
-		local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local fadeTween = TweenService:Create(panelGlass.GlassSurface, tweenInfo, {
-			BackgroundTransparency = 1,
-		})
-		trackTween(fadeTween)
-		fadeTween:Play()
-
-		fadeTween.Completed:Once(function()
-			if isDestroyed or isOpen then return end
-			panelGlass.Container.Visible = false
-			-- Restore panel back into container for next open cycle
-			panelGlass.Container.Parent = container
-			panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP)
-			panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
-		end)
+		-- Instant close: restore panel to container immediately, destroy overlay
+		restorePanel()
+		destroyOverlay()
 	end
 
 	local function openDropdown()
@@ -468,50 +436,61 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		end
 		isOpen = true
 		cancelAllTweens()
-		createClickBlocker()
 
-		-- Read trigger's screen position/size for panel placement
+		-- Create dedicated overlay ScreenGui
+		overlayGui = MangoProtection.createScreenGui({
+			DisplayOrder = 200,
+		})
+
+		-- Click blocker (fills overlay, catches outside clicks)
+		local blocker = Instance.new("TextButton")
+		blocker.Name = MangoProtection.randomName("Blocker")
+		blocker.Size = UDim2.new(1, 0, 1, 0)
+		blocker.BackgroundTransparency = 1
+		blocker.Text = ""
+		blocker.ZIndex = 1
+		blocker.AutoButtonColor = false
+		blocker.Parent = overlayGui
+		clickBlocker = blocker
+
+		blocker.MouseButton1Click:Connect(function()
+			if isDestroyed then return end
+			closeDropdown()
+		end)
+
+		-- Read trigger screen position for panel placement
 		local triggerAbsPos = triggerGlass.Container.AbsolutePosition
 		local triggerAbsSize = triggerGlass.Container.AbsoluteSize
 		local panelH = panelGlass.Container.Size.Y.Offset
 
-		-- Reparent panel to ScreenGui to escape clipping parents
-		local screenGui = findScreenGui()
-		if screenGui then
-			panelGlass.Container.Parent = screenGui
-			panelGlass.Container.Position = UDim2.new(
-				0, triggerAbsPos.X,
-				0, triggerAbsPos.Y + triggerAbsSize.Y + PANEL_GAP
-			)
-			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
-
-			-- Track trigger position so panel follows window drag/scroll
-			if positionTrackConn then
-				positionTrackConn:Disconnect()
-				positionTrackConn = nil
-			end
-			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-				if not isOpen or isDestroyed then return end
-				local newPos = triggerGlass.Container.AbsolutePosition
-				local newSize = triggerGlass.Container.AbsoluteSize
-				panelGlass.Container.Position = UDim2.new(
-					0, newPos.X,
-					0, newPos.Y + newSize.Y + PANEL_GAP
-				)
-			end)
-		end
-
+		-- Reparent panel to overlay
+		panelGlass.Container.Parent = overlayGui
+		panelGlass.Container.Position = UDim2.new(
+			0, triggerAbsPos.X,
+			0, triggerAbsPos.Y + triggerAbsSize.Y + PANEL_GAP
+		)
+		panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
+		panelGlass.Container.ZIndex = 10
 		panelGlass.Container.Visible = true
-		panelGlass.Container.ZIndex = 50
-		panelUIScale.Scale = 0.97
+
+		-- Track trigger position so panel follows window drag/scroll
+		if positionTrackConn then
+			positionTrackConn:Disconnect()
+			positionTrackConn = nil
+		end
+		positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+			if not isOpen or isDestroyed then return end
+			local newPos = triggerGlass.Container.AbsolutePosition
+			local newSize = triggerGlass.Container.AbsoluteSize
+			panelGlass.Container.Position = UDim2.new(
+				0, newPos.X,
+				0, newPos.Y + newSize.Y + PANEL_GAP
+			)
+		end)
+
+		-- Fade in the glass surface (shadows/specular appear instantly which is fine)
 		panelGlass.GlassSurface.BackgroundTransparency = 1
-
-		-- Subtle scale-up + fade (no overshoot — clean appearance)
-		local tweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 1 })
-		trackTween(scaleTween)
-		scaleTween:Play()
-
+		local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local fadeTween = TweenService:Create(panelGlass.GlassSurface, tweenInfo, {
 			BackgroundTransparency = dropdownBgTransparency - 0.05,
 		})
@@ -588,19 +567,19 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		end,
 		Destroy = function(self: Types.MangoDropdown)
 			if isDestroyed then return end
-			-- Close panel first to clean up ScreenGui-level elements
+			isDestroyed = true
+			-- Close and clean up overlay
 			if isOpen then
 				isOpen = false
-				destroyClickBlocker()
+				if positionTrackConn then
+					positionTrackConn:Disconnect()
+					positionTrackConn = nil
+				end
 			end
-			isDestroyed = true
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
-			if positionTrackConn then
-				positionTrackConn:Disconnect()
-				positionTrackConn = nil
-			end
+			destroyOverlay()
 			for _, conn in connections do
 				conn:Disconnect()
 			end
