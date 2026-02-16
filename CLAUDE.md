@@ -142,14 +142,17 @@ Container (Frame, pill, ClipsDescendants=true)
 ### Instance Hierarchy (MangoDropdown)
 
 ```
-Container (Frame, expands when open to push siblings, ZIndex=50 when open)
-  +-- TriggerButton (MangoGlassFrame, LightweightMode, pill, fixed height)
-  |     +-- SelectedLabel + ChevronLabel + HitArea
-  +-- DropdownPanel (inline child, Visible=false, ZIndex=50)
-        +-- MangoGlassFrame (CornerRadius=12, 4 shadow layers)
-              +-- ScrollingFrame (if >5 items)
-              +-- UIListLayout Vertical
-              +-- ItemN (Frame, 36px tall, HitArea + HoverHighlight)
+Container (Frame, ClipsDescendants=true, height tweens on open/close to push siblings)
+  +-- TriggerGlass (MangoGlassFrame, LightweightMode, pill, full-width × triggerHeight)
+  |     +-- SelectedLabel (TextLabel, left-aligned text)
+  |     +-- ChevronWrapper (Frame, Rotation animates 0↔180 on open/close)
+  |     |     +-- ChevronLabel (TextLabel, "v", GothamMedium 10)
+  |     +-- HitArea (TextButton, ZIndex=100)
+  +-- PanelGlass (MangoGlassFrame, CornerRadius=12, ShadowEnabled=false, below trigger)
+        +-- ScrollingFrame (if items > 5, ScrollBarThickness=4)
+              +-- UIPadding (4px top/bottom)
+              +-- UIListLayout (Vertical)
+              +-- ItemN (Frame, 36px, UICorner=8, per-item hover highlight + HitArea)
 ```
 
 ### Instance Hierarchy (MangoTabBar)
@@ -342,7 +345,7 @@ ScreenGui (DisplayOrder=200, IgnoreGuiInset=true)
 - **MangoNotification.luau** — Glass notification banner. Slides in from top (0.4s Back Out). Auto-dismisses after configurable duration. Supports `SetPosition()` for stacking and `GetHeight()` for layout calculation. Uses shared `performDismiss()` function (like MangoDialog's `doDismiss` pattern). Sets `isDestroyed = true` BEFORE `OnDismissed()` callback to prevent re-entrancy. Cancels position tweens on dismiss. Dismiss tween uses `.Completed:Once()` to prevent potential duplicate cleanup.
 - **MangoNotificationStack.luau** — Wraps multiple `MangoNotification` instances with stacking layout. `Push(config)` creates + positions below existing. Max 3 visible (configurable). Auto-dismisses oldest when exceeding max. Reflows remaining on dismiss (0.25s Back Out). Forwards `Type` and `Actions` fields from push config to child notifications.
 - **MangoSegmentedControl.luau** — Apple-style segmented control. Pill container with sliding selected indicator (0.25s Back Out). Equal-width segments, theme-driven colors. Segment buttons use `TextTruncate = AtEnd` to prevent text overflow in narrow segments.
-- **MangoDropdown.luau** — Apple-style dropdown menu. Glass trigger button with chevron (`"v"` GothamMedium 10 — ASCII for Gotham compatibility). Item checkmarks use SourceSansBold for reliable Unicode rendering. Panel opens from 0.92 scale (0.2s Back Out), closes to 0.95 scale (0.1s Quad Out). Click outside closes via full-screen click blocker. Max 5 visible items (scrollable). Panel stays inline as child of container (no ScreenGui reparenting) — container expands height when open to push siblings in layouts, ZIndex boosted to 50 so panel renders above sibling elements. Trigger uses fixed pixel height so container expansion doesn't stretch it. `SetItems()` closes dropdown before rebuilding items to prevent stale item connection conflicts. `Destroy()` closes panel and destroys click blocker before cleanup. `isDestroyed` guards on blocker click, item hover, and item click handlers.
+- **MangoDropdown.luau** — Apple-style inline expanding dropdown. Glass trigger button with chevron (`"v"` GothamMedium 10 — ASCII for Gotham compatibility) wrapped in a Frame for rotation animation (0↔180°). Item checkmarks use SourceSansBold for reliable Unicode rendering. Uses **inline expansion pattern** (follows Orion/Kavo/Rayfield convention): container has `ClipsDescendants=true`, starts at trigger-only height, tweens height to reveal items panel below trigger. Parent UIListLayout auto-pushes siblings down on open, back up on close. Open animation: 0.25s Back Out (Apple overshoot). Close animation: 0.2s Quad Out (snappy retraction). Panel glass has `ShadowEnabled=false` (would be clipped by container anyway). Per-item hover tween map (`{[Frame]: Tween}`) fixes hover-color-sticks bug — each item's hover only cancels THAT item's tween, not all items globally. Max 5 visible items (scrollable). Click trigger to toggle. Item click selects+closes (single-select) or toggles (multi-select). `SetItems()` closes dropdown before rebuilding. `isDestroyed` guards on item hover, item click, and trigger click handlers.
 - **MangoTabBar.luau** — Bottom tab bar (54px tall). Glass background with dot indicator that slides between tabs. Icon + label color transitions on selection (0.15s Quad Out).
 - **MangoSearchBar.luau** — Pill glass search bar. Search icon + TextBox + clear button (`"X"` GothamBold 10 — ASCII for Gotham compatibility). Focus animation: glass becomes more opaque (-0.05 transparency).
 - **MangoTextField.luau** — Rounded rectangle text input (CornerRadius=10). UIStroke border that animates color on focus (0.15s Quad Out). Clear button uses `"X"` GothamBold 10 (ASCII for Gotham compatibility). Not a pill shape.
@@ -401,8 +404,11 @@ ScreenGui (DisplayOrder=200, IgnoreGuiInset=true)
 - **Window tab switch tween tracking**: Tab switch UIScale tween tracked via `tabSwitchTween` variable and cancelled on rapid tab switching to prevent multiple simultaneous tweens on the same UIScale object.
 - **Self-cancelling task.delay**: Notification dismiss callbacks set `dismissThread = nil` before calling dismiss to avoid cancelling the running thread.
 - **Notification hitArea parenting**: Parent to outer container, NOT GlassSurface (UIListLayout repositions children).
-- **Dropdown inline panel**: Panel stays as child of container (no ScreenGui reparenting). Container expands height when open (`triggerHeight + panelHeight + 4px`) to push siblings in layouts, ZIndex boosted to 50 so panel renders above sibling elements. On close, container shrinks back to trigger-only height and ZIndex resets to 0. Full-screen click blocker (ZIndex=49) parented to ScreenGui blocks outside clicks. `Destroy()` closes panel and destroys click blocker before cleanup.
+- **Dropdown inline expansion**: Container has `ClipsDescendants=true` and tweens its height between `triggerHeight` (collapsed) and `triggerHeight + PANEL_GAP + panelHeight` (expanded). Parent UIListLayout pushes siblings automatically. No overlay ScreenGui, no click blocker, no AbsolutePosition tracking. Panel glass `Visible=false` set in `.Completed:Once()` after collapse tween to prevent items showing during collapse. Chevron wrapper Frame rotation tweens 0↔180° for open/close indication.
+- **Dropdown per-item hover map**: `itemHoverTweenMap: {[Frame]: Tween}` replaces shared `itemHoverTweens` array. Each item's hover enter/leave only cancels THAT item's tween — fixes bug where moving between items left previous items stuck at hover color. `clearAllItemHovers()` resets all on close.
 - **Dropdown SetItems() safety**: Closes dropdown before rebuilding items to prevent stale item connection conflicts.
+- **Dropdown in MangoWindow**: Row has `AutomaticSize = Enum.AutomaticSize.Y` so it grows when dropdown expands. Name label uses fixed pixel height `(0.4, 0, 0, 42)` instead of scale `(0.4, 0, 1, 0)` to avoid stretching.
+- **Dropdown in MangoForm**: componentWrapper has `AutomaticSize = Enum.AutomaticSize.Y` for expansion propagation through fieldContainer to form container.
 - **TextTruncate safety**: MangoSegmentedControl segment buttons, MangoDialog button labels, and MangoActionSheet action/cancel labels use `TextTruncate = AtEnd` to prevent text overflow.
 
 #### Refraction Patterns
