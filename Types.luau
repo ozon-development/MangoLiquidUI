@@ -1124,6 +1124,13 @@ export type MangoESPAddConfig = {
 	Text: string?,
 }
 
+export type MangoESPAddModelConfig = {
+	Target: Model,
+	Color: Color3?,
+	Text: string?,
+	ShowBox: boolean?,
+}
+
 export type MangoESPHandle = {
 	SetColor: (self: MangoESPHandle, color: Color3) -> (),
 	SetText: (self: MangoESPHandle, text: string) -> (),
@@ -1140,6 +1147,7 @@ export type MangoESP = {
 	SetTeamCheck: (self: MangoESP, value: boolean) -> (),
 	AddBox: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
 	AddText: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
+	AddModel: (self: MangoESP, config: MangoESPAddModelConfig) -> MangoESPHandle,
 	Enable: (self: MangoESP) -> (),
 	Disable: (self: MangoESP) -> (),
 	Destroy: (self: MangoESP) -> (),

@@ -1138,6 +1138,13 @@ export type MangoESPAddConfig = {
 	Text: string?,
 }
 
+export type MangoESPAddModelConfig = {
+	Target: Model,
+	Color: Color3?,
+	Text: string?,
+	ShowBox: boolean?,
+}
+
 export type MangoESPHandle = {
 	SetColor: (self: MangoESPHandle, color: Color3) -> (),
 	SetText: (self: MangoESPHandle, text: string) -> (),
@@ -1154,6 +1161,7 @@ export type MangoESP = {
 	SetTeamCheck: (self: MangoESP, value: boolean) -> (),
 	AddBox: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
 	AddText: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
+	AddModel: (self: MangoESP, config: MangoESPAddModelConfig) -> MangoESPHandle,
 	Enable: (self: MangoESP) -> (),
 	Disable: (self: MangoESP) -> (),
 	Destroy: (self: MangoESP) -> (),
@@ -10860,6 +10868,101 @@ local function getCharacterScreenBounds(
 	return true, centerX - boxWidth / 2, screenTop, boxWidth, boxHeight, distance
 end
 
+-- Project a single BasePart's bounding box to 2D screen space
+local function getPartScreenBounds(
+	part: BasePart,
+	camera: Camera
+): (boolean, number, number, number, number, number)?
+	local cf = part.CFrame
+	local size = part.Size
+	local halfSize = size / 2
+
+	-- 8 corner offsets of the part's bounding box
+	local corners = {
+		cf * Vector3.new( halfSize.X,  halfSize.Y,  halfSize.Z),
+		cf * Vector3.new( halfSize.X,  halfSize.Y, -halfSize.Z),
+		cf * Vector3.new( halfSize.X, -halfSize.Y,  halfSize.Z),
+		cf * Vector3.new( halfSize.X, -halfSize.Y, -halfSize.Z),
+		cf * Vector3.new(-halfSize.X,  halfSize.Y,  halfSize.Z),
+		cf * Vector3.new(-halfSize.X,  halfSize.Y, -halfSize.Z),
+		cf * Vector3.new(-halfSize.X, -halfSize.Y,  halfSize.Z),
+		cf * Vector3.new(-halfSize.X, -halfSize.Y, -halfSize.Z),
+	}
+
+	local minX, minY = math.huge, math.huge
+	local maxX, maxY = -math.huge, -math.huge
+	local anyVisible = false
+	local dist = 0
+
+	for _, corner in corners do
+		local screenPos, onScreen = camera:WorldToScreenPoint(corner)
+		if onScreen then anyVisible = true end
+		if screenPos.X < minX then minX = screenPos.X end
+		if screenPos.X > maxX then maxX = screenPos.X end
+		if screenPos.Y < minY then minY = screenPos.Y end
+		if screenPos.Y > maxY then maxY = screenPos.Y end
+		dist = screenPos.Z
+	end
+
+	if not anyVisible or dist < 1 then
+		return nil
+	end
+
+	local bw = maxX - minX
+	local bh = maxY - minY
+	-- Minimum visible size
+	if bw < 4 then bw = 4 end
+	if bh < 4 then bh = 4 end
+
+	return true, minX, minY, bw, bh, dist
+end
+
+-- Project a Model's bounding box to 2D screen space
+local function getModelScreenBounds(
+	model: Model,
+	camera: Camera
+): (boolean, number, number, number, number, number)?
+	local cf, size = model:GetBoundingBox()
+	local halfSize = size / 2
+
+	local corners = {
+		cf * Vector3.new( halfSize.X,  halfSize.Y,  halfSize.Z),
+		cf * Vector3.new( halfSize.X,  halfSize.Y, -halfSize.Z),
+		cf * Vector3.new( halfSize.X, -halfSize.Y,  halfSize.Z),
+		cf * Vector3.new( halfSize.X, -halfSize.Y, -halfSize.Z),
+		cf * Vector3.new(-halfSize.X,  halfSize.Y,  halfSize.Z),
+		cf * Vector3.new(-halfSize.X,  halfSize.Y, -halfSize.Z),
+		cf * Vector3.new(-halfSize.X, -halfSize.Y,  halfSize.Z),
+		cf * Vector3.new(-halfSize.X, -halfSize.Y, -halfSize.Z),
+	}
+
+	local minX, minY = math.huge, math.huge
+	local maxX, maxY = -math.huge, -math.huge
+	local anyVisible = false
+	local dist = 0
+
+	for _, corner in corners do
+		local screenPos, onScreen = camera:WorldToScreenPoint(corner)
+		if onScreen then anyVisible = true end
+		if screenPos.X < minX then minX = screenPos.X end
+		if screenPos.X > maxX then maxX = screenPos.X end
+		if screenPos.Y < minY then minY = screenPos.Y end
+		if screenPos.Y > maxY then maxY = screenPos.Y end
+		dist = screenPos.Z
+	end
+
+	if not anyVisible or dist < 1 then
+		return nil
+	end
+
+	local bw = maxX - minX
+	local bh = maxY - minY
+	if bw < 4 then bw = 4 end
+	if bh < 4 then bh = 4 end
+
+	return true, minX, minY, bw, bh, dist
+end
+
 type ESPEntry = {
 	container: Frame,
 	boxFrame: Frame,
@@ -10884,6 +10987,7 @@ type ESPEntry = {
 	-- Target info
 	player: Player?,
 	targetPart: BasePart?,
+	targetModel: Model?,
 	customText: string?,
 	customColor: Color3?,
 	isCustom: boolean,
@@ -11117,6 +11221,7 @@ local function createESPEntry(
 		tracerGradient = tracerGradient,
 		player = nil,
 		targetPart = nil,
+		targetModel = nil,
 		customText = nil,
 		customColor = nil,
 		isCustom = false,
@@ -11328,10 +11433,19 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				continue
 			end
 
-			-- For custom entries, simple world-to-screen
+			-- For custom entries, use proper bounding box projection
 			if entry.isCustom then
-				local screenPos, onScreen = camera:WorldToScreenPoint((rootPart :: BasePart).Position)
-				if not onScreen or screenPos.Z > maxDistance then
+				local bounds: (boolean, number, number, number, number, number)? = nil
+
+				if entry.targetModel and (entry.targetModel :: Model).Parent then
+					-- Model target: use full model bounding box
+					bounds = getModelScreenBounds(entry.targetModel :: Model, camera)
+				elseif rootPart then
+					-- BasePart target: use part's actual size
+					bounds = getPartScreenBounds(rootPart :: BasePart, camera)
+				end
+
+				if not bounds then
 					entry.container.Visible = false
 					if entry.tracer then
 						(entry.tracer :: Frame).Visible = false
@@ -11339,14 +11453,23 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 					continue
 				end
 
-				local dist = screenPos.Z
-				-- Scale box size inversely with distance
-				local scale = math.clamp(800 / dist, 0.3, 3)
-				local boxW = math.floor(40 * scale)
-				local boxH = math.floor(40 * scale)
+				local _, bx, by, bw, bh, dist = bounds :: any
+				bx = bx :: number
+				by = by :: number
+				bw = bw :: number
+				bh = bh :: number
+				dist = dist :: number
 
-				entry.container.Position = UDim2.new(0, math.floor(screenPos.X - boxW / 2), 0, math.floor(screenPos.Y - boxH / 2))
-				entry.container.Size = UDim2.new(0, boxW, 0, boxH)
+				if dist > maxDistance then
+					entry.container.Visible = false
+					if entry.tracer then
+						(entry.tracer :: Frame).Visible = false
+					end
+					continue
+				end
+
+				entry.container.Position = UDim2.new(0, math.floor(bx), 0, math.floor(by))
+				entry.container.Size = UDim2.new(0, math.max(math.floor(bw), 4), 0, math.max(math.floor(bh), 4))
 				entry.container.Visible = true
 				entry.boxFrame.Visible = showBox
 
@@ -11374,12 +11497,14 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				-- Tracer
 				if entry.tracer then
 					if showTracer then
+						local targetX = math.floor(bx + bw / 2)
+						local targetY = math.floor(by + bh)
 						updateTracerLine(
 							entry.tracer :: Frame,
 							screenBottomX,
 							screenBottomY,
-							screenPos.X,
-							screenPos.Y
+							targetX,
+							targetY
 						)
 						;(entry.tracer :: Frame).Visible = true
 						if entry.customColor then
@@ -11641,6 +11766,121 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		function handle.Destroy(_: Types.MangoESPHandle)
 			if isDestroyed then return end
 			destroyEntry(target)
+		end
+
+		return handle
+	end
+
+	function self.AddModel(_self: Types.MangoESP, addConfig: Types.MangoESPAddModelConfig): Types.MangoESPHandle
+		if isDestroyed then
+			local noop = {} :: Types.MangoESPHandle
+			function noop.SetColor(_: Types.MangoESPHandle, _color: Color3) end
+			function noop.SetText(_: Types.MangoESPHandle, _text: string) end
+			function noop.Destroy(_: Types.MangoESPHandle) end
+			return noop
+		end
+
+		local targetModel = addConfig.Target
+		-- Resolve a tracking part from the model
+		local trackPart = targetModel.PrimaryPart
+			or targetModel:FindFirstChildWhichIsA("BasePart") :: BasePart?
+		if not trackPart then
+			-- No part yet, wait for one
+			local waitConn: RBXScriptConnection? = nil
+			waitConn = targetModel.DescendantAdded:Connect(function(desc)
+				if isDestroyed then
+					if waitConn then (waitConn :: RBXScriptConnection):Disconnect() end
+					return
+				end
+				if desc:IsA("BasePart") then
+					if waitConn then (waitConn :: RBXScriptConnection):Disconnect() end
+					-- Recursively call AddModel now that a part exists
+					local h = self:AddModel(addConfig)
+					-- The handle is already set up, nothing more to do
+					_ = h
+				end
+			end)
+			table.insert(connections, waitConn :: RBXScriptConnection)
+			-- Return a handle that can still destroy
+			local earlyHandle = {} :: Types.MangoESPHandle
+			function earlyHandle.SetColor(_: Types.MangoESPHandle, _color: Color3) end
+			function earlyHandle.SetText(_: Types.MangoESPHandle, _text: string) end
+			function earlyHandle.Destroy(_: Types.MangoESPHandle)
+				if waitConn then (waitConn :: RBXScriptConnection):Disconnect() end
+				destroyEntry(targetModel)
+			end
+			return earlyHandle
+		end
+
+		local color = resolve(addConfig.Color, nil, boxColor) :: Color3
+		local text = resolve(addConfig.Text, nil, targetModel.Name) :: string
+		local showBoxForModel = resolve(addConfig.ShowBox, nil, true) :: boolean
+
+		local entry = createESPEntry(
+			screenGui,
+			showBoxForModel,
+			true,
+			false,
+			showDistance,
+			showTracer,
+			color,
+			textColor,
+			fresnelStart,
+			fresnelMid,
+			fresnelEnd,
+			fresnelMidPoint,
+			strokeThickness
+		)
+		entry.isCustom = true
+		entry.targetPart = trackPart
+		entry.targetModel = targetModel
+		entry.customText = text
+		entry.customColor = addConfig.Color
+
+		if entry.nameLabel then
+			(entry.nameLabel :: TextLabel).Text = text
+		end
+
+		entries[targetModel] = entry
+
+		-- Auto-cleanup when model is destroyed
+		local removingConn: RBXScriptConnection? = nil
+		removingConn = targetModel.AncestryChanged:Connect(function(_, newParent)
+			if isDestroyed then
+				if removingConn then (removingConn :: RBXScriptConnection):Disconnect() end
+				return
+			end
+			if not newParent then
+				if removingConn then (removingConn :: RBXScriptConnection):Disconnect() end
+				destroyEntry(targetModel)
+			end
+		end)
+		table.insert(connections, removingConn :: RBXScriptConnection)
+
+		local handle = {} :: Types.MangoESPHandle
+
+		function handle.SetColor(_: Types.MangoESPHandle, newColor: Color3)
+			if isDestroyed then return end
+			entry.customColor = newColor
+			entry.boxStroke.Color = newColor
+			entry.boxFrame.BackgroundColor3 = newColor
+			if entry.nameStroke then
+				(entry.nameStroke :: UIStroke).Color = newColor
+			end
+		end
+
+		function handle.SetText(_: Types.MangoESPHandle, newText: string)
+			if isDestroyed then return end
+			entry.customText = newText
+			if entry.nameLabel then
+				(entry.nameLabel :: TextLabel).Text = newText
+			end
+		end
+
+		function handle.Destroy(_: Types.MangoESPHandle)
+			if isDestroyed then return end
+			if removingConn then (removingConn :: RBXScriptConnection):Disconnect() end
+			destroyEntry(targetModel)
 		end
 
 		return handle

@@ -116,6 +116,7 @@ export type MangoBlurProxyConfig = Types.MangoBlurProxyConfig
 export type MangoBlurProxy = Types.MangoBlurProxy
 export type MangoESPConfig = Types.MangoESPConfig
 export type MangoESPAddConfig = Types.MangoESPAddConfig
+export type MangoESPAddModelConfig = Types.MangoESPAddModelConfig
 export type MangoESPHandle = Types.MangoESPHandle
 export type MangoESP = Types.MangoESP
 export type MangoFormFieldConfig = Types.MangoFormFieldConfig
