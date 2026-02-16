@@ -501,8 +501,9 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					Scale = 1,
 				})
-				trackTween(tabSwitchTween :: Tween)
-				(tabSwitchTween :: Tween):Play()
+				local tw = tabSwitchTween :: Tween
+				trackTween(tw)
+				tw:Play()
 			end
 		end
 	end

@@ -3592,7 +3592,8 @@ function module.new(config: Types.MangoToggleConfig): Types.MangoToggle
 			isDestroyed = true
 			cancelAllTweens()
 			if inputConnection then
-				(inputConnection :: RBXScriptConnection):Disconnect()
+				local conn = inputConnection :: RBXScriptConnection
+				conn:Disconnect()
 				inputConnection = nil
 			end
 			container:Destroy()
@@ -13543,8 +13544,9 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				tabSwitchTween = TweenService:Create(tabScale, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					Scale = 1,
 				})
-				trackTween(tabSwitchTween :: Tween)
-				(tabSwitchTween :: Tween):Play()
+				local tw = tabSwitchTween :: Tween
+				trackTween(tw)
+				tw:Play()
 			end
 		end
 	end
