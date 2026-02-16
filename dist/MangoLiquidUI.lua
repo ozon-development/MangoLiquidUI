@@ -2188,7 +2188,7 @@ module.Mint = {
 function module.custom(base: Types.ThemePreset, overrides: {[string]: any}): Types.ThemePreset
 	local theme = table.clone(base)
 	for key, value in overrides do
-		(theme :: any)[key] = value
+		;(theme :: any)[key] = value
 	end
 	return theme
 end
@@ -2956,7 +2956,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 			if not lightweightMode and innerHighlight then
 				local highlightGrad = (innerHighlight :: Frame):FindFirstChild("HighlightGradient")
 				if highlightGrad and highlightGrad:IsA("UIGradient") then
-					(highlightGrad :: UIGradient).Offset = Vector2.new(nx * 0.01 * intensity, ny * 0.005 * intensity)
+					;(highlightGrad :: UIGradient).Offset = Vector2.new(nx * 0.01 * intensity, ny * 0.005 * intensity)
 				end
 			end
 		end)
@@ -2998,7 +2998,7 @@ function module.new(config: Types.MangoGlassConfig): Types.MangoGlassFrame
 			if highlight then
 				local highlightGrad = highlight:FindFirstChild("HighlightGradient")
 				if highlightGrad and highlightGrad:IsA("UIGradient") then
-					(highlightGrad :: UIGradient).Rotation = angle
+					;(highlightGrad :: UIGradient).Rotation = angle
 				end
 			end
 		end,
@@ -11284,7 +11284,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		local entry = entries[key]
 		if not entry then return end
 		if entry.tracer then
-			(entry.tracer :: Frame):Destroy()
+			;(entry.tracer :: Frame):Destroy()
 		end
 		entry.container:Destroy()
 		entries[key] = nil
@@ -11341,7 +11341,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 
 		-- Set name
 		if entry.nameLabel then
-			(entry.nameLabel :: TextLabel).Text = player.DisplayName
+			;(entry.nameLabel :: TextLabel).Text = player.DisplayName
 		end
 
 		entries[character] = entry
@@ -11398,7 +11398,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			for _, entry in entries do
 				entry.container.Visible = false
 				if entry.tracer then
-					(entry.tracer :: Frame).Visible = false
+					;(entry.tracer :: Frame).Visible = false
 				end
 			end
 			return
@@ -11428,7 +11428,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if not rootPart or not (rootPart :: BasePart).Parent then
 				entry.container.Visible = false
 				if entry.tracer then
-					(entry.tracer :: Frame).Visible = false
+					;(entry.tracer :: Frame).Visible = false
 				end
 				continue
 			end
@@ -11448,7 +11448,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				if not bounds then
 					entry.container.Visible = false
 					if entry.tracer then
-						(entry.tracer :: Frame).Visible = false
+						;(entry.tracer :: Frame).Visible = false
 					end
 					continue
 				end
@@ -11463,7 +11463,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				if dist > maxDistance then
 					entry.container.Visible = false
 					if entry.tracer then
-						(entry.tracer :: Frame).Visible = false
+						;(entry.tracer :: Frame).Visible = false
 					end
 					continue
 				end
@@ -11481,17 +11481,17 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 
 				-- Update custom text
 				if entry.nameLabel and entry.customText then
-					(entry.nameLabel :: TextLabel).Text = entry.customText :: string
+					;(entry.nameLabel :: TextLabel).Text = entry.customText :: string
 				end
 
 				-- No health for custom entries
 				if entry.healthContainer then
-					(entry.healthContainer :: Frame).Visible = false
+					;(entry.healthContainer :: Frame).Visible = false
 				end
 
 				-- Distance label
 				if entry.distanceLabel then
-					(entry.distanceLabel :: TextLabel).Text = string.format("[%d]", math.floor(dist))
+					;(entry.distanceLabel :: TextLabel).Text = string.format("[%d]", math.floor(dist))
 				end
 
 				-- Tracer
@@ -11508,7 +11508,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 						)
 						;(entry.tracer :: Frame).Visible = true
 						if entry.customColor then
-							(entry.tracer :: Frame).BackgroundColor3 = entry.customColor :: Color3
+							;(entry.tracer :: Frame).BackgroundColor3 = entry.customColor :: Color3
 						end
 					else
 						;(entry.tracer :: Frame).Visible = false
@@ -11523,7 +11523,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if not result then
 				entry.container.Visible = false
 				if entry.tracer then
-					(entry.tracer :: Frame).Visible = false
+					;(entry.tracer :: Frame).Visible = false
 				end
 				continue
 			end
@@ -11539,7 +11539,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if dist > maxDistance then
 				entry.container.Visible = false
 				if entry.tracer then
-					(entry.tracer :: Frame).Visible = false
+					;(entry.tracer :: Frame).Visible = false
 				end
 				continue
 			end
@@ -11549,7 +11549,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				if localPlayer.Team and (entry.player :: Player).Team == localPlayer.Team then
 					entry.container.Visible = false
 					if entry.tracer then
-						(entry.tracer :: Frame).Visible = false
+						;(entry.tracer :: Frame).Visible = false
 					end
 					continue
 				end
@@ -11577,7 +11577,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			-- Distance label
 			if entry.distanceLabel then
 				if showDistance then
-					(entry.distanceLabel :: TextLabel).Text = string.format("[%d]", math.floor(dist))
+					;(entry.distanceLabel :: TextLabel).Text = string.format("[%d]", math.floor(dist))
 					;(entry.distanceLabel :: TextLabel).Visible = true
 				else
 					;(entry.distanceLabel :: TextLabel).Visible = false
@@ -11618,7 +11618,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		-- Show/hide existing name tags
 		for _, entry in entries do
 			if entry.nameTag then
-				(entry.nameTag :: Frame).Visible = value
+				;(entry.nameTag :: Frame).Visible = value
 			end
 		end
 	end
@@ -11680,7 +11680,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		entry.customColor = addConfig.Color
 
 		if entry.nameLabel and addConfig.Text then
-			(entry.nameLabel :: TextLabel).Text = addConfig.Text
+			;(entry.nameLabel :: TextLabel).Text = addConfig.Text
 		end
 
 		entries[target] = entry
@@ -11693,7 +11693,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			entry.boxStroke.Color = color
 			entry.boxFrame.BackgroundColor3 = color
 			if entry.nameStroke then
-				(entry.nameStroke :: UIStroke).Color = color
+				;(entry.nameStroke :: UIStroke).Color = color
 			end
 		end
 
@@ -11701,7 +11701,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if isDestroyed then return end
 			entry.customText = text
 			if entry.nameLabel then
-				(entry.nameLabel :: TextLabel).Text = text
+				;(entry.nameLabel :: TextLabel).Text = text
 			end
 		end
 
@@ -11737,7 +11737,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		entry.customColor = addConfig.Color
 
 		if entry.nameLabel then
-			(entry.nameLabel :: TextLabel).Text = entry.customText :: string
+			;(entry.nameLabel :: TextLabel).Text = entry.customText :: string
 		end
 
 		entries[target] = entry
@@ -11748,10 +11748,10 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if isDestroyed then return end
 			entry.customColor = color
 			if entry.nameStroke then
-				(entry.nameStroke :: UIStroke).Color = color
+				;(entry.nameStroke :: UIStroke).Color = color
 			end
 			if entry.nameTag then
-				(entry.nameTag :: Frame).BackgroundColor3 = color
+				;(entry.nameTag :: Frame).BackgroundColor3 = color
 			end
 		end
 
@@ -11759,7 +11759,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if isDestroyed then return end
 			entry.customText = text
 			if entry.nameLabel then
-				(entry.nameLabel :: TextLabel).Text = text
+				;(entry.nameLabel :: TextLabel).Text = text
 			end
 		end
 
@@ -11838,7 +11838,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		entry.customColor = addConfig.Color
 
 		if entry.nameLabel then
-			(entry.nameLabel :: TextLabel).Text = text
+			;(entry.nameLabel :: TextLabel).Text = text
 		end
 
 		entries[targetModel] = entry
@@ -11865,7 +11865,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			entry.boxStroke.Color = newColor
 			entry.boxFrame.BackgroundColor3 = newColor
 			if entry.nameStroke then
-				(entry.nameStroke :: UIStroke).Color = newColor
+				;(entry.nameStroke :: UIStroke).Color = newColor
 			end
 		end
 
@@ -11873,7 +11873,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 			if isDestroyed then return end
 			entry.customText = newText
 			if entry.nameLabel then
-				(entry.nameLabel :: TextLabel).Text = newText
+				;(entry.nameLabel :: TextLabel).Text = newText
 			end
 		end
 
@@ -11915,7 +11915,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 		-- Destroy all entries
 		for key, entry in entries do
 			if entry.tracer then
-				(entry.tracer :: Frame):Destroy()
+				;(entry.tracer :: Frame):Destroy()
 			end
 			entry.container:Destroy()
 		end
@@ -15762,7 +15762,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 
 			for _, destroyable in innerDestroyables do
 				if typeof(destroyable) == "table" and (destroyable :: any).Destroy then
-					(destroyable :: any):Destroy()
+					;(destroyable :: any):Destroy()
 				end
 			end
 			table.clear(innerDestroyables)

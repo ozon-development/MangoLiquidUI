@@ -86,11 +86,14 @@ for mod in "${MODULES[@]}"; do
 
     echo "_modules[\"$mod\"] = function()" >> "$OUT_FILE"
 
-    # Read file, transform require calls, strip --!strict
+    # Read file, transform require calls, strip --!strict,
+    # and fix ambiguous syntax: indented lines starting with '(' get ';' prefix
+    # to prevent Luau parser from treating `expr\n(cast)` as a function call
     sed \
         -e 's/^--!strict$//' \
         -e 's/require(script\.Parent\.\([A-Za-z_][A-Za-z0-9_]*\))/_require("\1")/g' \
         -e 's/require(script\.\([A-Za-z_][A-Za-z0-9_]*\))/_require("\1")/g' \
+        -e 's/^\([[:space:]][[:space:]]*\)(/\1;(/' \
         "$FILE" >> "$OUT_FILE"
 
     echo "" >> "$OUT_FILE"
@@ -297,5 +300,8 @@ end)
 
 return MangoLiquidUI
 FOOTER
+
+# Post-process: fix any ambiguous '(' lines in the footer section too
+sed -i 's/^\([[:space:]][[:space:]]*\)(/\1;(/' "$OUT_FILE"
 
 echo "Built: $OUT_FILE ($(wc -l < "$OUT_FILE") lines)"
