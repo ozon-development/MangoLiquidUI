@@ -47,6 +47,7 @@ MODULES=(
     "MangoNotificationStack"
     "MangoBottomSheet"
     "MangoBlurProxy"
+    "MangoESP"
     "MangoForm"
     "MangoFocusManager"
     "MangoIntro"
@@ -132,6 +133,7 @@ local MangoToast = _require("MangoToast")
 local MangoContextMenu = _require("MangoContextMenu")
 local MangoBottomSheet = _require("MangoBottomSheet")
 local MangoBlurProxy = _require("MangoBlurProxy")
+local MangoESP = _require("MangoESP")
 local MangoForm = _require("MangoForm")
 local MangoFocusManager = _require("MangoFocusManager")
 local MangoSaveManager = _require("MangoSaveManager")
@@ -179,6 +181,7 @@ local MangoLiquidUI = {
     MangoContextMenu = MangoContextMenu,
     MangoBottomSheet = MangoBottomSheet,
     MangoBlurProxy = MangoBlurProxy,
+    MangoESP = MangoESP,
     MangoForm = MangoForm,
     MangoFocusManager = MangoFocusManager,
     MangoSaveManager = MangoSaveManager,
@@ -235,6 +238,7 @@ function MangoLiquidUI.tstack(config) return MangoToast.newStack(config) end
 function MangoLiquidUI.ctx(config) return MangoContextMenu.new(config) end
 function MangoLiquidUI.bsheet(config) return MangoBottomSheet.new(config) end
 function MangoLiquidUI.blur(config) return MangoBlurProxy.new(config) end
+function MangoLiquidUI.esp(config) return MangoESP.new(config) end
 function MangoLiquidUI.form(config) return MangoForm.new(config) end
 function MangoLiquidUI.focus(config) return MangoFocusManager.new(config) end
 function MangoLiquidUI.colr(config) return MangoColorPicker.new(config) end

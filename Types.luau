@@ -1104,6 +1104,47 @@ export type MangoBuilder = {
 	create: (self: MangoBuilder) -> any,
 }
 
+-- ESP
+export type MangoESPConfig = {
+	Theme: ThemePreset?,
+	Box: boolean?,
+	Name: boolean?,
+	Health: boolean?,
+	Distance: boolean?,
+	Tracer: boolean?,
+	TeamCheck: boolean?,
+	MaxDistance: number?,
+	BoxColor: Color3?,
+	TextColor: Color3?,
+}
+
+export type MangoESPAddConfig = {
+	Target: BasePart,
+	Color: Color3?,
+	Text: string?,
+}
+
+export type MangoESPHandle = {
+	SetColor: (self: MangoESPHandle, color: Color3) -> (),
+	SetText: (self: MangoESPHandle, text: string) -> (),
+	Destroy: (self: MangoESPHandle) -> (),
+}
+
+export type MangoESP = {
+	SetBox: (self: MangoESP, value: boolean) -> (),
+	SetName: (self: MangoESP, value: boolean) -> (),
+	SetHealth: (self: MangoESP, value: boolean) -> (),
+	SetDistance: (self: MangoESP, value: boolean) -> (),
+	SetTracer: (self: MangoESP, value: boolean) -> (),
+	SetMaxDistance: (self: MangoESP, value: number) -> (),
+	SetTeamCheck: (self: MangoESP, value: boolean) -> (),
+	AddBox: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
+	AddText: (self: MangoESP, config: MangoESPAddConfig) -> MangoESPHandle,
+	Enable: (self: MangoESP) -> (),
+	Disable: (self: MangoESP) -> (),
+	Destroy: (self: MangoESP) -> (),
+}
+
 -- Protection
 export type MangoProtectionConfig = {
 	Enabled: boolean?,

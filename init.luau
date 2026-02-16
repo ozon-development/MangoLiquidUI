@@ -36,6 +36,7 @@ local MangoToast = require(script.MangoToast)
 local MangoContextMenu = require(script.MangoContextMenu)
 local MangoBottomSheet = require(script.MangoBottomSheet)
 local MangoBlurProxy = require(script.MangoBlurProxy)
+local MangoESP = require(script.MangoESP)
 local MangoForm = require(script.MangoForm)
 local MangoFocusManager = require(script.MangoFocusManager)
 local MangoSaveManager = require(script.MangoSaveManager)
@@ -113,6 +114,10 @@ export type MangoBottomSheetConfig = Types.MangoBottomSheetConfig
 export type MangoBottomSheet = Types.MangoBottomSheet
 export type MangoBlurProxyConfig = Types.MangoBlurProxyConfig
 export type MangoBlurProxy = Types.MangoBlurProxy
+export type MangoESPConfig = Types.MangoESPConfig
+export type MangoESPAddConfig = Types.MangoESPAddConfig
+export type MangoESPHandle = Types.MangoESPHandle
+export type MangoESP = Types.MangoESP
 export type MangoFormFieldConfig = Types.MangoFormFieldConfig
 export type MangoFormConfig = Types.MangoFormConfig
 export type MangoForm = Types.MangoForm
@@ -170,6 +175,7 @@ local MangoLiquidUI = {
 	MangoContextMenu = MangoContextMenu,
 	MangoBottomSheet = MangoBottomSheet,
 	MangoBlurProxy = MangoBlurProxy,
+	MangoESP = MangoESP,
 	MangoForm = MangoForm,
 	MangoFocusManager = MangoFocusManager,
 	MangoSaveManager = MangoSaveManager,
@@ -226,6 +232,7 @@ function MangoLiquidUI.tstack(config: Types.MangoToastStackConfig): Types.MangoT
 function MangoLiquidUI.ctx(config: Types.MangoContextMenuConfig): Types.MangoContextMenu return MangoContextMenu.new(config) end
 function MangoLiquidUI.bsheet(config: Types.MangoBottomSheetConfig): Types.MangoBottomSheet return MangoBottomSheet.new(config) end
 function MangoLiquidUI.blur(config: Types.MangoBlurProxyConfig): Types.MangoBlurProxy return MangoBlurProxy.new(config) end
+function MangoLiquidUI.esp(config: Types.MangoESPConfig): Types.MangoESP return MangoESP.new(config) end
 function MangoLiquidUI.form(config: Types.MangoFormConfig): Types.MangoForm return MangoForm.new(config) end
 function MangoLiquidUI.focus(config: Types.MangoFocusManagerConfig): Types.MangoFocusManager return MangoFocusManager.new(config) end
 function MangoLiquidUI.colr(config: Types.MangoColorPickerConfig): Types.MangoColorPicker return MangoColorPicker.new(config) end
