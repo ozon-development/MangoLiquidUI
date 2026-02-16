@@ -415,6 +415,9 @@ ScreenGui (DisplayOrder=200, IgnoreGuiInset=true)
 - **ScreenGui centralization**: All modules call `MangoProtection.createScreenGui({DisplayOrder = N})` instead of duplicating creation logic.
 - **Auto-registration**: MangoGlassFrame calls `registerInstance(container)` after parenting for seamless protection coverage.
 
+#### Build & Loadstring Patterns
+- **Static require() for build transform**: The build script (`build.sh`) uses sed to transform `require(script.Parent.X)` → `_require("X")`. CRITICAL: never use dynamic require patterns like `require(script.Parent:FindFirstChild(name))` — they won't be transformed and `script` is nil in loadstring contexts. MangoBuilder uses a static `MODULE_LOADERS` lookup table of individual `require(script.Parent.X)` calls to support dynamic module loading while remaining build-safe.
+
 #### Font Compatibility
 - **ASCII for Gotham**: Close/dismiss buttons use `"X"` (GothamBold), chevrons use `"v"` (GothamMedium). Gotham doesn't render ✕, ▼, ▾ reliably.
 - **SourceSansBold for Unicode**: Checkmarks (✓) use `Enum.Font.SourceSansBold` which has full Unicode support (MangoCheckbox, MangoDropdown item checks).
