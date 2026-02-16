@@ -8542,7 +8542,6 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
 	local clickBlocker: TextButton? = nil
-	local positionTrackConn: RBXScriptConnection? = nil
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -8922,6 +8921,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	end
 
 	-- Open/Close
+	-- Panel stays as child of container (no ScreenGui reparenting).
+	-- Container expands to push siblings; boosted ZIndex renders panel above them.
 	closeDropdown = function()
 		if not isOpen then
 			return
@@ -8936,14 +8937,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			frame.BackgroundTransparency = 1
 		end
 
-		-- Stop tracking trigger position
-		if positionTrackConn then
-			positionTrackConn:Disconnect()
-			positionTrackConn = nil
-		end
-
 		-- Shrink container back to trigger-only height so siblings un-push
 		container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
+		container.ZIndex = 0
 
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 0.95 })
@@ -8957,13 +8953,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		fadeTween:Play()
 
 		scaleTween.Completed:Once(function()
-			-- Guard against stale handler from rapid open/close/open
 			if isDestroyed or isOpen then return end
 			panelGlass.Container.Visible = false
-			-- Restore panel parent to container
-			panelGlass.Container.Parent = container
-			panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + 4)
-			panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
 		end)
 	end
 
@@ -8975,31 +8966,11 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		cancelAllTweens()
 		createClickBlocker()
 
-		-- Expand container to include panel height so siblings get pushed down in layouts
+		-- Expand container to include panel height so siblings get pushed down
 		local panelH = panelGlass.Container.Size.Y.Offset
 		container.Size = UDim2.new(size.X.Scale, size.X.Offset, 0, triggerHeightOffset + panelH + 4)
-
-		-- Reparent panel to ScreenGui for proper Z layering
-		local screenGui = findScreenGui()
-		if screenGui then
-			local triggerAbsPos = triggerGlass.Container.AbsolutePosition
-			local triggerAbsSize = triggerGlass.Container.AbsoluteSize
-			panelGlass.Container.Parent = screenGui
-			panelGlass.Container.Position = UDim2.new(0, triggerAbsPos.X, 0, triggerAbsPos.Y + triggerAbsSize.Y + 4)
-			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
-
-			-- Track trigger position changes so panel follows window drag/scroll
-			if positionTrackConn then
-				positionTrackConn:Disconnect()
-				positionTrackConn = nil
-			end
-			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-				if not isOpen or isDestroyed then return end
-				local newPos = triggerGlass.Container.AbsolutePosition
-				local newSize = triggerGlass.Container.AbsoluteSize
-				panelGlass.Container.Position = UDim2.new(0, newPos.X, 0, newPos.Y + newSize.Y + 4)
-			end)
-		end
+		-- Boost ZIndex so panel renders above sibling elements
+		container.ZIndex = 50
 
 		panelGlass.Container.Visible = true
 		panelGlass.Container.ZIndex = 50
@@ -9096,10 +9067,6 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
-			if positionTrackConn then
-				positionTrackConn:Disconnect()
-				positionTrackConn = nil
-			end
 			for _, conn in connections do
 				conn:Disconnect()
 			end
