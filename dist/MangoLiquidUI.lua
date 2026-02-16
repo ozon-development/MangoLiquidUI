@@ -8521,7 +8521,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 	local triggerHeightOffset = if size.Y.Offset > 0 then size.Y.Offset else 36
-	local PANEL_GAP = 6
+	local PANEL_GAP = 8
 
 	-- Theme values
 	local primaryText = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
@@ -8959,18 +8959,27 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			closeDropdown()
 		end)
 
+		-- Yield one frame so Roblox computes layout for the new ScreenGui
+		-- and ensures trigger AbsolutePosition/AbsoluteSize are up-to-date
+		task.wait()
+		if not isOpen or isDestroyed then return end
+
 		-- Read trigger screen position for panel placement
 		local triggerAbsPos = triggerGlass.Container.AbsolutePosition
 		local triggerAbsSize = triggerGlass.Container.AbsoluteSize
 		local panelH = panelGlass.Container.Size.Y.Offset
 
+		-- Defensive: if AbsoluteSize.Y is unexpectedly small (stale layout),
+		-- fall back to the known trigger height offset
+		local triggerH = if triggerAbsSize.Y >= 10 then triggerAbsSize.Y else triggerHeightOffset
+
 		-- Reparent panel to overlay
 		panelGlass.Container.Parent = overlayGui
 		panelGlass.Container.Position = UDim2.new(
 			0, triggerAbsPos.X,
-			0, triggerAbsPos.Y + triggerAbsSize.Y + PANEL_GAP
+			0, triggerAbsPos.Y + triggerH + PANEL_GAP
 		)
-		panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
+		panelGlass.Container.Size = UDim2.new(0, math.max(triggerAbsSize.X, size.X.Offset), 0, panelH)
 		panelGlass.Container.ZIndex = 10
 		panelGlass.Container.Visible = true
 
@@ -8982,10 +8991,11 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 			if not isOpen or isDestroyed then return end
 			local newPos = triggerGlass.Container.AbsolutePosition
-			local newSize = triggerGlass.Container.AbsoluteSize
+			local newAbsSize = triggerGlass.Container.AbsoluteSize
+			local newH = if newAbsSize.Y >= 10 then newAbsSize.Y else triggerHeightOffset
 			panelGlass.Container.Position = UDim2.new(
 				0, newPos.X,
-				0, newPos.Y + newSize.Y + PANEL_GAP
+				0, newPos.Y + newH + PANEL_GAP
 			)
 		end)
 
