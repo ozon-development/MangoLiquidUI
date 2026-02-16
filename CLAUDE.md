@@ -301,6 +301,33 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
   +-- NotificationStack (MangoNotificationStack, for in-window notifications)
 ```
 
+### Instance Hierarchy (MangoESP)
+
+```
+ScreenGui (DisplayOrder=200, IgnoreGuiInset=true)
+  +-- EntryContainer (Frame, absolute positioned each frame, per target)
+  |     +-- BoxFrame (Frame, 0.95 transparency, accent-tinted glass fill)
+  |     |     +-- UICorner (4px)
+  |     |     +-- UIStroke (BoxStroke, 1.5px, accent color, Border mode)
+  |     |     |     +-- UIGradient (BoxGradient, Rotation=90, 3-keypoint fresnel)
+  |     |     +-- InnerEdgeFrame (Frame, full size, transparent, ZIndex=2)
+  |     |           +-- UICorner (4px)
+  |     |           +-- UIStroke (InnerEdgeStroke, 0.5px, white, 70% transparent, Border)
+  |     |                 +-- UIGradient (InnerEdgeGradient, Rotation=90, 3-keypoint: 0.55/0.82/0.95)
+  |     +-- NameTag (Frame, pill, glass-tinted 0.82 transparency, above box)
+  |     |     +-- UICorner (999) + UIPadding (8px horizontal)
+  |     |     +-- UIStroke (NameStroke, 0.75px, accent, Border)
+  |     |           +-- UIGradient (NameGradient, 3-keypoint fresnel)
+  |     |     +-- NameLabel (TextLabel, GothamMedium 11px, TextTruncate)
+  |     +-- HealthContainer (Frame, 4px tall pill, above box below name)
+  |     |     +-- UICorner (999)
+  |     |     +-- HealthFill (Frame, green->yellow->red by HP fraction)
+  |     |           +-- UICorner (999)
+  |     +-- DistanceLabel (TextLabel, below box, GothamMedium 11px, TextStroke for readability)
+  +-- Tracer (Frame, 1px wide, rotated from screen bottom-center to target)
+        +-- UIGradient (TracerGradient, Rotation=90, fades from origin to target)
+```
+
 ### Module Roles
 
 - **Types.luau** — Shared type definitions (`ThemePreset`, config tables, return types) consumed by all other modules. Edit this first when adding new configurable properties. Includes all component types: glass frame, toggle, slider, button, billboard label, notification, notification stack, segmented control, dropdown, tab bar, search bar, text field, checkbox, progress bar, dialog, action sheet, intro.
@@ -328,6 +355,7 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 - **MangoProtection.luau** — Anti-detection security module. Provides 5 layers of defense: (1) Hidden parenting via `gethui()` → CoreGui → PlayerGui fallback chain, (2) Metamethod hooking (`__namecall`/`__index`) that filters protected instances from `GetChildren()`, `GetDescendants()`, `FindFirstChild()` calls by game scripts while allowing executor code full access via `checkcaller()`, (3) Instance identity obfuscation with GUID-based randomized names for all containers, ScreenGuis, RenderStep bindings, and refraction Parts, (4) Connection protection via `newcclosure()` wrapping, (5) Property spoofing returning `nil` parent for protected instances to non-executor callers. All executor-specific globals (`gethui`, `cloneref`, `hookmetamethod`, `newcclosure`, `checkcaller`, `getnamecallmethod`, `syn.protect_gui`) accessed via `pcall` for `--!strict` safety. Uses weak-keyed `protectedInstances` registry with automatic `DescendantAdded` listener. `registerInstance()` has a nil guard for safety. Gracefully falls back to standard Roblox Studio behavior when no executor features are available. Provides centralized `createScreenGui()` helper that replaces duplicated ScreenGui creation across 8+ modules. All protection is automatic and transparent — no API changes to existing modules.
 - **MangoCarousel.luau** — Apple Watch-style vertical carousel dock. Paraboloid focus scaling (0.5x→1.0x) with accent-colored icons, animated active dots, mouse wheel / touch swipe navigation. ClipFrame uses 14px edge padding to prevent shadow and dot clipping. Hover (1.04x Back Out), press (0.92x Quad Out), scroll (variable duration based on wrap distance). Composes MangoGlassFrame for dock background. Icon hierarchy: IconShadow (ICON_SIZE+6, 84% transparent, 14px radius), IconBg (40% accent, 12px squircle, diagonal gradient Rotation=135 lighten 0.15/darken 0.08), IconHighlight (78% transparent, 12px corner), InnerEdgeFrame (1px white Border UIStroke with 3-keypoint gradient 0.55/0.82/0.95), SpecularFrame (12px corner, fresnel rim). Scroll tween uses `.Completed:Once()` to prevent stale callbacks accumulating across multiple scroll operations.
 - **MangoWindow.luau** — Feature-rich configuration UI window. Multi-tab support via floating MangoCarousel dock (replaces in-window MangoSegmentedControl), 12+ element types (sliders, toggles, dropdowns, color pickers, keybinds, etc.), automatic config saving/loading via MangoSaveManager, flag dependency visibility system. Carousel dock is a sibling of windowContainer at the ScreenGui level, positioned to the left of the window with a 12px gap, follows window on drag, shows/hides with window animations. ContentArea has UIPadding (8px top/bottom) inside ClipsDescendants=true for shadow breathing room. Show/hide animations (UIScale 0.95→1, Back Out). Draggable title bar, close button, reopener pill. Composes MangoGlassFrame, MangoCarousel, MangoNotificationStack, MangoDialog. All element types have proper insets to prevent clipping against contentArea's ClipsDescendants: Button `(0,4,0,0)` / `(1,-8,0,36)` — 4px margin for 1.02x hover scale; Slider `(0,12,0,22)` / `(1,-24,0,32)` — 12px margin for thumb overflow; Toggle `(1,-55,0.5,0)` — 4px from edge for knob shadow; Dropdown `(0.42,2,0,2)` / `(0.56,-4,0,36)` — 2px inset for trigger; Input/TextField `(0,4,0,20)` / `(1,-8,0,36)` — 4px margin, Input row height 60px; Stepper `(1,-124,0.5,0)` — 4px from right; ProgressBar `(0,4,0,20)` / `(1,-8,0,20)` — 4px margin; ColorPicker preview `(1,-4,0.5,0)` — 4px from right; Keybind `(1,-84,0.5,0)` — 4px from right. Tab padding 8px left/right, 6px top/bottom. Tab switch tween tracked and cancelled on rapid switching to prevent tween conflicts. `showWindow()` cancels all `pendingDelays` before scheduling new delay threads, preventing animation stacking from rapid show/hide cycles. `hideWindow()` delay threads (surface dissolve, reopener show) tracked in `pendingDelays` array for cancellation on `Destroy()`. Close button hover tween tracked via `trackTween()` for cancellation by `cancelAllTweens()` on destroy.
+- **MangoESP.luau** — Glass-styled ESP (Extra Sensory Perception) overlay system. Renders fresnel-gradient bounding boxes, glass name tag pills, health bars (green→yellow→red), distance labels, and tracer lines for all players and custom targets. Projects 3D world space to 2D screen space via a single `RenderStepped` binding at `Camera.Value+1` priority. Player tracking uses `PlayerAdded`/`CharacterAdded` lifecycle with `HumanoidRootPart` wait. Character bounding box: 2-point projection (head top + feet) with 0.6 aspect ratio. Custom entries (`AddBox`, `AddText`) use 8-corner part bounding box projection via `Camera:WorldToScreenPoint`. Model entries (`AddModel`) use `Model:GetBoundingBox()` for accurate sizing, auto-resolve `PrimaryPart` or first `BasePart`, default text from `Model.Name`, auto-cleanup on `AncestryChanged`. Performance: no CanvasGroups, no shadows, no tweens in hot loop — ~22 instances per player. `isDestroyed` guards on all callbacks. Team check evaluated at runtime (teams can change). Health color: green→yellow at 50%, yellow→red at 0%.
 - **init.luau** — Re-exports all modules, Themes, type aliases, the `transitionTheme()` utility function, short-name constructor aliases (`bttn`, `sldr`, `tgl`, etc.), theme shortcuts (`Light`, `Dark`, `Mango`, `Mint`), `gui()` ScreenGui helper, `intro` module shortcut, and auto-plays `MangoIntro.play()` via `task.spawn` on require. Protection API: `protect()`, `isProtected()`, `protectionLevel()`. `gui()` helper uses `MangoProtection.createScreenGui()` for automatic hidden parenting.
 - **MangoLiquidUI_Demo.client.luau** — Self-contained LocalScript demo. Single centered glass panel (680x500, resizable, draggable) with 4-tab content (Home, Showcase, Effects, Settings) navigated by Apple Watch-style MangoCarousel dock. Intro animation with 4-layer 3D glass text. All 4 themes, environment lighting, refraction, parallax. Uses LightweightMode for everything except the main panel (2 CanvasGroups total). Single RefractionProxy. Buttons use single custom drop shadows instead of multi-layer system.
 
@@ -493,6 +521,21 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 - `Lock(reason?)`, `Unlock()` — Overlay lock with optional reason label.
 - `Destroy()` — Destroy element and row.
 
+`MangoESP.new()` returns:
+- `SetBox(value)`, `SetName(value)`, `SetHealth(value)`, `SetDistance(value)`, `SetTracer(value)` — Toggle individual ESP features at runtime.
+- `SetMaxDistance(value)` — Set maximum render distance in studs.
+- `SetTeamCheck(value)` — Toggle team filtering at runtime.
+- `AddBox(config)` — Add glass bounding box on a `BasePart`. Returns `MangoESPHandle`.
+- `AddText(config)` — Add floating text label on a `BasePart` (no box). Returns `MangoESPHandle`.
+- `AddModel(config)` — Add glass bounding box on a `Model` (game items, loot, etc.). Uses `Model:GetBoundingBox()` for accurate sizing. Defaults text to `Model.Name`. Auto-cleans up when model is removed. Returns `MangoESPHandle`.
+- `Enable()`, `Disable()` — Toggle all ESP rendering.
+- `Destroy()` — Unbind render step, disconnect all, destroy all entries + ScreenGui.
+
+`MangoESPHandle` (returned by `AddBox`, `AddText`, `AddModel`):
+- `SetColor(color)` — Change the entry's accent color.
+- `SetText(text)` — Change the entry's label text.
+- `Destroy()` — Remove the entry.
+
 ### Config Fields
 
 `MangoGlassConfig` includes:
@@ -555,6 +598,12 @@ ScreenGui (DisplayOrder=100, hidden parenting via MangoProtection)
 `MangoWindowConfig`: `Name: string, Theme?, Size?, Position?, ToggleKey?, ShowButton?, ConfigurationSaving: MangoWindowConfigSaving?, LoadingTitle?, LoadingSubtitle?, LoadingEnabled?`
 `MangoWindowConfigSaving`: `Enabled: boolean, FolderName?, FileName?`
 
+`MangoESPConfig`: `Theme?, Box? (default true), Name? (default true), Health? (default true), Distance? (default true), Tracer? (default false), TeamCheck? (default false), MaxDistance? (default 2000), BoxColor? (default AccentColor or white), TextColor? (default PrimaryTextColor or white)`
+
+`MangoESPAddConfig`: `Target: BasePart, Color?, Text?`
+
+`MangoESPAddModelConfig`: `Target: Model, Color?, Text? (default Model.Name), ShowBox? (default true)`
+
 ### Utilities
 
 - `MangoLiquidUI.transitionTheme(glassFrames, fadeDuration, rebuildCallback)` — Smoothly fades out existing glass frames, calls the rebuild callback to create new ones with the new theme, then fades them in. Works around the NumberSequence tween limitation.
@@ -598,6 +647,7 @@ ui.intro.skip()  -- skip intro if needed
 | `ui.fuse(config)` | `ui.LiquidFusion.new(config)` | Liquid Fusion |
 | `ui.carousel(config)` / `ui.csel(config)` | `ui.MangoCarousel.new(config)` | Carousel |
 | `ui.window(config)` | `ui.MangoWindow.new(config)` | Window |
+| `ui.esp(config)` | `ui.MangoESP.new(config)` | ESP |
 | `ui.protect(config)` | `ui.MangoProtection.configure(config)` | Configure protection |
 | `ui.isProtected()` | `ui.MangoProtection.isProtected()` | Check protection status |
 | `ui.protectionLevel()` | `ui.MangoProtection.getProtectionLevel()` | Get protection level |
@@ -654,7 +704,7 @@ Output: `dist/MangoLiquidUI.lua` (~14,600+ lines).
 5. Appends a footer that wires up the library table, short aliases, theme shortcuts, `gui()` helper, `transitionTheme()`, protection aliases, and auto-play intro
 
 **Module processing order** (dependency-safe — earlier modules have no deps on later ones):
-`Types` → `MangoProtection` → `Themes` → `LiquidFusion` → `RefractionProxy` → `MangoGlassFrame` → `MangoShimmer` → `MangoHaptics` → `MangoLayout` → `MangoToggle` → `MangoSlider` → `MangoCheckbox` → `MangoProgressBar` → `MangoSegmentedControl` → `MangoSearchBar` → `MangoTextField` → `MangoEnvironmentLight` → `MangoButton` → `MangoNotification` → `MangoBadge` → `MangoSkeleton` → `MangoStepper` → `MangoTooltip` → `MangoToast` → `MangoDialog` → `MangoActionSheet` → `MangoDropdown` → `MangoContextMenu` → `MangoTabBar` → `MangoBillboardLabel` → `MangoNotificationStack` → `MangoBottomSheet` → `MangoBlurProxy` → `MangoForm` → `MangoFocusManager` → `MangoIntro` → `MangoSaveManager` → `MangoColorPicker` → `MangoKeybind` → `MangoCarousel` → `MangoWindow` → `MangoBuilder`
+`Types` → `MangoProtection` → `Themes` → `LiquidFusion` → `RefractionProxy` → `MangoGlassFrame` → `MangoShimmer` → `MangoHaptics` → `MangoLayout` → `MangoToggle` → `MangoSlider` → `MangoCheckbox` → `MangoProgressBar` → `MangoSegmentedControl` → `MangoSearchBar` → `MangoTextField` → `MangoEnvironmentLight` → `MangoButton` → `MangoNotification` → `MangoBadge` → `MangoSkeleton` → `MangoStepper` → `MangoTooltip` → `MangoToast` → `MangoDialog` → `MangoActionSheet` → `MangoDropdown` → `MangoContextMenu` → `MangoTabBar` → `MangoBillboardLabel` → `MangoNotificationStack` → `MangoBottomSheet` → `MangoBlurProxy` → `MangoESP` → `MangoForm` → `MangoFocusManager` → `MangoIntro` → `MangoSaveManager` → `MangoColorPicker` → `MangoKeybind` → `MangoCarousel` → `MangoWindow` → `MangoBuilder`
 
 **Key detail:** `MangoProtection` is position 2 (after `Types`, before `Themes`) because nearly all other modules depend on it for `createScreenGui()`, `randomName()`, and `registerInstance()`. Adding a new module requires:
 1. Creating the `.luau` source file
