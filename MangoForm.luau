@@ -121,6 +121,7 @@ function module.new(config: Types.MangoFormConfig): Types.MangoForm
 				Parent = componentWrapper,
 			})
 		elseif fieldType == "dropdown" then
+			componentWrapper.AutomaticSize = Enum.AutomaticSize.Y
 			component = MangoDropdown.new({
 				Position = UDim2.new(0, 0, 0, 0),
 				Size = UDim2.new(1, 0, 0, 36),

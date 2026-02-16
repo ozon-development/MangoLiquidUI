@@ -20,7 +20,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
 	local triggerHeightOffset = if size.Y.Offset > 0 then size.Y.Offset else 36
-	local PANEL_GAP = 8
+	local PANEL_GAP = 4
+	local COLLAPSED_HEIGHT = triggerHeightOffset
 
 	-- Theme values
 	local primaryText = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
@@ -38,13 +39,17 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local isOpen = false
 	local isDestroyed = false
 	local activeTweens: {Tween} = {}
-	local itemHoverTweens: {Tween} = {}
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
-	local positionTrackConn: RBXScriptConnection? = nil
 
-	-- Stored panel height (updated by buildItems, used by openDropdown)
-	local currentPanelHeight = 0 -- set after panel creation
+	-- Per-item hover tween map (fixes the hover-sticks bug — only cancels
+	-- the tween for the specific item being hovered, not all items globally)
+	local itemHoverTweenMap: {[Frame]: Tween} = {}
+
+	-- Panel height tracking (updated by buildItems, used by openDropdown)
+	local maxVisibleItems = 5
+	local itemHeight = 36
+	local currentPanelHeight = math.min(itemCount, maxVisibleItems) * itemHeight + 8
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -53,21 +58,30 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		table.clear(activeTweens)
 	end
 
-	local function cancelItemHoverTweens()
-		for _, tween in itemHoverTweens do
-			tween:Cancel()
-		end
-		table.clear(itemHoverTweens)
-	end
-
 	local function trackTween(tween: Tween): Tween
 		table.insert(activeTweens, tween)
 		return tween
 	end
 
-	local function trackItemHoverTween(tween: Tween): Tween
-		table.insert(itemHoverTweens, tween)
-		return tween
+	local function setItemHover(itemFrame: Frame, targetTransparency: number)
+		if isDestroyed then return end
+		local existing = itemHoverTweenMap[itemFrame]
+		if existing then
+			existing:Cancel()
+		end
+		local tw = TweenService:Create(itemFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = targetTransparency,
+		})
+		itemHoverTweenMap[itemFrame] = tw
+		tw:Play()
+	end
+
+	local function clearAllItemHovers()
+		for frame, tw in itemHoverTweenMap do
+			tw:Cancel()
+			frame.BackgroundTransparency = 1
+		end
+		table.clear(itemHoverTweenMap)
 	end
 
 	-- Initialize multi-select
@@ -95,41 +109,20 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		return #selected .. " selected"
 	end
 
-	-- Forward declaration for closeDropdown (used by click-blocker before definition)
+	-- Forward declaration for closeDropdown (used by item click before definition)
 	local closeDropdown: () -> ()
 
-	-- Container (transparent wrapper, holds trigger + panel when closed)
+	-- Container (ClipsDescendants=true — hides items when collapsed, reveals on expand)
+	-- Starts at trigger-only height. Tweens to expanded height on open.
+	-- Parent UIListLayout (if any) auto-pushes siblings when this grows.
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Dropdown")
-	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
+	container.Size = UDim2.new(size.X.Scale, size.X.Offset, 0, COLLAPSED_HEIGHT)
 	container.Position = position
 	container.AnchorPoint = anchorPoint
 	container.BackgroundTransparency = 1
 	container.BorderSizePixel = 0
-	container.ClipsDescendants = false
-
-	-- Persistent overlay ScreenGui — panel lives here from the start.
-	-- Created once (not per-open) so layout is pre-computed and no
-	-- task.wait() is needed. DisplayOrder=200 sits above all windows.
-	local overlayGui: ScreenGui = MangoProtection.createScreenGui({
-		DisplayOrder = 200,
-	})
-
-	-- Click blocker (fills overlay, catches outside clicks, starts hidden)
-	local clickBlocker: TextButton = Instance.new("TextButton")
-	clickBlocker.Name = MangoProtection.randomName("Blocker")
-	clickBlocker.Size = UDim2.new(1, 0, 1, 0)
-	clickBlocker.BackgroundTransparency = 1
-	clickBlocker.Text = ""
-	clickBlocker.ZIndex = 1
-	clickBlocker.AutoButtonColor = false
-	clickBlocker.Visible = false
-	clickBlocker.Parent = overlayGui
-
-	clickBlocker.MouseButton1Click:Connect(function()
-		if isDestroyed then return end
-		closeDropdown()
-	end)
+	container.ClipsDescendants = true
 
 	-- Trigger button via MangoGlassFrame (LightweightMode)
 	local triggerGlass = MangoGlassFrame.new({
@@ -162,11 +155,19 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	selectedLabel.ZIndex = 10
 	selectedLabel.Parent = triggerGlass.GlassSurface
 
-	-- Chevron (right side)
+	-- Chevron (right side, wrapped in Frame for rotation animation)
+	local chevronWrapper = Instance.new("Frame")
+	chevronWrapper.Name = "ChevronWrapper"
+	chevronWrapper.Size = UDim2.new(0, 20, 1, 0)
+	chevronWrapper.Position = UDim2.new(1, -28, 0, 0)
+	chevronWrapper.BackgroundTransparency = 1
+	chevronWrapper.BorderSizePixel = 0
+	chevronWrapper.ZIndex = 10
+	chevronWrapper.Parent = triggerGlass.GlassSurface
+
 	local chevronLabel = Instance.new("TextLabel")
 	chevronLabel.Name = "ChevronLabel"
-	chevronLabel.Size = UDim2.new(0, 20, 1, 0)
-	chevronLabel.Position = UDim2.new(1, -28, 0, 0)
+	chevronLabel.Size = UDim2.new(1, 0, 1, 0)
 	chevronLabel.BackgroundTransparency = 1
 	chevronLabel.BorderSizePixel = 0
 	chevronLabel.Font = Enum.Font.GothamMedium
@@ -174,7 +175,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	chevronLabel.TextColor3 = secondaryText
 	chevronLabel.Text = "v"
 	chevronLabel.ZIndex = 10
-	chevronLabel.Parent = triggerGlass.GlassSurface
+	chevronLabel.Parent = chevronWrapper
 
 	-- HitArea on trigger
 	local triggerHitArea = Instance.new("TextButton")
@@ -187,26 +188,17 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	triggerHitArea.AutoButtonColor = false
 	triggerHitArea.Parent = triggerGlass.GlassSurface
 
-	-- Dropdown panel (lives in overlayGui permanently, toggled via Visible)
-	local maxVisibleItems = 5
-	local itemHeight = 36
-	local panelItemCount = math.min(itemCount, maxVisibleItems)
-	local panelHeight = panelItemCount * itemHeight + 8
-
-	currentPanelHeight = panelHeight
-
+	-- Dropdown panel (inline, below trigger, clipped by container when collapsed)
+	-- ShadowEnabled=false because shadows would be clipped by container anyway
 	local panelGlass = MangoGlassFrame.new({
-		Size = UDim2.new(0, math.max(size.X.Offset, 200), 0, panelHeight),
-		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 0, currentPanelHeight),
+		Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP),
 		CornerRadius = UDim.new(0, 12),
 		BackgroundTransparency = dropdownBgTransparency - 0.05,
 		Theme = theme,
-		ShadowEnabled = true,
-		ShadowLayerCount = 4,
-		ShadowSpread = 6,
-		ShadowOffsetY = 2,
+		ShadowEnabled = false,
 		LightweightMode = true,
-		Parent = overlayGui,
+		Parent = container,
 	})
 	panelGlass.Container.Visible = false
 	panelGlass.Container.ZIndex = 10
@@ -248,6 +240,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local function buildItems()
 		-- Clear old items
 		clearItemConnections()
+		clearAllItemHovers()
 		for _, frame in itemFrames do
 			frame:Destroy()
 		end
@@ -321,29 +314,22 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			itemHitArea.AutoButtonColor = false
 			itemHitArea.Parent = itemFrame
 
-			-- Hover highlight (tweened — uses separate tween array to avoid cancelling panel tweens)
+			-- Per-item hover highlight (only cancels THIS item's tween)
 			local hoverEnter = itemHitArea.MouseEnter:Connect(function()
-				cancelItemHoverTweens()
-				local tw = TweenService:Create(itemFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					BackgroundTransparency = itemHoverTransparency,
-				})
-				trackItemHoverTween(tw)
-				tw:Play()
+				if isDestroyed then return end
+				setItemHover(itemFrame, itemHoverTransparency)
 			end)
 			table.insert(itemConnections, hoverEnter)
 
 			local hoverLeave = itemHitArea.MouseLeave:Connect(function()
-				cancelItemHoverTweens()
-				local tw = TweenService:Create(itemFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					BackgroundTransparency = 1,
-				})
-				trackItemHoverTween(tw)
-				tw:Play()
+				if isDestroyed then return end
+				setItemHover(itemFrame, 1)
 			end)
 			table.insert(itemConnections, hoverLeave)
 
 			-- Click
 			local clickConn = itemHitArea.MouseButton1Click:Connect(function()
+				if isDestroyed then return end
 				if isMultiSelect then
 					-- Toggle selection for this item
 					selectedIndices[i] = not selectedIndices[i] or nil
@@ -399,22 +385,18 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #items * itemHeight)
 		scrollFrame.ScrollBarThickness = if #items > maxVisibleItems then 4 else 0
 
-		-- Update panel height (stored for next open, live-update if currently open)
+		-- Update panel height (stored for next open, live-update panel glass)
 		local newPanelItemCount = math.min(#items, maxVisibleItems)
 		local newPanelHeight = newPanelItemCount * itemHeight + 8
 		currentPanelHeight = newPanelHeight
-		local curW = panelGlass.Container.Size.X.Offset
-		if curW > 0 then
-			panelGlass.Container.Size = UDim2.new(0, curW, 0, newPanelHeight)
-		end
+		panelGlass.Container.Size = UDim2.new(1, 0, 0, newPanelHeight)
 	end
 
 	-- === Open / Close ===
-	-- Panel lives permanently in overlayGui (DisplayOrder=200) to escape all
-	-- ClipsDescendants ancestors. No per-open reparenting or task.wait() needed.
-	-- Position set from trigger AbsolutePosition BEFORE Visible=true (no flash).
-	-- Uses triggerHeightOffset (known constant) instead of AbsoluteSize.Y to
-	-- avoid stale layout reads. Follows LinoriaLib/Fluent pattern.
+	-- Inline expansion: container tweens its height to reveal/hide the panel.
+	-- ClipsDescendants on container hides items when collapsed.
+	-- Parent UIListLayout (in MangoWindow tabs) auto-pushes siblings.
+	-- Follows Orion/Kavo/Rayfield inline dropdown pattern.
 
 	closeDropdown = function()
 		if not isOpen then
@@ -422,75 +404,69 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		end
 		isOpen = false
 		cancelAllTweens()
-		cancelItemHoverTweens()
 
 		-- Reset all item hover highlights
-		for _, frame in itemFrames do
-			frame.BackgroundTransparency = 1
-		end
+		clearAllItemHovers()
 
-		-- Stop tracking trigger position
-		if positionTrackConn then
-			positionTrackConn:Disconnect()
-			positionTrackConn = nil
-		end
+		-- Tween container back to collapsed height
+		local collapseTween = TweenService:Create(container, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(size.X.Scale, size.X.Offset, 0, COLLAPSED_HEIGHT),
+		})
+		trackTween(collapseTween)
+		collapseTween:Play()
+		collapseTween.Completed:Once(function()
+			if isDestroyed then return end
+			panelGlass.Container.Visible = false
+		end)
 
-		-- Hide panel + blocker (instant close, no animation)
-		panelGlass.Container.Visible = false
-		clickBlocker.Visible = false
+		-- Chevron rotation back to 0
+		local chevronTween = TweenService:Create(chevronWrapper, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Rotation = 0,
+		})
+		trackTween(chevronTween)
+		chevronTween:Play()
 	end
 
 	local function openDropdown()
-		if isOpen then
+		if isOpen or isDestroyed then
 			return
 		end
+		if #items == 0 then return end
 		isOpen = true
 		cancelAllTweens()
 
-		-- Read trigger screen position for panel placement
-		local triggerAbsPos = triggerGlass.Container.AbsolutePosition
-		local triggerAbsSize = triggerGlass.Container.AbsoluteSize
-		local triggerW = math.max(triggerAbsSize.X, size.X.Offset)
+		-- Calculate expanded height
+		local expandedHeight = COLLAPSED_HEIGHT + PANEL_GAP + currentPanelHeight
 
-		-- Position panel below trigger — uses triggerHeightOffset (the known
-		-- configured height constant) instead of AbsoluteSize.Y to avoid
-		-- stale layout values
-		panelGlass.Container.Position = UDim2.new(
-			0, triggerAbsPos.X,
-			0, triggerAbsPos.Y + triggerHeightOffset + PANEL_GAP
-		)
-		panelGlass.Container.Size = UDim2.new(0, triggerW, 0, currentPanelHeight)
-
-		-- Show blocker + panel (position already set, no flash)
-		clickBlocker.Visible = true
+		-- Show panel (will be revealed by container expanding)
 		panelGlass.Container.Visible = true
 
-		-- Track trigger position so panel follows window drag/scroll
-		if positionTrackConn then
-			positionTrackConn:Disconnect()
-			positionTrackConn = nil
-		end
-		positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-			if not isOpen or isDestroyed then return end
-			local newPos = triggerGlass.Container.AbsolutePosition
-			panelGlass.Container.Position = UDim2.new(
-				0, newPos.X,
-				0, newPos.Y + triggerHeightOffset + PANEL_GAP
-			)
-		end)
-
-		-- Fade in the glass surface (shadows/specular appear instantly which is fine)
+		-- Fade in the glass surface
 		panelGlass.GlassSurface.BackgroundTransparency = 1
-		local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local fadeTween = TweenService:Create(panelGlass.GlassSurface, tweenInfo, {
+		local fadeTween = TweenService:Create(panelGlass.GlassSurface, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			BackgroundTransparency = dropdownBgTransparency - 0.05,
 		})
 		trackTween(fadeTween)
 		fadeTween:Play()
+
+		-- Tween container height to reveal items
+		local expandTween = TweenService:Create(container, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(size.X.Scale, size.X.Offset, 0, expandedHeight),
+		})
+		trackTween(expandTween)
+		expandTween:Play()
+
+		-- Chevron rotation to 180 (flipped)
+		local chevronTween = TweenService:Create(chevronWrapper, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Rotation = 180,
+		})
+		trackTween(chevronTween)
+		chevronTween:Play()
 	end
 
 	-- Toggle on trigger click
 	local triggerConn = triggerHitArea.MouseButton1Click:Connect(function()
+		if isDestroyed then return end
 		if isOpen then
 			closeDropdown()
 		else
@@ -559,14 +535,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		Destroy = function(self: Types.MangoDropdown)
 			if isDestroyed then return end
 			isDestroyed = true
-			-- Disconnect position tracking
-			if positionTrackConn then
-				positionTrackConn:Disconnect()
-				positionTrackConn = nil
-			end
 			isOpen = false
 			cancelAllTweens()
-			cancelItemHoverTweens()
+			clearAllItemHovers()
 			clearItemConnections()
 			for _, conn in connections do
 				conn:Disconnect()
@@ -574,7 +545,6 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			table.clear(connections)
 			triggerGlass:Destroy()
 			panelGlass:Destroy()
-			overlayGui:Destroy()
 			container:Destroy()
 		end,
 	}

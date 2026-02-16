@@ -901,6 +901,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 			Dropdown = function(self: Types.MangoWindowTab, cfg: Types.MangoWindowDropdownConfig): Types.MangoWindowElement
 				local row = createRow(tabFrame, 42)
 				row.LayoutOrder = nextOrder()
+				row.AutomaticSize = Enum.AutomaticSize.Y
 
 				local options = cfg.Options or {}
 				local isMulti = cfg.MultiSelect == true
@@ -920,7 +921,7 @@ function module.new(config: Types.MangoWindowConfig): Types.MangoWindow
 				end
 
 				local nameLabel = Instance.new("TextLabel")
-				nameLabel.Size = UDim2.new(0.4, 0, 1, 0)
+				nameLabel.Size = UDim2.new(0.4, 0, 0, 42)
 				nameLabel.BackgroundTransparency = 1
 				nameLabel.Font = Enum.Font.GothamMedium
 				nameLabel.TextSize = 14
