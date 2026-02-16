@@ -417,6 +417,7 @@ ScreenGui (DisplayOrder=200, IgnoreGuiInset=true)
 
 #### Build & Loadstring Patterns
 - **Static require() for build transform**: The build script (`build.sh`) uses sed to transform `require(script.Parent.X)` → `_require("X")`. CRITICAL: never use dynamic require patterns like `require(script.Parent:FindFirstChild(name))` — they won't be transformed and `script` is nil in loadstring contexts. MangoBuilder uses a static `MODULE_LOADERS` lookup table of individual `require(script.Parent.X)` calls to support dynamic module loading while remaining build-safe.
+- **Ambiguous `(` disambiguation**: The Luau parser treats `expr\n(cast)` as ambiguous (function call vs new statement). Patterns like `if x then\n\t(y :: T).Z = v` cause `loadstring()` to return nil. The build script automatically prefixes `;` before any indented line starting with `(` via `sed -e 's/^\([[:space:]][[:space:]]*\)(/\1;(/'`. This is always valid Luau and has zero runtime cost. Source `.luau` files do NOT need manual semicolons — the build handles it.
 
 #### Font Compatibility
 - **ASCII for Gotham**: Close/dismiss buttons use `"X"` (GothamBold), chevrons use `"v"` (GothamMedium). Gotham doesn't render ✕, ▼, ▾ reliably.
@@ -704,7 +705,8 @@ Output: `dist/MangoLiquidUI.lua` (~14,600+ lines).
 2. Wraps each module in a `_modules["Name"] = function() ... end` closure
 3. Replaces `require(script.Parent.X)` / `require(script.X)` with internal `_require("X")` lookups
 4. Strips `--!strict` annotations
-5. Appends a footer that wires up the library table, short aliases, theme shortcuts, `gui()` helper, `transitionTheme()`, protection aliases, and auto-play intro
+5. Disambiguates indented `(` lines by prefixing `;` (prevents Luau parser ambiguity in loadstring)
+6. Appends a footer that wires up the library table, short aliases, theme shortcuts, `gui()` helper, `transitionTheme()`, protection aliases, and auto-play intro
 
 **Module processing order** (dependency-safe — earlier modules have no deps on later ones):
 `Types` → `MangoProtection` → `Themes` → `LiquidFusion` → `RefractionProxy` → `MangoGlassFrame` → `MangoShimmer` → `MangoHaptics` → `MangoLayout` → `MangoToggle` → `MangoSlider` → `MangoCheckbox` → `MangoProgressBar` → `MangoSegmentedControl` → `MangoSearchBar` → `MangoTextField` → `MangoEnvironmentLight` → `MangoButton` → `MangoNotification` → `MangoBadge` → `MangoSkeleton` → `MangoStepper` → `MangoTooltip` → `MangoToast` → `MangoDialog` → `MangoActionSheet` → `MangoDropdown` → `MangoContextMenu` → `MangoTabBar` → `MangoBillboardLabel` → `MangoNotificationStack` → `MangoBottomSheet` → `MangoBlurProxy` → `MangoESP` → `MangoForm` → `MangoFocusManager` → `MangoIntro` → `MangoSaveManager` → `MangoColorPicker` → `MangoKeybind` → `MangoCarousel` → `MangoWindow` → `MangoBuilder`
