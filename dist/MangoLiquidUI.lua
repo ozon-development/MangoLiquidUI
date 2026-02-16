@@ -15836,6 +15836,7 @@ local COMPONENT_MAP: {[string]: string} = {
     colorpicker = "MangoColorPicker",
     keybind = "MangoKeybind",
     savemanager = "MangoSaveManager",
+    esp = "MangoESP",
 }
 
 function module.build(componentType: string): Types.MangoBuilder
@@ -15848,9 +15849,51 @@ function module.build(componentType: string): Types.MangoBuilder
     local componentModule: any = nil
 
     -- Lazy-load the component module
+    -- Uses a lookup table of standard require() calls so build.sh can transform them
+    local MODULE_LOADERS: {[string]: () -> any} = {
+        MangoButton = function() return _require("MangoButton") end,
+        MangoSlider = function() return _require("MangoSlider") end,
+        MangoToggle = function() return _require("MangoToggle") end,
+        MangoCheckbox = function() return _require("MangoCheckbox") end,
+        MangoDialog = function() return _require("MangoDialog") end,
+        MangoActionSheet = function() return _require("MangoActionSheet") end,
+        MangoDropdown = function() return _require("MangoDropdown") end,
+        MangoTabBar = function() return _require("MangoTabBar") end,
+        MangoSearchBar = function() return _require("MangoSearchBar") end,
+        MangoTextField = function() return _require("MangoTextField") end,
+        MangoProgressBar = function() return _require("MangoProgressBar") end,
+        MangoGlassFrame = function() return _require("MangoGlassFrame") end,
+        MangoNotification = function() return _require("MangoNotification") end,
+        MangoNotificationStack = function() return _require("MangoNotificationStack") end,
+        MangoSegmentedControl = function() return _require("MangoSegmentedControl") end,
+        MangoBillboardLabel = function() return _require("MangoBillboardLabel") end,
+        MangoBadge = function() return _require("MangoBadge") end,
+        MangoSkeleton = function() return _require("MangoSkeleton") end,
+        MangoStepper = function() return _require("MangoStepper") end,
+        MangoTooltip = function() return _require("MangoTooltip") end,
+        MangoToast = function() return _require("MangoToast") end,
+        MangoContextMenu = function() return _require("MangoContextMenu") end,
+        MangoBottomSheet = function() return _require("MangoBottomSheet") end,
+        MangoBlurProxy = function() return _require("MangoBlurProxy") end,
+        MangoForm = function() return _require("MangoForm") end,
+        MangoFocusManager = function() return _require("MangoFocusManager") end,
+        MangoLayout = function() return _require("MangoLayout") end,
+        MangoShimmer = function() return _require("MangoShimmer") end,
+        MangoWindow = function() return _require("MangoWindow") end,
+        MangoCarousel = function() return _require("MangoCarousel") end,
+        MangoColorPicker = function() return _require("MangoColorPicker") end,
+        MangoKeybind = function() return _require("MangoKeybind") end,
+        MangoSaveManager = function() return _require("MangoSaveManager") end,
+        MangoESP = function() return _require("MangoESP") end,
+    }
+
     local function getModule(): any
         if componentModule then return componentModule end
-        componentModule = require(script.Parent:FindFirstChild(moduleName) :: ModuleScript)
+        local loader = MODULE_LOADERS[moduleName]
+        if not loader then
+            error("No loader for module: " .. moduleName)
+        end
+        componentModule = loader()
         return componentModule
     end
 

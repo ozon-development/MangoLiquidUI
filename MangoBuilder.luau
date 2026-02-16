@@ -39,6 +39,7 @@ local COMPONENT_MAP: {[string]: string} = {
     colorpicker = "MangoColorPicker",
     keybind = "MangoKeybind",
     savemanager = "MangoSaveManager",
+    esp = "MangoESP",
 }
 
 function module.build(componentType: string): Types.MangoBuilder
@@ -51,9 +52,51 @@ function module.build(componentType: string): Types.MangoBuilder
     local componentModule: any = nil
 
     -- Lazy-load the component module
+    -- Uses a lookup table of standard require() calls so build.sh can transform them
+    local MODULE_LOADERS: {[string]: () -> any} = {
+        MangoButton = function() return require(script.Parent.MangoButton) end,
+        MangoSlider = function() return require(script.Parent.MangoSlider) end,
+        MangoToggle = function() return require(script.Parent.MangoToggle) end,
+        MangoCheckbox = function() return require(script.Parent.MangoCheckbox) end,
+        MangoDialog = function() return require(script.Parent.MangoDialog) end,
+        MangoActionSheet = function() return require(script.Parent.MangoActionSheet) end,
+        MangoDropdown = function() return require(script.Parent.MangoDropdown) end,
+        MangoTabBar = function() return require(script.Parent.MangoTabBar) end,
+        MangoSearchBar = function() return require(script.Parent.MangoSearchBar) end,
+        MangoTextField = function() return require(script.Parent.MangoTextField) end,
+        MangoProgressBar = function() return require(script.Parent.MangoProgressBar) end,
+        MangoGlassFrame = function() return require(script.Parent.MangoGlassFrame) end,
+        MangoNotification = function() return require(script.Parent.MangoNotification) end,
+        MangoNotificationStack = function() return require(script.Parent.MangoNotificationStack) end,
+        MangoSegmentedControl = function() return require(script.Parent.MangoSegmentedControl) end,
+        MangoBillboardLabel = function() return require(script.Parent.MangoBillboardLabel) end,
+        MangoBadge = function() return require(script.Parent.MangoBadge) end,
+        MangoSkeleton = function() return require(script.Parent.MangoSkeleton) end,
+        MangoStepper = function() return require(script.Parent.MangoStepper) end,
+        MangoTooltip = function() return require(script.Parent.MangoTooltip) end,
+        MangoToast = function() return require(script.Parent.MangoToast) end,
+        MangoContextMenu = function() return require(script.Parent.MangoContextMenu) end,
+        MangoBottomSheet = function() return require(script.Parent.MangoBottomSheet) end,
+        MangoBlurProxy = function() return require(script.Parent.MangoBlurProxy) end,
+        MangoForm = function() return require(script.Parent.MangoForm) end,
+        MangoFocusManager = function() return require(script.Parent.MangoFocusManager) end,
+        MangoLayout = function() return require(script.Parent.MangoLayout) end,
+        MangoShimmer = function() return require(script.Parent.MangoShimmer) end,
+        MangoWindow = function() return require(script.Parent.MangoWindow) end,
+        MangoCarousel = function() return require(script.Parent.MangoCarousel) end,
+        MangoColorPicker = function() return require(script.Parent.MangoColorPicker) end,
+        MangoKeybind = function() return require(script.Parent.MangoKeybind) end,
+        MangoSaveManager = function() return require(script.Parent.MangoSaveManager) end,
+        MangoESP = function() return require(script.Parent.MangoESP) end,
+    }
+
     local function getModule(): any
         if componentModule then return componentModule end
-        componentModule = require(script.Parent:FindFirstChild(moduleName) :: ModuleScript)
+        local loader = MODULE_LOADERS[moduleName]
+        if not loader then
+            error("No loader for module: " .. moduleName)
+        end
+        componentModule = loader()
         return componentModule
     end
 
