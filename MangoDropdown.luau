@@ -41,6 +41,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local connections: {RBXScriptConnection} = {}
 	local itemConnections: {RBXScriptConnection} = {}
 	local clickBlocker: TextButton? = nil
+	local positionTrackConn: RBXScriptConnection? = nil
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -97,7 +98,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	-- Container (transparent wrapper, holds trigger + panel)
 	local container = Instance.new("Frame")
 	container.Name = MangoProtection.randomName("Dropdown")
-	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset + 0)
+	container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
 	container.Position = position
 	container.AnchorPoint = anchorPoint
 	container.BackgroundTransparency = 1
@@ -206,7 +207,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 	local panelGlass = MangoGlassFrame.new({
 		Size = UDim2.new(1, 0, 0, panelHeight),
-		Position = UDim2.new(0, 0, 0, triggerHeightOffset + 4),
+		Position = UDim2.new(0, 0, 0, triggerHeightOffset + 6),
 		CornerRadius = UDim.new(0, 12),
 		BackgroundTransparency = dropdownBgTransparency - 0.05,
 		Theme = theme,
@@ -220,9 +221,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	panelGlass.Container.Visible = false
 	panelGlass.Container.ZIndex = 50
 
-	-- UIScale for open animation
+	-- UIScale for subtle open animation
 	local panelUIScale = Instance.new("UIScale")
-	panelUIScale.Scale = 0.92
+	panelUIScale.Scale = 1
 	panelUIScale.Parent = panelGlass.Container
 
 	-- ScrollingFrame inside panel GlassSurface
@@ -420,8 +421,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	end
 
 	-- Open/Close
-	-- Panel stays as child of container (no ScreenGui reparenting).
-	-- Container expands to push siblings; boosted ZIndex renders panel above them.
+	-- Panel reparents to ScreenGui on open to escape clipping parents
+	-- (ScrollingFrame, ClipsDescendants contentArea). Positioned via AbsolutePosition.
+	local PANEL_GAP = 6
+
 	closeDropdown = function()
 		if not isOpen then
 			return
@@ -436,24 +439,26 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			frame.BackgroundTransparency = 1
 		end
 
-		-- Shrink container back to trigger-only height so siblings un-push
-		container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
-		container.ZIndex = 0
+		-- Stop tracking trigger position
+		if positionTrackConn then
+			positionTrackConn:Disconnect()
+			positionTrackConn = nil
+		end
 
-		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 0.95 })
-		trackTween(scaleTween)
-		scaleTween:Play()
-
+		local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local fadeTween = TweenService:Create(panelGlass.GlassSurface, tweenInfo, {
 			BackgroundTransparency = 1,
 		})
 		trackTween(fadeTween)
 		fadeTween:Play()
 
-		scaleTween.Completed:Once(function()
+		fadeTween.Completed:Once(function()
 			if isDestroyed or isOpen then return end
 			panelGlass.Container.Visible = false
+			-- Restore panel back into container for next open cycle
+			panelGlass.Container.Parent = container
+			panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP)
+			panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
 		end)
 	end
 
@@ -465,18 +470,44 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		cancelAllTweens()
 		createClickBlocker()
 
-		-- Expand container to include panel height so siblings get pushed down
+		-- Read trigger's screen position/size for panel placement
+		local triggerAbsPos = triggerGlass.Container.AbsolutePosition
+		local triggerAbsSize = triggerGlass.Container.AbsoluteSize
 		local panelH = panelGlass.Container.Size.Y.Offset
-		container.Size = UDim2.new(size.X.Scale, size.X.Offset, 0, triggerHeightOffset + panelH + 4)
-		-- Boost ZIndex so panel renders above sibling elements
-		container.ZIndex = 50
+
+		-- Reparent panel to ScreenGui to escape clipping parents
+		local screenGui = findScreenGui()
+		if screenGui then
+			panelGlass.Container.Parent = screenGui
+			panelGlass.Container.Position = UDim2.new(
+				0, triggerAbsPos.X,
+				0, triggerAbsPos.Y + triggerAbsSize.Y + PANEL_GAP
+			)
+			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
+
+			-- Track trigger position so panel follows window drag/scroll
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+				positionTrackConn = nil
+			end
+			positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				if not isOpen or isDestroyed then return end
+				local newPos = triggerGlass.Container.AbsolutePosition
+				local newSize = triggerGlass.Container.AbsoluteSize
+				panelGlass.Container.Position = UDim2.new(
+					0, newPos.X,
+					0, newPos.Y + newSize.Y + PANEL_GAP
+				)
+			end)
+		end
 
 		panelGlass.Container.Visible = true
 		panelGlass.Container.ZIndex = 50
-		panelUIScale.Scale = 0.92
+		panelUIScale.Scale = 0.97
 		panelGlass.GlassSurface.BackgroundTransparency = 1
 
-		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		-- Subtle scale-up + fade (no overshoot — clean appearance)
+		local tweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 1 })
 		trackTween(scaleTween)
 		scaleTween:Play()
@@ -566,6 +597,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+				positionTrackConn = nil
+			end
 			for _, conn in connections do
 				conn:Disconnect()
 			end
