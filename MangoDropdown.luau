@@ -19,6 +19,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local position = resolve(config.Position, nil, UDim2.new(0, 0, 0, 0)) :: UDim2
 	local anchorPoint = resolve(config.AnchorPoint, nil, Vector2.new(0, 0)) :: Vector2
 	local initialIndex = resolve(config.InitialIndex, nil, 1) :: number
+	local triggerHeightOffset = if size.Y.Offset > 0 then size.Y.Offset else 36
 
 	-- Theme values
 	local primaryText = resolve(nil, theme and theme.PrimaryTextColor, Color3.fromRGB(0, 0, 0)) :: Color3
@@ -142,10 +143,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	end
 
 	-- Trigger button via MangoGlassFrame (LightweightMode)
-	-- Use (1,0,1,0) so trigger fills the container — avoids double-scaling when
-	-- config.Size uses Scale (e.g. inside MangoWindow rows).
+	-- Fixed height so container can expand when panel opens without stretching trigger
 	local triggerGlass = MangoGlassFrame.new({
-		Size = UDim2.new(1, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, triggerHeightOffset),
 		Position = UDim2.new(0, 0, 0, 0),
 		CornerRadius = UDim.new(0, 999),
 		BackgroundTransparency = dropdownBgTransparency,
@@ -207,7 +207,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 
 	local panelGlass = MangoGlassFrame.new({
 		Size = UDim2.new(1, 0, 0, panelHeight),
-		Position = UDim2.new(0, 0, 0, size.Y.Offset + 4),
+		Position = UDim2.new(0, 0, 0, triggerHeightOffset + 4),
 		CornerRadius = UDim.new(0, 12),
 		BackgroundTransparency = dropdownBgTransparency - 0.05,
 		Theme = theme,
@@ -441,6 +441,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			positionTrackConn = nil
 		end
 
+		-- Shrink container back to trigger-only height so siblings un-push
+		container.Size = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
+
 		local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local scaleTween = TweenService:Create(panelUIScale, tweenInfo, { Scale = 0.95 })
 		trackTween(scaleTween)
@@ -458,7 +461,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			panelGlass.Container.Visible = false
 			-- Restore panel parent to container
 			panelGlass.Container.Parent = container
-			panelGlass.Container.Position = UDim2.new(0, 0, 0, size.Y.Offset + 4)
+			panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + 4)
 			panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
 		end)
 	end
@@ -471,6 +474,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		cancelAllTweens()
 		createClickBlocker()
 
+		-- Expand container to include panel height so siblings get pushed down in layouts
+		local panelH = panelGlass.Container.Size.Y.Offset
+		container.Size = UDim2.new(size.X.Scale, size.X.Offset, 0, triggerHeightOffset + panelH + 4)
+
 		-- Reparent panel to ScreenGui for proper Z layering
 		local screenGui = findScreenGui()
 		if screenGui then
@@ -478,7 +485,7 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			local triggerAbsSize = triggerGlass.Container.AbsoluteSize
 			panelGlass.Container.Parent = screenGui
 			panelGlass.Container.Position = UDim2.new(0, triggerAbsPos.X, 0, triggerAbsPos.Y + triggerAbsSize.Y + 4)
-			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelGlass.Container.Size.Y.Offset)
+			panelGlass.Container.Size = UDim2.new(0, triggerAbsSize.X, 0, panelH)
 
 			-- Track trigger position changes so panel follows window drag/scroll
 			if positionTrackConn then

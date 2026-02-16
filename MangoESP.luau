@@ -47,7 +47,7 @@ local function getCharacterScreenBounds(
 	character: Model,
 	camera: Camera,
 	humanoidRootPart: BasePart
-): (boolean, number, number, number, number, number)?
+): (boolean?, number?, number?, number?, number?, number?)
 	-- Get character height from humanoid or default
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local charHeight = 5.5 -- default R15 height in studs
@@ -90,7 +90,7 @@ end
 local function getPartScreenBounds(
 	part: BasePart,
 	camera: Camera
-): (boolean, number, number, number, number, number)?
+): (boolean?, number?, number?, number?, number?, number?)
 	local cf = part.CFrame
 	local size = part.Size
 	local halfSize = size / 2
@@ -139,7 +139,7 @@ end
 local function getModelScreenBounds(
 	model: Model,
 	camera: Camera
-): (boolean, number, number, number, number, number)?
+): (boolean?, number?, number?, number?, number?, number?)
 	local cf, size = model:GetBoundingBox()
 	local halfSize = size / 2
 
@@ -297,49 +297,54 @@ local function createESPEntry(
 	local nameGradient: UIGradient? = nil
 	local nameCorner: UICorner? = nil
 	if showName then
-		nameTag = Instance.new("Frame")
-		;(nameTag :: Frame).Name = MangoProtection.randomName("NameTag")
-		;(nameTag :: Frame).BackgroundColor3 = accentColor
-		;(nameTag :: Frame).BackgroundTransparency = 0.82
-		;(nameTag :: Frame).BorderSizePixel = 0
-		;(nameTag :: Frame).Size = UDim2.new(0, 80, 0, 18)
-		;(nameTag :: Frame).Position = UDim2.new(0.5, 0, 0, -22)
-		;(nameTag :: Frame).AnchorPoint = Vector2.new(0.5, 0)
-		;(nameTag :: Frame).AutomaticSize = Enum.AutomaticSize.X
-		;(nameTag :: Frame).Parent = container
+		local nt = Instance.new("Frame")
+		nt.Name = MangoProtection.randomName("NameTag")
+		nt.BackgroundColor3 = accentColor
+		nt.BackgroundTransparency = 0.82
+		nt.BorderSizePixel = 0
+		nt.Size = UDim2.new(0, 80, 0, 18)
+		nt.Position = UDim2.new(0.5, 0, 0, -22)
+		nt.AnchorPoint = Vector2.new(0.5, 0)
+		nt.AutomaticSize = Enum.AutomaticSize.X
+		nt.Parent = container
+		nameTag = nt
 
-		nameCorner = Instance.new("UICorner")
-		;(nameCorner :: UICorner).CornerRadius = UDim.new(0, 999)
-		;(nameCorner :: UICorner).Parent = nameTag
+		local nc = Instance.new("UICorner")
+		nc.CornerRadius = UDim.new(0, 999)
+		nc.Parent = nt
+		nameCorner = nc
 
-		nameStroke = Instance.new("UIStroke")
-		;(nameStroke :: UIStroke).Name = "NameStroke"
-		;(nameStroke :: UIStroke).Thickness = 0.75
-		;(nameStroke :: UIStroke).Color = accentColor
-		;(nameStroke :: UIStroke).ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		;(nameStroke :: UIStroke).Parent = nameTag
+		local ns = Instance.new("UIStroke")
+		ns.Name = "NameStroke"
+		ns.Thickness = 0.75
+		ns.Color = accentColor
+		ns.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		ns.Parent = nt
+		nameStroke = ns
 
-		nameGradient = Instance.new("UIGradient")
-		;(nameGradient :: UIGradient).Name = "NameGradient"
-		;(nameGradient :: UIGradient).Rotation = 90
-		;(nameGradient :: UIGradient).Transparency = fresnelTransparency(fresnelStart + 0.1, fresnelMid + 0.1, fresnelEnd, fresnelMidPoint)
-		;(nameGradient :: UIGradient).Parent = nameStroke
+		local ng = Instance.new("UIGradient")
+		ng.Name = "NameGradient"
+		ng.Rotation = 90
+		ng.Transparency = fresnelTransparency(fresnelStart + 0.1, fresnelMid + 0.1, fresnelEnd, fresnelMidPoint)
+		ng.Parent = ns
+		nameGradient = ng
 
 		local padding = Instance.new("UIPadding")
 		padding.PaddingLeft = UDim.new(0, 8)
 		padding.PaddingRight = UDim.new(0, 8)
-		padding.Parent = nameTag
+		padding.Parent = nt
 
-		nameLabel = Instance.new("TextLabel")
-		;(nameLabel :: TextLabel).Name = MangoProtection.randomName("NameLabel")
-		;(nameLabel :: TextLabel).BackgroundTransparency = 1
-		;(nameLabel :: TextLabel).Size = UDim2.new(1, 0, 1, 0)
-		;(nameLabel :: TextLabel).Font = Enum.Font.GothamMedium
-		;(nameLabel :: TextLabel).TextSize = 11
-		;(nameLabel :: TextLabel).TextColor3 = textColor
-		;(nameLabel :: TextLabel).TextTruncate = Enum.TextTruncate.AtEnd
-		;(nameLabel :: TextLabel).Text = ""
-		;(nameLabel :: TextLabel).Parent = nameTag
+		local nl = Instance.new("TextLabel")
+		nl.Name = MangoProtection.randomName("NameLabel")
+		nl.BackgroundTransparency = 1
+		nl.Size = UDim2.new(1, 0, 1, 0)
+		nl.Font = Enum.Font.GothamMedium
+		nl.TextSize = 11
+		nl.TextColor3 = textColor
+		nl.TextTruncate = Enum.TextTruncate.AtEnd
+		nl.Text = ""
+		nl.Parent = nt
+		nameLabel = nl
 	end
 
 	-- Health bar (thin pill above box, below name)
@@ -348,72 +353,79 @@ local function createESPEntry(
 	local healthCorner: UICorner? = nil
 	local healthFillCorner: UICorner? = nil
 	if showHealth then
-		healthContainer = Instance.new("Frame")
-		;(healthContainer :: Frame).Name = MangoProtection.randomName("HealthBar")
-		;(healthContainer :: Frame).BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-		;(healthContainer :: Frame).BackgroundTransparency = 0.5
-		;(healthContainer :: Frame).BorderSizePixel = 0
-		;(healthContainer :: Frame).Size = UDim2.new(1, 0, 0, 4)
-		;(healthContainer :: Frame).Position = UDim2.new(0, 0, 0, -6)
-		;(healthContainer :: Frame).Parent = container
+		local hc = Instance.new("Frame")
+		hc.Name = MangoProtection.randomName("HealthBar")
+		hc.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		hc.BackgroundTransparency = 0.5
+		hc.BorderSizePixel = 0
+		hc.Size = UDim2.new(1, 0, 0, 4)
+		hc.Position = UDim2.new(0, 0, 0, -6)
+		hc.Parent = container
+		healthContainer = hc
 
-		healthCorner = Instance.new("UICorner")
-		;(healthCorner :: UICorner).CornerRadius = UDim.new(0, 999)
-		;(healthCorner :: UICorner).Parent = healthContainer
+		local hcc = Instance.new("UICorner")
+		hcc.CornerRadius = UDim.new(0, 999)
+		hcc.Parent = hc
+		healthCorner = hcc
 
-		healthFill = Instance.new("Frame")
-		;(healthFill :: Frame).Name = MangoProtection.randomName("HealthFill")
-		;(healthFill :: Frame).BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-		;(healthFill :: Frame).BackgroundTransparency = 0
-		;(healthFill :: Frame).BorderSizePixel = 0
-		;(healthFill :: Frame).Size = UDim2.new(1, 0, 1, 0)
-		;(healthFill :: Frame).Parent = healthContainer
+		local hf = Instance.new("Frame")
+		hf.Name = MangoProtection.randomName("HealthFill")
+		hf.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+		hf.BackgroundTransparency = 0
+		hf.BorderSizePixel = 0
+		hf.Size = UDim2.new(1, 0, 1, 0)
+		hf.Parent = hc
+		healthFill = hf
 
-		healthFillCorner = Instance.new("UICorner")
-		;(healthFillCorner :: UICorner).CornerRadius = UDim.new(0, 999)
-		;(healthFillCorner :: UICorner).Parent = healthFill
+		local hfc = Instance.new("UICorner")
+		hfc.CornerRadius = UDim.new(0, 999)
+		hfc.Parent = hf
+		healthFillCorner = hfc
 	end
 
 	-- Distance label (below box)
 	local distanceLabel: TextLabel? = nil
 	if showDistance then
-		distanceLabel = Instance.new("TextLabel")
-		;(distanceLabel :: TextLabel).Name = MangoProtection.randomName("DistLabel")
-		;(distanceLabel :: TextLabel).BackgroundTransparency = 1
-		;(distanceLabel :: TextLabel).Size = UDim2.new(1, 0, 0, 14)
-		;(distanceLabel :: TextLabel).Position = UDim2.new(0, 0, 1, 2)
-		;(distanceLabel :: TextLabel).Font = Enum.Font.GothamMedium
-		;(distanceLabel :: TextLabel).TextSize = 11
-		;(distanceLabel :: TextLabel).TextColor3 = textColor
-		;(distanceLabel :: TextLabel).TextStrokeTransparency = 0.7
-		;(distanceLabel :: TextLabel).TextStrokeColor3 = Color3.new(0, 0, 0)
-		;(distanceLabel :: TextLabel).Text = ""
-		;(distanceLabel :: TextLabel).Parent = container
+		local dl = Instance.new("TextLabel")
+		dl.Name = MangoProtection.randomName("DistLabel")
+		dl.BackgroundTransparency = 1
+		dl.Size = UDim2.new(1, 0, 0, 14)
+		dl.Position = UDim2.new(0, 0, 1, 2)
+		dl.Font = Enum.Font.GothamMedium
+		dl.TextSize = 11
+		dl.TextColor3 = textColor
+		dl.TextStrokeTransparency = 0.7
+		dl.TextStrokeColor3 = Color3.new(0, 0, 0)
+		dl.Text = ""
+		dl.Parent = container
+		distanceLabel = dl
 	end
 
 	-- Tracer (1px line from screen bottom to target)
 	local tracer: Frame? = nil
 	local tracerGradient: UIGradient? = nil
 	if showTracer then
-		tracer = Instance.new("Frame")
-		;(tracer :: Frame).Name = MangoProtection.randomName("Tracer")
-		;(tracer :: Frame).BackgroundColor3 = accentColor
-		;(tracer :: Frame).BackgroundTransparency = 0.3
-		;(tracer :: Frame).BorderSizePixel = 0
-		;(tracer :: Frame).Size = UDim2.new(0, 1, 0, 100)
-		;(tracer :: Frame).AnchorPoint = Vector2.new(0.5, 1)
-		;(tracer :: Frame).Visible = false
+		local tf = Instance.new("Frame")
+		tf.Name = MangoProtection.randomName("Tracer")
+		tf.BackgroundColor3 = accentColor
+		tf.BackgroundTransparency = 0.3
+		tf.BorderSizePixel = 0
+		tf.Size = UDim2.new(0, 1, 0, 100)
+		tf.AnchorPoint = Vector2.new(0.5, 1)
+		tf.Visible = false
 		-- Tracer is parented to the ScreenGui, not the entry container
-		;(tracer :: Frame).Parent = parent
+		tf.Parent = parent
+		tracer = tf
 
-		tracerGradient = Instance.new("UIGradient")
-		;(tracerGradient :: UIGradient).Name = "TracerGradient"
-		;(tracerGradient :: UIGradient).Rotation = 90
-		;(tracerGradient :: UIGradient).Transparency = NumberSequence.new({
+		local tg = Instance.new("UIGradient")
+		tg.Name = "TracerGradient"
+		tg.Rotation = 90
+		tg.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 0.8),
 			NumberSequenceKeypoint.new(1, 0),
 		})
-		;(tracerGradient :: UIGradient).Parent = tracer
+		tg.Parent = tf
+		tracerGradient = tg
 	end
 
 	return {
@@ -653,7 +665,7 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 
 			-- For custom entries, use proper bounding box projection
 			if entry.isCustom then
-				local bounds: (boolean, number, number, number, number, number)? = nil
+				local bounds: any = nil
 
 				if entry.targetModel and (entry.targetModel :: Model).Parent then
 					-- Model target: use full model bounding box
@@ -714,22 +726,23 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 
 				-- Tracer
 				if entry.tracer then
+					local ctf = entry.tracer :: Frame
 					if showTracer then
 						local targetX = math.floor(bx + bw / 2)
 						local targetY = math.floor(by + bh)
 						updateTracerLine(
-							entry.tracer :: Frame,
+							ctf,
 							screenBottomX,
 							screenBottomY,
 							targetX,
 							targetY
 						)
-						;(entry.tracer :: Frame).Visible = true
+						ctf.Visible = true
 						if entry.customColor then
-							(entry.tracer :: Frame).BackgroundColor3 = entry.customColor :: Color3
+							ctf.BackgroundColor3 = entry.customColor :: Color3
 						end
 					else
-						;(entry.tracer :: Frame).Visible = false
+						ctf.Visible = false
 					end
 				end
 
@@ -784,39 +797,43 @@ function module.new(config: Types.MangoESPConfig): Types.MangoESP
 				local humanoid = (character :: Model):FindFirstChildOfClass("Humanoid")
 				if humanoid and humanoid.MaxHealth > 0 then
 					local fraction = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
-					;(entry.healthFill :: Frame).Size = UDim2.new(fraction, 0, 1, 0)
-					;(entry.healthFill :: Frame).BackgroundColor3 = healthColor(fraction)
-					;(entry.healthContainer :: Frame).Visible = showHealth
+					local hfFrame = entry.healthFill :: Frame
+					hfFrame.Size = UDim2.new(fraction, 0, 1, 0)
+					hfFrame.BackgroundColor3 = healthColor(fraction)
+					local hcFrame = entry.healthContainer :: Frame
+					hcFrame.Visible = showHealth
 				else
-					;(entry.healthContainer :: Frame).Visible = false
+					(entry.healthContainer :: Frame).Visible = false
 				end
 			end
 
 			-- Distance label
 			if entry.distanceLabel then
+				local dlLabel = entry.distanceLabel :: TextLabel
 				if showDistance then
-					(entry.distanceLabel :: TextLabel).Text = string.format("[%d]", math.floor(dist))
-					;(entry.distanceLabel :: TextLabel).Visible = true
+					dlLabel.Text = string.format("[%d]", math.floor(dist))
+					dlLabel.Visible = true
 				else
-					;(entry.distanceLabel :: TextLabel).Visible = false
+					dlLabel.Visible = false
 				end
 			end
 
 			-- Tracer
 			if entry.tracer then
+				local ptf = entry.tracer :: Frame
 				if showTracer then
 					local targetX = math.floor(bx + bw / 2)
 					local targetY = math.floor(by + bh)
 					updateTracerLine(
-						entry.tracer :: Frame,
+						ptf,
 						screenBottomX,
 						screenBottomY,
 						targetX,
 						targetY
 					)
-					;(entry.tracer :: Frame).Visible = true
+					ptf.Visible = true
 				else
-					;(entry.tracer :: Frame).Visible = false
+					ptf.Visible = false
 				end
 			end
 		end
