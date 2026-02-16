@@ -8544,11 +8544,8 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	local itemConnections: {RBXScriptConnection} = {}
 	local positionTrackConn: RBXScriptConnection? = nil
 
-	-- Overlay ScreenGui for the panel (created lazily on first open).
-	-- Dedicated ScreenGui at DisplayOrder=200 avoids ZIndex conflicts with
-	-- the parent window and escapes all ClipsDescendants ancestors.
-	local overlayGui: ScreenGui? = nil
-	local clickBlocker: TextButton? = nil
+	-- Stored panel height (updated by buildItems, used by openDropdown)
+	local currentPanelHeight = 0 -- set after panel creation
 
 	local function cancelAllTweens()
 		for _, tween in activeTweens do
@@ -8612,6 +8609,29 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	container.BorderSizePixel = 0
 	container.ClipsDescendants = false
 
+	-- Persistent overlay ScreenGui — panel lives here from the start.
+	-- Created once (not per-open) so layout is pre-computed and no
+	-- task.wait() is needed. DisplayOrder=200 sits above all windows.
+	local overlayGui: ScreenGui = MangoProtection.createScreenGui({
+		DisplayOrder = 200,
+	})
+
+	-- Click blocker (fills overlay, catches outside clicks, starts hidden)
+	local clickBlocker: TextButton = Instance.new("TextButton")
+	clickBlocker.Name = MangoProtection.randomName("Blocker")
+	clickBlocker.Size = UDim2.new(1, 0, 1, 0)
+	clickBlocker.BackgroundTransparency = 1
+	clickBlocker.Text = ""
+	clickBlocker.ZIndex = 1
+	clickBlocker.AutoButtonColor = false
+	clickBlocker.Visible = false
+	clickBlocker.Parent = overlayGui
+
+	clickBlocker.MouseButton1Click:Connect(function()
+		if isDestroyed then return end
+		closeDropdown()
+	end)
+
 	-- Trigger button via MangoGlassFrame (LightweightMode)
 	local triggerGlass = MangoGlassFrame.new({
 		Size = UDim2.new(1, 0, 0, triggerHeightOffset),
@@ -8668,15 +8688,17 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 	triggerHitArea.AutoButtonColor = false
 	triggerHitArea.Parent = triggerGlass.GlassSurface
 
-	-- Dropdown panel (starts as child of container, reparented to overlay on open)
+	-- Dropdown panel (lives in overlayGui permanently, toggled via Visible)
 	local maxVisibleItems = 5
 	local itemHeight = 36
 	local panelItemCount = math.min(itemCount, maxVisibleItems)
 	local panelHeight = panelItemCount * itemHeight + 8
 
+	currentPanelHeight = panelHeight
+
 	local panelGlass = MangoGlassFrame.new({
-		Size = UDim2.new(1, 0, 0, panelHeight),
-		Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP),
+		Size = UDim2.new(0, math.max(size.X.Offset, 200), 0, panelHeight),
+		Position = UDim2.new(0, 0, 0, 0),
 		CornerRadius = UDim.new(0, 12),
 		BackgroundTransparency = dropdownBgTransparency - 0.05,
 		Theme = theme,
@@ -8685,9 +8707,10 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		ShadowSpread = 6,
 		ShadowOffsetY = 2,
 		LightweightMode = true,
-		Parent = container,
+		Parent = overlayGui,
 	})
 	panelGlass.Container.Visible = false
+	panelGlass.Container.ZIndex = 10
 
 	-- ScrollingFrame inside panel GlassSurface
 	local scrollFrame = Instance.new("ScrollingFrame")
@@ -8877,35 +8900,22 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #items * itemHeight)
 		scrollFrame.ScrollBarThickness = if #items > maxVisibleItems then 4 else 0
 
-		-- Update panel height
+		-- Update panel height (stored for next open, live-update if currently open)
 		local newPanelItemCount = math.min(#items, maxVisibleItems)
 		local newPanelHeight = newPanelItemCount * itemHeight + 8
-		panelGlass.Container.Size = UDim2.new(1, 0, 0, newPanelHeight)
+		currentPanelHeight = newPanelHeight
+		local curW = panelGlass.Container.Size.X.Offset
+		if curW > 0 then
+			panelGlass.Container.Size = UDim2.new(0, curW, 0, newPanelHeight)
+		end
 	end
 
 	-- === Open / Close ===
-	-- Panel reparents to a dedicated overlay ScreenGui (DisplayOrder=200)
-	-- to escape all clipping parents. Positioned via trigger AbsolutePosition.
-	-- Close is instant (standard dropdown behavior) to avoid animation race conditions.
-
-	local function destroyOverlay()
-		if clickBlocker then
-			clickBlocker:Destroy()
-			clickBlocker = nil
-		end
-		if overlayGui then
-			overlayGui:Destroy()
-			overlayGui = nil
-		end
-	end
-
-	local function restorePanel()
-		-- Move panel back into container so buildItems/SetItems work correctly
-		panelGlass.Container.Visible = false
-		panelGlass.Container.Parent = container
-		panelGlass.Container.Position = UDim2.new(0, 0, 0, triggerHeightOffset + PANEL_GAP)
-		panelGlass.Container.Size = UDim2.new(1, 0, 0, panelGlass.Container.Size.Y.Offset)
-	end
+	-- Panel lives permanently in overlayGui (DisplayOrder=200) to escape all
+	-- ClipsDescendants ancestors. No per-open reparenting or task.wait() needed.
+	-- Position set from trigger AbsolutePosition BEFORE Visible=true (no flash).
+	-- Uses triggerHeightOffset (known constant) instead of AbsoluteSize.Y to
+	-- avoid stale layout reads. Follows LinoriaLib/Fluent pattern.
 
 	closeDropdown = function()
 		if not isOpen then
@@ -8926,9 +8936,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 			positionTrackConn = nil
 		end
 
-		-- Instant close: restore panel to container immediately, destroy overlay
-		restorePanel()
-		destroyOverlay()
+		-- Hide panel + blocker (instant close, no animation)
+		panelGlass.Container.Visible = false
+		clickBlocker.Visible = false
 	end
 
 	local function openDropdown()
@@ -8938,49 +8948,22 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		isOpen = true
 		cancelAllTweens()
 
-		-- Create dedicated overlay ScreenGui
-		overlayGui = MangoProtection.createScreenGui({
-			DisplayOrder = 200,
-		})
-
-		-- Click blocker (fills overlay, catches outside clicks)
-		local blocker = Instance.new("TextButton")
-		blocker.Name = MangoProtection.randomName("Blocker")
-		blocker.Size = UDim2.new(1, 0, 1, 0)
-		blocker.BackgroundTransparency = 1
-		blocker.Text = ""
-		blocker.ZIndex = 1
-		blocker.AutoButtonColor = false
-		blocker.Parent = overlayGui
-		clickBlocker = blocker
-
-		blocker.MouseButton1Click:Connect(function()
-			if isDestroyed then return end
-			closeDropdown()
-		end)
-
-		-- Yield one frame so Roblox computes layout for the new ScreenGui
-		-- and ensures trigger AbsolutePosition/AbsoluteSize are up-to-date
-		task.wait()
-		if not isOpen or isDestroyed then return end
-
 		-- Read trigger screen position for panel placement
 		local triggerAbsPos = triggerGlass.Container.AbsolutePosition
 		local triggerAbsSize = triggerGlass.Container.AbsoluteSize
-		local panelH = panelGlass.Container.Size.Y.Offset
+		local triggerW = math.max(triggerAbsSize.X, size.X.Offset)
 
-		-- Defensive: if AbsoluteSize.Y is unexpectedly small (stale layout),
-		-- fall back to the known trigger height offset
-		local triggerH = if triggerAbsSize.Y >= 10 then triggerAbsSize.Y else triggerHeightOffset
-
-		-- Reparent panel to overlay
-		panelGlass.Container.Parent = overlayGui
+		-- Position panel below trigger — uses triggerHeightOffset (the known
+		-- configured height constant) instead of AbsoluteSize.Y to avoid
+		-- stale layout values
 		panelGlass.Container.Position = UDim2.new(
 			0, triggerAbsPos.X,
-			0, triggerAbsPos.Y + triggerH + PANEL_GAP
+			0, triggerAbsPos.Y + triggerHeightOffset + PANEL_GAP
 		)
-		panelGlass.Container.Size = UDim2.new(0, math.max(triggerAbsSize.X, size.X.Offset), 0, panelH)
-		panelGlass.Container.ZIndex = 10
+		panelGlass.Container.Size = UDim2.new(0, triggerW, 0, currentPanelHeight)
+
+		-- Show blocker + panel (position already set, no flash)
+		clickBlocker.Visible = true
 		panelGlass.Container.Visible = true
 
 		-- Track trigger position so panel follows window drag/scroll
@@ -8991,11 +8974,9 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		positionTrackConn = triggerGlass.Container:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 			if not isOpen or isDestroyed then return end
 			local newPos = triggerGlass.Container.AbsolutePosition
-			local newAbsSize = triggerGlass.Container.AbsoluteSize
-			local newH = if newAbsSize.Y >= 10 then newAbsSize.Y else triggerHeightOffset
 			panelGlass.Container.Position = UDim2.new(
 				0, newPos.X,
-				0, newPos.Y + newH + PANEL_GAP
+				0, newPos.Y + triggerHeightOffset + PANEL_GAP
 			)
 		end)
 
@@ -9079,24 +9060,22 @@ function module.new(config: Types.MangoDropdownConfig): Types.MangoDropdown
 		Destroy = function(self: Types.MangoDropdown)
 			if isDestroyed then return end
 			isDestroyed = true
-			-- Close and clean up overlay
-			if isOpen then
-				isOpen = false
-				if positionTrackConn then
-					positionTrackConn:Disconnect()
-					positionTrackConn = nil
-				end
+			-- Disconnect position tracking
+			if positionTrackConn then
+				positionTrackConn:Disconnect()
+				positionTrackConn = nil
 			end
+			isOpen = false
 			cancelAllTweens()
 			cancelItemHoverTweens()
 			clearItemConnections()
-			destroyOverlay()
 			for _, conn in connections do
 				conn:Disconnect()
 			end
 			table.clear(connections)
 			triggerGlass:Destroy()
 			panelGlass:Destroy()
+			overlayGui:Destroy()
 			container:Destroy()
 		end,
 	}
